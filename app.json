@@ -35,7 +35,10 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "router": {
+        "debug": false
+      }
     }
   }
 }
