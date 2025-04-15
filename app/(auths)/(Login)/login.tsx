@@ -9,12 +9,12 @@
 
     const LoginScreen = () => {
       const [loginMethod, setLoginMethod] = useState("email")
-      const router = useRouter() // ✅ Khởi tạo router
+      const router = useRouter() // ✅ Khởi tạo router  
       const handleLoginPressEmail = () => {
-        router.push('/auth/Login/loginEmail'); // ✅ Điều hướng đến trang login
+        router.push('/(auths)/(Login)/loginEmail'); // ✅ Điều hướng đến trang login
       };
       const handleLoginPressPhone = () => {
-        router.push('/auth/Login/loginPhone'); // ✅ Điều hướng đến trang login
+        router.push('/(auths)/(Login)/loginPhone'); // ✅ Điều hướng đến trang login
       };
 
       return (
@@ -45,11 +45,6 @@
                       <Text style={styles.optionText}>Số điện thoại</Text>
                     </TouchableOpacity>
                   </View>
-
-                  <TouchableOpacity style={styles.loginButton}>
-                    <Text style={styles.loginButtonText}>Đăng nhập</Text>
-                  </TouchableOpacity>
-
                   <View style={styles.dividerContainer}>
                     <View style={styles.divider} />
                     <Text style={styles.dividerText}>Hoặc đăng nhập bằng</Text>

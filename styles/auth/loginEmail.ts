@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "100%", // Full width
-    height: "70%",
+    height: "80%",
     backgroundColor: "white",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
@@ -107,7 +107,6 @@ const styles = StyleSheet.create({
   socialButton: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     width: "100%",
     height: 50,
     backgroundColor: "white",
@@ -115,13 +114,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: "#ddd",
+    paddingHorizontal: 15, // Add padding to control left spacing
   },
   socialIcon: {
-    marginRight: 10,
+    marginRight: 10, // Space between icon and text
   },
   socialButtonText: {
     fontSize: 16,
     color: "#333",
+    flex: 1, // Take remaining space
+    textAlign: "center", // Center the text horizontally
   },
   // New styles for email login
   emailLoginContainer: {
@@ -154,6 +156,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: "#007AFF",
     fontSize: 14,
+    paddingLeft:200
   },
   registerContainer: {
     flexDirection: "row",

@@ -3,7 +3,6 @@
 import { useState, useRef } from "react"
 import { View, Text, TouchableOpacity, Image, SafeAreaView, ImageBackground, StatusBar, TextInput } from "react-native"
 import { Stack, useLocalSearchParams, router } from "expo-router"
-import styles from "../../../styles/auth/verifyPhone"
 
 const VerifyPhoneScreen = () => {
   const { phoneNumber } = useLocalSearchParams()
@@ -24,56 +23,66 @@ const VerifyPhoneScreen = () => {
   }
 
   const handleCodeChange = (text, index) => {
-    // Update the code at the current index
     const newCode = [...verificationCode]
     newCode[index] = text
 
     setVerificationCode(newCode)
 
-    // Auto-focus to next input if current input is filled
     if (text && index < 5) {
       inputRefs.current[index + 1].focus()
     }
   }
 
   const handleKeyPress = (e, index) => {
-    // Move to previous input on backspace if current input is empty
     if (e.nativeEvent.key === "Backspace" && !verificationCode[index] && index > 0) {
       inputRefs.current[index - 1].focus()
     }
   }
 
   const handleContinue = () => {
-    // Validate and proceed with verification
     const code = verificationCode.join("")
     if (code.length === 6) {
-      // Here you would verify the code with your backend
-      // For now, just navigate to the next screen
       router.push("/(tabs)/homepage")
     }
   }
 
+  // Kiểm tra xem mã OTP đã đủ 6 chữ số chưa
+  const isCodeComplete = verificationCode.join("").length === 6
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ImageBackground source={require("../../../assets/images/BackGroud.png")} style={styles.backgroundImage}>
+      <ImageBackground
+        source={require("../../../assets/images/BackGroud.png")}
+        className="flex-1 w-full h-full"
+      >
         <StatusBar translucent backgroundColor="transparent" />
-        <SafeAreaView style={styles.container}>
-          <View style={styles.content}>
-            <Image source={require("../../../assets/images/imagLogo.png")} style={styles.logo} resizeMode="contain" />
+        <SafeAreaView className="flex-1 w-full">
+          <View className="flex-1 items-center w-full pt-20">
+            <Image
+              source={require("../../../assets/images/imagLogo.png")}
+              className="w-1/2 h-[15%] mb-5"
+              resizeMode="contain"
+            />
 
-            <View style={styles.formContainer}>
-              <Text style={styles.title}>Xác thực số điện thoại của bạn</Text>
-              <Text style={styles.subtitle}>Vui lòng nhập mã xác nhận vừa gửi qua SĐT</Text>
+            <View className="w-full h-3/4 bg-white rounded-t-3xl px-6 pt-6 pb-5 items-center shadow-md mt-auto">
+              <Text className="text-xl font-bold mb-2 text-black text-center">
+                Xác thực số điện thoại của bạn
+              </Text>
+              <Text className="text-sm text-gray-600 text-center mb-2">
+                Vui lòng nhập mã xác nhận vừa gửi qua SĐT
+              </Text>
 
-              <Text style={styles.phoneNumber}>{formatPhoneNumber(phoneNumber)}</Text>
+              <Text className="text-base text-[#FF5722] font-medium mb-6">
+                {formatPhoneNumber(phoneNumber)}
+              </Text>
 
-              <View style={styles.codeInputContainer}>
+              <View className="flex-row justify-between w-full px-5 mb-8">
                 {verificationCode.map((digit, index) => (
                   <TextInput
                     key={index}
                     ref={(ref) => (inputRefs.current[index] = ref)}
-                    style={styles.codeInput}
+                    className="w-10 h-12 border border-gray-300 rounded-lg text-center text-lg text-gray-800"
                     value={digit}
                     onChangeText={(text) => handleCodeChange(text, index)}
                     onKeyPress={(e) => handleKeyPress(e, index)}
@@ -84,8 +93,19 @@ const VerifyPhoneScreen = () => {
                 ))}
               </View>
 
-              <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                <Text style={styles.continueButtonText}>Tiếp tục</Text>
+              <TouchableOpacity
+                className={`w-full h-12 rounded-3xl justify-center items-center mt-2 ${
+                  isCodeComplete ? "bg-[#FF5722]" : "bg-gray-300"
+                }`}
+                onPress={handleContinue}
+              >
+                <Text
+                  className={`text-base font-bold ${
+                    isCodeComplete ? "text-white" : "text-gray-600"
+                  }`}
+                >
+                  Tiếp tục
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

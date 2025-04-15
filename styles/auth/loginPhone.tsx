@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "100%",
-    height: "70%",
+    height: "75%",
     backgroundColor: "white",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
@@ -94,14 +94,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  forgotPasswordContainer: {
-    alignSelf: "flex-end",
-    marginBottom: 20,
-  },
-  forgotPasswordText: {
-    color: "#007AFF",
-    fontSize: 14,
-  },
+  
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",

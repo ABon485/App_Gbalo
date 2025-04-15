@@ -1,8 +1,6 @@
-import { StyleSheet, Dimensions } from "react-native"
+import { StyleSheet, Dimensions } from "react-native";
 
-
-const { width, height } = Dimensions.get("window")
-
+const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   backgroundImage: {
@@ -19,8 +17,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     paddingTop: 80,
-    paddingBottom: 0, // No bottom padding
-    justifyContent: "space-between", // This will push content to top and bottom
+    paddingBottom: 0,
+    justifyContent: "space-between",
   },
   logo: {
     width: width * 2,
@@ -28,22 +26,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   formContainer: {
-    width: "100%", // Full width
-    height:"70%",
+    width: "100%",
+    height: "75%",
     backgroundColor: "white",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    borderBottomLeftRadius: 0, // Remove bottom radius
-    borderBottomRightRadius: 0, // Remove bottom radius
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     paddingHorizontal: 15,
-    paddingTop: 15,
-    paddingBottom: 20, // Add some padding at the bottom for content
+    paddingTop: 15  ,
+    paddingBottom: 20,
     alignItems: "center",
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    marginTop: "auto", // Push to bottom
+    marginTop: "auto",
   },
   title: {
     fontSize: 24,
@@ -74,27 +72,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     flex: 1,
-    textAlign:"center"  ,
-  },
-  loginButton: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#FF5722",
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  loginButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+    textAlign: "center",
+    paddingRight:40,
   },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginVertical: 10,
+    marginVertical: 15,
   },
   divider: {
     flex: 1,
@@ -109,7 +94,6 @@ const styles = StyleSheet.create({
   socialButton: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     width: "100%",
     height: 50,
     backgroundColor: "white",
@@ -117,13 +101,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: "#ddd",
+    paddingHorizontal: 15, // Thêm padding để icon không sát mép
   },
   socialIcon: {
-    marginRight: 10,
+    // Không cần marginRight vì icon sẽ nằm sát trái
   },
   socialButtonText: {
     fontSize: 16,
     color: "#333",
+    flex: 1, // Chiếm toàn bộ không gian còn lại
+    textAlign: "center", // Căn giữa chữ
   },
   registerContainer: {
     flexDirection: "row",
@@ -140,7 +127,6 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     fontWeight: "bold",
   },
-})
+});
 
-
-export default styles
+export default styles;

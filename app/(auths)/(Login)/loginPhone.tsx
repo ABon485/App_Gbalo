@@ -25,7 +25,7 @@ const LoginScreen = () => {
     // Navigate to verification screen with phone number
     if (phoneNumber) {
       router.push({
-        pathname: "/auth/Login/verify-phone",
+        pathname: "/(auths)/(Login)/verify-phone",
         params: { phoneNumber },
       })
     }
@@ -60,10 +60,6 @@ const LoginScreen = () => {
 
               <TouchableOpacity style={styles.loginButton} onPress={handleContinue}>
                 <Text style={styles.loginButtonText}>Tiếp tục</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.forgotPasswordContainer}>
-                <Text style={styles.forgotPasswordText}>Quên mật khẩu</Text>
               </TouchableOpacity>
 
               <View style={styles.dividerContainer}>
