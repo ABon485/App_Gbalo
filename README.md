@@ -15,6 +15,11 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
     npx expo start
    ```
+3. Install libraries
+   ```bash
+   npx expo install @react-native-community/datetimepicker
+   npm install nativewind
+
 
 In the output, you'll find options to open the app in a
 

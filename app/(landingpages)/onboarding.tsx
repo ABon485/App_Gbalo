@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { View, FlatList, Dimensions, TouchableOpacity } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { router } from "expo-router";   
+import { router,Stack } from "expo-router";
 
 import Intro1 from "./intro1";
 import Intro2 from "./intro2";
@@ -34,9 +34,8 @@ const Onboarding = () => {
         animated: true,
       });
       setCurrentIndex(currentIndex + 1);
-    }
-    else {
-      // router.push("/landingpage/formIntro");
+    } else {
+      router.replace("/(screens)/welcome/welcome");
     }
   };
 
@@ -64,7 +63,7 @@ const Onboarding = () => {
           ))}
         </View>
         <TouchableOpacity
-          className="w-[50px] h-[50px] justify-center items-center rounded-ful"
+          className="w-[50px] h-[50px] justify-center items-center rounded-full"
           onPress={handleNext}
         >
           <AntDesign name="rightcircle" size={40} color="white" />
@@ -74,20 +73,23 @@ const Onboarding = () => {
   );
 
   return (
-    <View className="flex-1 bg-white">
-      <FlatList
-        ref={flatListRef}
-        data={slides}
-        renderItem={renderItem}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        keyExtractor={(item) => item.key}
-      />
-      {renderPagination()}
-    </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View className="flex-1">
+        <FlatList
+          ref={flatListRef}
+          data={slides}
+          renderItem={renderItem}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          keyExtractor={(item) => item.key}
+        />
+        {renderPagination()}
+      </View>
+    </>
   );
 };
 
