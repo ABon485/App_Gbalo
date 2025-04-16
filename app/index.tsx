@@ -10,7 +10,7 @@ export default function IndexScreen() {
     if (rootNavigationState?.key) {
       router.replace("/(landingpages)/slash");
     }
-  }, [rootNavigationState?.key]);
+  }, [rootNavigationState?.key]);  
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
