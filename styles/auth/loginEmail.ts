@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
   socialIcon: {
     marginRight: 10, // Space between icon and text
   },
+  
   socialButtonText: {
     fontSize: 16,
     color: "#333",
@@ -173,6 +174,12 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     fontWeight: "bold",
   },
+  socialIconContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,},
 })
 
 export default styles

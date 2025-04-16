@@ -15,12 +15,14 @@ import {
 import styles from "../../../styles/auth/loginEmail"
 import MaterialIcons from "react-native-vector-icons/MaterialIcons"
 import FontAwesome from "react-native-vector-icons/FontAwesome"
-import { Stack } from "expo-router"
+import { Stack,router } from "expo-router"
 
 const LoginEmail = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-
+    const handlePhoneLogin = () => {
+        router.push("/(auths)/(Login)/loginPhone")
+      }
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -71,6 +73,12 @@ const LoginEmail = () => {
                 <Text style={styles.dividerText}>Hoặc đăng nhập bằng</Text>
                 <View style={styles.divider} />
               </View>
+              <TouchableOpacity style={styles.socialButton} onPress={handlePhoneLogin}>
+                <View style={styles.socialIconContainer}>
+                  <MaterialIcons name="email" size={18} color="#FF5722" />
+                </View>
+                <Text style={styles.socialButtonText}>Tiếp tục với số điện thoại</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity style={styles.socialButton}>
                 <FontAwesome name="google" size={20} color="#DB4437" style={styles.socialIcon} />

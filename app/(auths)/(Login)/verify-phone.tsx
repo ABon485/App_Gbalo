@@ -42,7 +42,7 @@ const VerifyPhoneScreen = () => {
   const handleContinue = () => {
     const code = verificationCode.join("")
     if (code.length === 6) {
-      router.push("/(tabs)/homepage")
+      router.push("/(tabs)/assistant")
     }
   }
 
@@ -109,7 +109,7 @@ const VerifyPhoneScreen = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </SafeAreaView>
+        </SafeAreaView> 
       </ImageBackground>
     </>
   )

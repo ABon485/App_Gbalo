@@ -22,13 +22,16 @@ const LoginScreen = () => {
   const [countryCode, setCountryCode] = useState("+84")
 
   const handleContinue = () => {
-    // Navigate to verification screen with phone number
     if (phoneNumber) {
       router.push({
         pathname: "/(auths)/(Login)/verify-phone",
         params: { phoneNumber },
       })
     }
+  }
+
+  const handleEmailLogin = () => {
+    router.push("/(auths)/(Login)/loginEmail") // Navigate to email login screen
   }
 
   return (
@@ -67,6 +70,14 @@ const LoginScreen = () => {
                 <Text style={styles.dividerText}>Hoặc đăng nhập bằng</Text>
                 <View style={styles.divider} />
               </View>
+
+              {/* New Email Social Button */}
+              <TouchableOpacity style={styles.socialButton} onPress={handleEmailLogin}>
+                <View style={styles.socialIconContainer}>
+                  <MaterialIcons name="email" size={18} color="#FF5722" />
+                </View>
+                <Text style={styles.socialButtonText}>Tiếp tục với Email</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity style={styles.socialButton}>
                 <View style={styles.socialIconContainer}>
