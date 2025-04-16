@@ -40,7 +40,7 @@ const ForgotPasswordScreen = () => {
             <View className="w-full h-3/4 bg-white rounded-t-3xl px-6 pt-6 pb-5 items-center shadow-lg shadow-black/25">
               <Text className="text-2xl font-bold mb-6 text-black text-center">Quên mật khẩu</Text>
 
-              <View className="flex-row items-center w-full h-12 border border-gray-300 rounded-full mb-4 pl-1 pr-4">
+              <View className="flex-row items-center w-full h-[50px] border border-gray-300 rounded-full mb-4 pl-1 pr-4">
                 <TouchableOpacity className="flex-row items-center px-2 h-full">
                   <Text className="text-base mr-0.5 text-gray-800">{countryCode}</Text>
                   <MaterialIcons name="keyboard-arrow-down" size={18} color="#999999" />
@@ -55,7 +55,7 @@ const ForgotPasswordScreen = () => {
                 />
               </View>
 
-              <TouchableOpacity className="w-full h-12 bg-orange-500 rounded-full justify-center items-center mb-2.5" onPress={handleSendCode}>
+              <TouchableOpacity className="w-full h-[50px] bg-orange-500 rounded-full justify-center items-center mb-2.5" onPress={handleSendCode}>
                 <Text className="text-white text-base font-bold">Gửi mã xác minh</Text>
               </TouchableOpacity>
             </View>

@@ -3,8 +3,8 @@
     import { useState } from "react"
     import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, ImageBackground, StatusBar } from "react-native"
     import styles from "../../../styles/auth/loginScreen"
-    import MaterialIcons from "react-native-vector-icons/MaterialIcons"
-    import FontAwesome from "react-native-vector-icons/FontAwesome"
+    import Feather from "react-native-vector-icons/Feather"
+    import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
     import { Stack, useRouter } from "expo-router" // ✅ Thêm useRouter
 
     const LoginScreen = () => {
@@ -38,13 +38,13 @@
                       style={styles.optionButton}
                       onPress={handleLoginPressEmail} // ✅ Điều hướng đến loginEmail
                     >
-                      <MaterialIcons name="email" size={20} color="#999999" style={styles.optionIcon} />
+                      <MaterialCommunityIcons name="email-outline" size={22} color="#999999" style={styles.optionIcon} />
                       <Text style={styles.optionText}>Email</Text>
                     </TouchableOpacity>
 
                     {/* Phone button */}
                     <TouchableOpacity style={styles.optionButton} onPress={handleLoginPressPhone  }>
-                      <MaterialIcons name="phone" size={20} color="#999999" style={styles.optionIcon} />
+                      <Feather name="phone" size={20} color="#999999" style={styles.optionIcon} />
                       <Text style={styles.optionText}>Số điện thoại</Text>
                     </TouchableOpacity>
                   </View>
@@ -55,12 +55,12 @@
                   </View>
 
                   <TouchableOpacity style={styles.socialButton}>
-                    <FontAwesome name="google" size={20} color="#DB4437" style={styles.socialIcon} />
+                    <Image source={require("../../../assets/images/Google.png")} className="w-6 h-6"/>
                     <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity style={styles.socialButton}>
-                    <FontAwesome name="facebook" size={20} color="#3b5998" style={styles.socialIcon} />
+                  <Image source={require("../../../assets/images/Facebook.png")} className="w-6 h-6"/>
                     <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
                   </TouchableOpacity>
                   <View style={styles.registerContainer}>

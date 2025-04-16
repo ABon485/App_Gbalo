@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -18,9 +17,19 @@ import { DestinationCard } from "../../components/chatAI/destination-card"
 import { MessageBubble } from "../../components/chatAI/message-bubble"
 import FontAwesome from "react-native-vector-icons/FontAwesome"
 
+// ✅ Khai báo type ở đây để tránh lỗi TS
+type SenderType = "user" | "ai"
+
+interface Message {
+  id: number
+  sender: SenderType
+  text: string
+  avatar: any
+}
+
 export default function Home() {
   const [message, setMessage] = useState("")
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: "ai",
@@ -73,15 +82,13 @@ export default function Home() {
 
   const handleSend = () => {
     if (message.trim()) {
-      setMessages([
-        ...messages,
-        {
-          id: messages.length + 1,
-          sender: "user",
-          text: message,
-          avatar: require("../../assets/images/react-logo.png"),
-        },
-      ])
+      const newMessage: Message = {
+        id: messages.length + 1,
+        sender: "user",
+        text: message,
+        avatar: require("../../assets/images/react-logo.png"),
+      }
+      setMessages([...messages, newMessage])
       setMessage("")
     }
   }
@@ -91,7 +98,7 @@ export default function Home() {
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View className="h-[50px] justify-center items-center border-b border-gray-100">
+      <View className="h-[50px] mt-7 justify-center items-center border-b border-gray-100">
         <Text className="text-lg font-semibold">Trợ lý AI</Text>
       </View>
 
@@ -107,16 +114,17 @@ export default function Home() {
           ))}
 
           {/* Destination Cards - shown after the last AI message */}
-          {messages[messages.length - 2]?.sender === "ai" && messages[messages.length - 1]?.sender === "user" && (
-            <View className="flex-row mt-4 mb-2">
-              <Image source={require("../../assets/images/AI.png")} className="w-10 h-10 rounded-full mr-2" />
-              <View className="flex-1 bg-[#FFF9F2] rounded-2xl p-3 border border-[#FFE8CC]">
-                {destinations.map((destination) => (
-                  <DestinationCard key={destination.id} destination={destination} />
-                ))}
+          {messages[messages.length - 2]?.sender === "ai" &&
+            messages[messages.length - 1]?.sender === "user" && (
+              <View className="flex-row mt-4 mb-2">
+                <Image source={require("../../assets/images/AI.png")} className="w-10 h-10 rounded-full mr-2" />
+                <View className="flex-1 bg-[#FFF9F2] rounded-2xl p-3 border border-[#FFE8CC]">
+                  {destinations.map((destination) => (
+                    <DestinationCard key={destination.id} destination={destination} />
+                  ))}
+                </View>
               </View>
-            </View>
-          )}
+            )}
         </ScrollView>
 
         {/* Message Input */}
@@ -129,7 +137,7 @@ export default function Home() {
             multiline
           />
           <TouchableOpacity className="ml-2 w-10 h-10 justify-center items-center" onPress={handleSend}>
-          <FontAwesome name="send" size={20} color="#FF5722"  />
+            <FontAwesome name="send" size={20} color="#FF5722" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

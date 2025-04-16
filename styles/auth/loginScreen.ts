@@ -103,14 +103,12 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     paddingHorizontal: 15, // Thêm padding để icon không sát mép
   },
-  socialIcon: {
-    // Không cần marginRight vì icon sẽ nằm sát trái
-  },
   socialButtonText: {
     fontSize: 16,
     color: "#333",
     flex: 1, // Chiếm toàn bộ không gian còn lại
-    textAlign: "center", // Căn giữa chữ
+    textAlign: "center",
+    paddingRight: 23 // Căn giữa chữ
   },
   registerContainer: {
     flexDirection: "row",

@@ -8,13 +8,14 @@ import {
   Image,
   SafeAreaView,
   ScrollView,
-  ImageBackground,
+  ImageBackground,  
   StatusBar,
   TextInput,
 } from "react-native"
 import styles from "../../../styles/auth/loginEmail"
-import MaterialIcons from "react-native-vector-icons/MaterialIcons"
-import FontAwesome from "react-native-vector-icons/FontAwesome"
+import EvilIcons from "react-native-vector-icons/EvilIcons"
+import Feather from "react-native-vector-icons/Feather"
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import { Stack,router } from "expo-router"
 
 const LoginEmail = () => {
@@ -22,6 +23,9 @@ const LoginEmail = () => {
   const [password, setPassword] = useState("")
     const handlePhoneLogin = () => {
         router.push("/(auths)/(Login)/loginPhone")
+      }
+      const handleForgotPassword = () => {
+        router.push("/(auths)/(Login)/forgotPassword/forgot-password")
       }
   return (
     <>
@@ -37,7 +41,7 @@ const LoginEmail = () => {
 
               <View style={styles.emailLoginContainer}>
                 <View style={styles.inputField}>
-                  <MaterialIcons name="email" size={20} color="#999999" style={styles.inputIcon} />
+                  <MaterialCommunityIcons name="email-outline" size={22} color="#999999" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
                     placeholder="Địa chỉ email"
@@ -49,7 +53,7 @@ const LoginEmail = () => {
                 </View>
 
                 <View style={styles.inputField}>
-                  <MaterialIcons name="lock" size={20} color="#999999" style={styles.inputIcon} />
+                  <EvilIcons name="lock" size={30} color="#999999" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
                     placeholder="Mật khẩu"
@@ -63,9 +67,9 @@ const LoginEmail = () => {
                   <Text style={styles.loginButtonText}>Đăng nhập</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.forgotPasswordContainer}>
-                  <Text style={styles.forgotPasswordText}>Quên mật khẩu</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity style={styles.forgotPasswordContainer} onPress={handleForgotPassword}>
+                    <Text style={styles.forgotPasswordText}>Quên mật khẩu</Text>
+                  </TouchableOpacity>
               </View>
 
               <View style={styles.dividerContainer}>
@@ -75,18 +79,18 @@ const LoginEmail = () => {
               </View>
               <TouchableOpacity style={styles.socialButton} onPress={handlePhoneLogin}>
                 <View style={styles.socialIconContainer}>
-                  <MaterialIcons name="email" size={18} color="#FF5722" />
+                  <Feather name="phone" size={20} color="gray" />
                 </View>
                 <Text style={styles.socialButtonText}>Tiếp tục với số điện thoại</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.socialButton}>
-                <FontAwesome name="google" size={20} color="#DB4437" style={styles.socialIcon} />
+              <Image source={require("../../../assets/images/Google.png")} className="w-6 h-6"/>
                 <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.socialButton}>
-                <FontAwesome name="facebook" size={20} color="#3b5998" style={styles.socialIcon} />
+              <Image source={require("../../../assets/images/Facebook.png")} className="w-6 h-6"/>
                 <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
               </TouchableOpacity>
 

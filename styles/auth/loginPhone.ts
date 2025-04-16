@@ -135,7 +135,7 @@
       color: "#333",
       flex: 1,
       textAlign: "center",
-      marginRight: 24, // To center the text accounting for the icon width
+      paddingRight:40
     },
     registerContainer: {
       flexDirection: "row",

@@ -3,14 +3,17 @@
 import { useState, useRef } from "react"
 import { View, Text, TouchableOpacity, Image, SafeAreaView, ImageBackground, StatusBar, TextInput } from "react-native"
 import { Stack, useLocalSearchParams, router } from "expo-router"
+import type { TextInput as RNTextInput } from "react-native"
 
 const VerifyPhoneScreen = () => {
   const { phoneNumber } = useLocalSearchParams()
   const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""])
-  const inputRefs = useRef([])
+
+  // 👇 Fix 1: Khai báo rõ kiểu của ref
+  const inputRefs = useRef<Array<RNTextInput | null>>([])
 
   // Format phone number to display with asterisks
-  const formatPhoneNumber = (phone) => {
+  const formatPhoneNumber = (phone: string | string[] | undefined) => {
     if (!phone) return ""
     const phoneStr = String(phone)
     if (phoneStr.length <= 4) return phoneStr
@@ -22,20 +25,20 @@ const VerifyPhoneScreen = () => {
     return `${firstPart}${middlePart}${lastPart}`
   }
 
-  const handleCodeChange = (text, index) => {
+  // 👇 Fix 2: Gán kiểu cho index
+  const handleCodeChange = (text: string, index: number) => {
     const newCode = [...verificationCode]
     newCode[index] = text
-
     setVerificationCode(newCode)
 
-    if (text && index < 5) {
-      inputRefs.current[index + 1].focus()
+    if (text && index < 5 && inputRefs.current[index + 1]) {
+      inputRefs.current[index + 1]?.focus()
     }
   }
 
-  const handleKeyPress = (e, index) => {
+  const handleKeyPress = (e: any, index: number) => {
     if (e.nativeEvent.key === "Backspace" && !verificationCode[index] && index > 0) {
-      inputRefs.current[index - 1].focus()
+      inputRefs.current[index - 1]?.focus()
     }
   }
 
@@ -46,7 +49,6 @@ const VerifyPhoneScreen = () => {
     }
   }
 
-  // Kiểm tra xem mã OTP đã đủ 6 chữ số chưa
   const isCodeComplete = verificationCode.join("").length === 6
 
   return (
@@ -94,22 +96,20 @@ const VerifyPhoneScreen = () => {
               </View>
 
               <TouchableOpacity
-                className={`w-full h-12 rounded-3xl justify-center items-center mt-2 ${
-                  isCodeComplete ? "bg-[#FF5722]" : "bg-gray-300"
-                }`}
+                className={`w-full h-12 rounded-3xl justify-center items-center mt-2 ${isCodeComplete ? "bg-[#FF5722]" : "bg-gray-300"
+                  }`}
                 onPress={handleContinue}
               >
                 <Text
-                  className={`text-base font-bold ${
-                    isCodeComplete ? "text-white" : "text-gray-600"
-                  }`}
+                  className={`text-base font-bold ${isCodeComplete ? "text-white" : "text-gray-600"
+                    }`}
                 >
                   Tiếp tục
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
-        </SafeAreaView> 
+        </SafeAreaView>
       </ImageBackground>
     </>
   )
