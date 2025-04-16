@@ -20,7 +20,7 @@ const VerifyPhoneForgotPasswordScreen = () => {
     const [otpError, setOtpError] = useState(false)
 
     // Handle OTP input change
-    const handleOtpChange = (value, index) => {
+    const handleOtpChange = (value: string, index: number) => {
         const newOtp = [...otp]
         newOtp[index] = value
         setOtp(newOtp)
