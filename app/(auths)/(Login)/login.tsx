@@ -16,6 +16,9 @@
       const handleLoginPressPhone = () => {
         router.push('/(auths)/(Login)/loginPhone'); // ✅ Điều hướng đến trang login
       };
+      const handleRegister = () => {
+        router.replace("/(auths)/(register)/Register")
+      }
 
       return (
         <>
@@ -62,7 +65,7 @@
                   </TouchableOpacity>
                   <View style={styles.registerContainer}>
                     <Text style={styles.registerText}>Bạn chưa có tài khoản? </Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={handleRegister}>
                       <Text style={styles.registerLink}>Đăng ký</Text>
                     </TouchableOpacity>
                   </View>
