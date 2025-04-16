@@ -9,8 +9,9 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   container: {
-    flex: 1,
+    flex: 1,  
     width: "100%",
+
   },
   scrollContainer: {
     flexGrow: 1,
@@ -125,6 +126,7 @@ const styles = StyleSheet.create({
     color: "#333",
     flex: 1, // Take remaining space
     textAlign: "center", // Center the text horizontally
+    paddingRight:25
   },
   // New styles for email login
   emailLoginContainer: {
@@ -154,10 +156,11 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 10,
   },
-  forgotPasswordText: {
+  forgotPasswordText: { 
     color: "#007AFF",
     fontSize: 14,
-    paddingLeft:200
+    paddingLeft:200,
+    textDecorationLine: 'underline',
   },
   registerContainer: {
     flexDirection: "row",

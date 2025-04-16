@@ -91,7 +91,7 @@ export default function Home() {
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View className="h-[50px] justify-center items-center border-b border-gray-100">
+      <View className="h-[50px] mt-7 justify-center items-center border-b border-gray-100">
         <Text className="text-lg font-semibold">Trợ lý AI</Text>
       </View>
 

@@ -13,8 +13,8 @@ import {
   TextInput,
 } from "react-native"
 import styles from "../../../styles/auth/loginPhone"
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import MaterialIcons from "react-native-vector-icons/MaterialIcons"
-import FontAwesome from "react-native-vector-icons/FontAwesome"
 import { Stack, router } from "expo-router"
 
 const LoginScreen = () => {
@@ -74,21 +74,21 @@ const LoginScreen = () => {
               {/* New Email Social Button */}
               <TouchableOpacity style={styles.socialButton} onPress={handleEmailLogin}>
                 <View style={styles.socialIconContainer}>
-                  <MaterialIcons name="email" size={18} color="#FF5722" />
+                  <MaterialCommunityIcons name="email-outline" size={20} color="gray" />
                 </View>
                 <Text style={styles.socialButtonText}>Tiếp tục với Email</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.socialButton}>
                 <View style={styles.socialIconContainer}>
-                  <FontAwesome name="google" size={18} color="#DB4437" />
+                <Image source={require("../../../assets/images/Google.png")} className="w-6 h-6"/>
                 </View>
                 <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.socialButton}>
                 <View style={styles.socialIconContainer}>
-                  <FontAwesome name="facebook" size={18} color="#3b5998" />
+                <Image source={require("../../../assets/images/Facebook.png")} className="w-6 h-6"/>
                 </View>
                 <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
               </TouchableOpacity>

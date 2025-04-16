@@ -28,11 +28,7 @@ export default function ProfileScreen() {
     <SafeAreaView className="flex-1 bg-gray-100">
       <StatusBar barStyle="dark-content" />
       <ScrollView className="flex-1">
-        <View className="px-5 py-3">
-          <Text className="text-xl font-bold text-black">Hồ sơ</Text>
-        </View>
-
-        <View className="bg-white rounded-3xl mx-4 mb-4 p-5">
+        <View className="bg-white rounded-3xl mx-4 mb-4 p-5 mt-10">
           <Text className="text-xl font-bold text-black mb-4">Hồ sơ</Text>
 
           <View className="flex-row items-center mb-4">
