@@ -11,7 +11,7 @@ export default function ProfileScreen() {
   }
 
   const handleRegister = () => {
-    router.push("/(auths)/(register)/Register")
+    router.replace("/(auths)/(register)/Register")
   }
 
   const menuItems = [

@@ -55,7 +55,7 @@ const Welcome = () => {
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-white px-5 pt-12">
         <View className="flex-row items-center mt-2.5">
-          <TouchableOpacity onPress={() => router.replace("/(landingpages)/onboarding")}>
+          <TouchableOpacity onPress={() => router.replace("./onboarding")}>
             <AntDesign name="arrowleft" size={24} color="black" />
           </TouchableOpacity>
           <View className="w-4/5 flex-row h-2 bg-gray-300 rounded ml-4 overflow-hidden">
