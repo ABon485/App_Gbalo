@@ -10,15 +10,16 @@ import {
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 
-export default function Register() {
+export default function RegisterEmail() {
   const router = useRouter();
 
   const handleLogin = () => {
     router.push("/(auths)/(Login)/login");
   };
-  const handleRegisterEmail = () => {
-    router.push("/(auths)/(register)/RegisterEmail");
+  const VerifyPhone = () => {
+    router.push("/(auths)/(register)/veryfyPhone");
   };
+
   return (
     <>
       <Stack.Screen
@@ -27,11 +28,14 @@ export default function Register() {
       />
       <ImageBackground
         source={require("../../../assets/images/BackGroud.png")}
-        style={{ flex: 1, width: "100%", height: "100%" }}
+        style={{ flex: 1, width: "100%", minHeight: "100%" }}
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          className="bg-white pt-12"
+        >
           {/* Logo */}
-          <View className="items-center mb-28">
+          <View className="items-center mb-40 mt-1">
             <Image
               source={require("../../../assets/images/imagLogo.png")}
               resizeMode="contain"
@@ -42,20 +46,15 @@ export default function Register() {
           <View className="bg-white rounded-t-3xl px-6 py-4 shadow-md">
             <Text className="text-2xl font-bold text-center mb-4">Đăng ký</Text>
 
-            {/* Quốc gia/Khu vực + Số điện thoại */}
-            <View className="border border-gray-300 rounded-xl overflow-hidden mb-4">
-              <View className="px-4 pt-3 pb-1 border-b border-gray-200">
-                <Text className="text-sm font-semibold">Quốc gia/Khu vực</Text>
-                <Text className="text-base mt-1">Việt Nam (+84)</Text>
-              </View>
-              <TextInput
-                placeholder="Số điện thoại"
-                keyboardType="phone-pad"
-                className="px-4 py-3 text-base text-gray-800"
-              />
-            </View>
+            <Text className="font-semibold">
+              Email <Text className="text-red-500">*</Text>
+            </Text>
+            <TextInput
+              placeholder="Nhập email"
+              keyboardType="email-address"
+              className="border border-gray-300 rounded-full px-4 py-2 mt-1 mb-4"
+            />
 
-            {/* Mô tả xác nhận */}
             <Text className="text-xs text-gray-500 mb-4">
               Chúng tôi sẽ gọi điện hoặc nhắn tin cho bạn để xác nhận số điện
               thoại. Có áp dụng phí dữ liệu và phí tin nhắn tiêu chuẩn.
@@ -68,7 +67,7 @@ export default function Register() {
             {/* Tiếp tục */}
             <TouchableOpacity
               className="bg-orange-600 rounded-full py-3 items-center mb-4"
-              onPress={handleRegisterEmail}
+              onPress={VerifyPhone}
             >
               <Text className="text-white font-semibold text-base">
                 Tiếp tục
