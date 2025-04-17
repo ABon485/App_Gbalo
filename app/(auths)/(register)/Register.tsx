@@ -43,13 +43,39 @@ export default function Register() {
 
           {/* Form */}
           <View className="bg-white rounded-t-3xl px-6 py-4 shadow-md">
-            <Text className="text-2xl font-bold text-center mb-4">Đăng ký</Text>
+            <Text
+              style={{
+                fontFamily: "Mulish-ExtraBold",
+                fontSize: 30,
+                color: "black",
+                textAlign: "center",
+                margin: 10,
+              }}
+            >
+              Đăng ký
+            </Text>
 
             {/* Quốc gia/Khu vực + Số điện thoại */}
             <View className="border border-gray-300 rounded-xl overflow-hidden mb-4">
               <View className="px-4 pt-3 pb-1 border-b border-gray-200">
-                <Text className="text-sm font-semibold">Quốc gia/Khu vực</Text>
-                <Text className="text-base mt-1">Việt Nam (+84)</Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter-ExtraBold",
+                    fontSize: 13,
+                    color: "black",
+                  }}
+                >
+                  Quốc gia/Khu vực
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter-Extra",
+                    fontSize: 15,
+                    color: "black",
+                  }}
+                >
+                  Việt Nam (+84)
+                </Text>
               </View>
               <TextInput
                 placeholder="Số điện thoại"
@@ -59,7 +85,14 @@ export default function Register() {
             </View>
 
             {/* Mô tả xác nhận */}
-            <Text className="text-xs text-gray-500 mb-4">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 10,
+                color: "black",
+                marginBottom: 13,
+              }}
+            >
               Chúng tôi sẽ gọi điện hoặc nhắn tin cho bạn để xác nhận số điện
               thoại. Có áp dụng phí dữ liệu và phí tin nhắn tiêu chuẩn.
               <Text className="text-blue-500 underline">
@@ -69,15 +102,20 @@ export default function Register() {
             </Text>
 
             {/* Tiếp tục */}
-            <CustomButtonRN
-              title="Tiếp tục"
-              onPress={handleRegisterEmail}
-            />
+            <CustomButtonRN title="Tiếp tục" onPress={handleRegisterEmail} />
 
             {/* Divider */}
             <View className="flex-row items-center my-4">
               <View className="flex-1 h-px bg-gray-300" />
-              <Text className="mx-2 text-gray-500">Hoặc</Text>
+              <Text
+                style={{
+                  fontFamily: "Inter-Extra",
+                  fontSize: 16,
+                  color: "black",
+                }}
+              >
+                Hoặc
+              </Text>
               <View className="flex-1 h-px bg-gray-300" />
             </View>
 

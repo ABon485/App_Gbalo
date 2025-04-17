@@ -84,14 +84,22 @@ const Hobbies = () => {
           <TouchableOpacity onPress={() => router.replace("/welcome/date")}>
             <AntDesign name="arrowleft" size={24} color="black" />
           </TouchableOpacity>
-          <View className="w-4/5 flex-row h-2 bg-gray-300 rounded ml-4 overflow-hidden">
+          <View className="w-4/5 flex-row h-1.5 bg-gray-300 rounded ml-4 overflow-hidden">
             <View className="w-[100%] bg-orange-500" />
             <View className="flex-1" />
           </View>
         </View>
 
         {/* Title */}
-        <Text className="text-xl font-bold mt-10 mb-4">
+        <Text
+          style={{
+            fontFamily: "Mulish-ExtraBold",
+            fontSize: 24,
+            color: "black",
+            marginTop: 40,
+            marginBottom: 30,
+          }}
+        >
           Sở thích du lịch của bạn là gì?
         </Text>
 
@@ -108,7 +116,16 @@ const Hobbies = () => {
                   className="w-6 h-6"
                   resizeMode="contain"
                 />
-                <Text className="text-base font-medium ml-4">{item.title}</Text>
+                <Text
+                  style={{
+                    fontFamily: "Mulish-Extra",
+                    fontSize: 16,
+                    color: "black",
+                    marginLeft: 14,
+                  }}
+                >
+                  {item.title}
+                </Text>
               </TouchableOpacity>
             ))}
 
@@ -125,7 +142,7 @@ const Hobbies = () => {
         </View>
 
         {/* Finish Button */}
-        <View className="pb-6">
+        <View className="pb-16">
           <CustomButtonRN
             title="Tiếp tục"
             onPress={() => router.replace("/(tabs)/assistant")}

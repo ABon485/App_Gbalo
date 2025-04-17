@@ -44,9 +44,25 @@ export default function RegisterEmail() {
 
           {/* Form */}
           <View className="bg-white rounded-t-3xl px-6 py-4 shadow-md">
-            <Text className="text-2xl font-bold text-center mb-4">Đăng ký</Text>
+            <Text
+              style={{
+                fontFamily: "Mulish-ExtraBold",
+                fontSize: 30,
+                color: "black",
+                textAlign: "center",
+                margin: 5,
+              }}
+            >
+              Đăng ký
+            </Text>
 
-            <Text className="font-semibold">
+            <Text
+              style={{
+                fontFamily: "Mulish-ExtraBold",
+                fontSize: 16,
+                color: "black",
+              }}
+            >
               Email <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -55,7 +71,14 @@ export default function RegisterEmail() {
               className="border border-gray-300 rounded-full px-4 py-3 mt-1 mb-4"
             />
 
-            <Text className="text-xs text-gray-500 mb-4">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 10,
+                color: "black",
+                marginBottom: 13,
+              }}
+            >
               Chúng tôi sẽ gọi điện hoặc nhắn tin cho bạn để xác nhận số điện
               thoại. Có áp dụng phí dữ liệu và phí tin nhắn tiêu chuẩn.
               <Text className="text-blue-500 underline">
@@ -65,15 +88,20 @@ export default function RegisterEmail() {
             </Text>
 
             {/* Tiếp tục */}
-            <CustomButtonRN
-              title="Tiếp tục"
-              onPress={VerifyPhone}
-            />
+            <CustomButtonRN title="Tiếp tục" onPress={VerifyPhone} />
 
             {/* Divider */}
             <View className="flex-row items-center my-4">
               <View className="flex-1 h-px bg-gray-300" />
-              <Text className="mx-2 text-gray-500">Hoặc</Text>
+              <Text
+                style={{
+                  fontFamily: "Inter-Extra",
+                  fontSize: 16,
+                  color: "black",
+                }}
+              >
+                Hoặc
+              </Text>
               <View className="flex-1 h-px bg-gray-300" />
             </View>
 

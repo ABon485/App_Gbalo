@@ -55,34 +55,46 @@ const Welcome = () => {
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-white px-5 pt-12">
         <View className="flex-row items-center mt-2.5">
-          <TouchableOpacity onPress={() => router.replace("./onboarding")}>
+          <TouchableOpacity onPress={() => router.replace("/(landingpages)/onboarding")}>
             <AntDesign name="arrowleft" size={24} color="black" />
           </TouchableOpacity>
-          <View className="w-4/5 flex-row h-2 bg-gray-300 rounded ml-4 overflow-hidden">
+          <View className="w-4/5 flex-row h-1.5 bg-gray-300 rounded ml-4 overflow-hidden">
             <View className="w-[33.333333%%] bg-orange-500" />
             <View className="flex-1" />
           </View>
         </View>
 
         <View className="flex-1 pt-10">
-          <Text className="text-xl font-bold mb-2">
+          <Text
+            style={{
+              fontFamily: "Mulish-ExtraBold",
+              fontSize: 24,
+              color: "black",
+            }}
+          >
             Chào mừng bạn đến với Gbalo!
           </Text>
-          <Text className="text-sm text-gray-500 mb-7.5">
+          <Text
+            style={{ fontFamily: "Mulish-Extra", fontSize: 16, color: "black" }}
+          >
             Hoàn tất thông tin cá nhân trước khi bắt đầu
           </Text>
-          <Text className="text-xl font-bold mb-2 mt-10">Bạn đến từ đâu ?</Text>
+          <Text
+            style={{
+              fontFamily: "Mulish-ExtraBold",
+              fontSize: 24,
+              color: "black",
+              paddingTop:100,
+            }}
+          >
+            Bạn đến từ đâu ?
+          </Text>
 
           <View
-            className={`border border-gray-300 rounded-full mb-10 mt-10 overflow-hidden ${
+            className={`border border-gray-300 rounded-full mb-10 mt-20 overflow-hidden ${
               Platform.OS === "android" ? "px-2.5" : ""
             }`}
           >
-            {/* {error ? (
-              <Text className="p-4 text-red-500">{error}</Text>
-            ) : cities.length === 0 ? (
-              <Text className="p-4"></Text>
-            ) : ( */}
             <Picker
               selectedValue={selectedValue}
               onValueChange={(itemValue) => setSelectedValue(itemValue)}
@@ -98,7 +110,6 @@ const Welcome = () => {
                 />
               ))}
             </Picker>
-            {/* )} */}
           </View>
           <CustomButtonRN
             title="Tiếp tục"
