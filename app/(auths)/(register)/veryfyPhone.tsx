@@ -7,8 +7,10 @@ import {
   Image,
   ScrollView,
   Alert,
+  ImageBackground,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
+import CustomButtonRN from "@/components/common/customButtonRN";
 
 export default function VerifyPhone() {
   const router = useRouter();
@@ -48,63 +50,64 @@ export default function VerifyPhone() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        className="bg-white pt-12"
+      <ImageBackground
+        source={require("../../../assets/images/BackGroud.png")}
+        style={{ flex: 1, width: "100%", height: "100%" }}
       >
-        {/* Logo */}
-        <View className="items-center mb-40">
-          <Image
-            source={require("../../../assets/images/imagLogo.png")}
-            resizeMode="contain"
-          />
-        </View>
-
-        {/* Form container */}
-        <View className="bg-white rounded-t-3xl px-6 py-8 shadow-md">
-          <Text className="text-xl font-bold text-center mb-1">
-            Xác thực số điện thoại của bạn
-          </Text>
-          <Text className="text-center text-gray-600 mb-3">
-            Vui lòng nhập mã xác nhận vừa gửi qua SĐT
-          </Text>
-          <Text className="text-center text-red-500 font-semibold mb-4"></Text>
-
-          {/* OTP inputs */}
-          <View className="flex-row justify-center space-x-2 mb-20">
-            {otp.map((digit, index) => (
-              <TextInput
-                key={index}
-                ref={(ref) => {
-                  if (ref) inputRefs.current[index] = ref;
-                }}
-                keyboardType="numeric"
-                maxLength={1}
-                value={digit}
-                onChangeText={(text) => handleOtpChange(text, index)}
-                className="border border-gray-400 text-xl text-center w-12 h-12 rounded-md"
-              />
-            ))}
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
+          {/* Logo */}
+          <View className="items-center mb-20 mt-10">
+            <Image
+              source={require("../../../assets/images/imagLogo.png")}
+              resizeMode="contain"
+            />
           </View>
 
-          {/* Continue button */}
-          <TouchableOpacity
-            className="bg-orange-600 rounded-full py-3 items-center mb-6"
-            onPress={handleContinue}
-          >
-            <Text className="text-white font-semibold text-base">Tiếp tục</Text>
-          </TouchableOpacity>
+          {/* Form container */}
+          <View className="bg-white rounded-t-3xl px-6 py-8 shadow-md">
+            <Text className="text-xl font-bold text-center mb-1">
+              Xác thực số điện thoại của bạn
+            </Text>
+            <Text className="text-center text-gray-600 mb-3">
+              Vui lòng nhập mã xác nhận vừa gửi qua SĐT
+            </Text>
+            <Text className="text-center text-red-500 font-semibold mb-4">
+              039****267
+            </Text>
 
-          {/* Resend button */}
-          <TouchableOpacity
-            className="border border-gray-400 rounded-full py-3 items-center mb-40"
-            onPress={handleResend}
-          >
-            <Text className="text-base text-black">Gửi lại</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            {/* OTP inputs */}
+            <View className="flex-row justify-center gap-x-1 mb-20">
+              {otp.map((digit, index) => (
+                <TextInput
+                  key={index}
+                  ref={(ref) => {
+                    if (ref) inputRefs.current[index] = ref;
+                  }}
+                  keyboardType="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChangeText={(text) => handleOtpChange(text, index)}
+                  className="border border-gray-400 text-xl text-center w-12 h-12 rounded-md"
+                />
+              ))}
+            </View>
+
+            {/* Continue button */}
+            <CustomButtonRN
+              title="Tiếp tục"
+              onPress={handleContinue}
+            />
+
+            {/* Resend button */}
+            <TouchableOpacity
+              className="border border-gray-400 rounded-full py-3 items-center mb-40 mt-7"
+              onPress={handleResend}
+            >
+              <Text className="text-base text-black">Gửi lại</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </ImageBackground>
     </>
   );
 }

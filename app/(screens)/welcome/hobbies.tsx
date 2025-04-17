@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
+import CustomButtonRN from "@/components/common/customButtonRN/index";
 
 const data = [
   {
@@ -125,12 +126,10 @@ const Hobbies = () => {
 
         {/* Finish Button */}
         <View className="pb-6">
-          <TouchableOpacity
-            className="bg-orange-500 rounded-full py-4 items-center"
+          <CustomButtonRN
+            title="Tiếp tục"
             onPress={() => router.replace("/(tabs)/assistant")}
-          >
-            <Text className="text-white text-base font-bold">Hoàn thành</Text>
-          </TouchableOpacity>
+          />
         </View>
       </SafeAreaView>
     </>

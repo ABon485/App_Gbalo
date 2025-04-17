@@ -9,6 +9,7 @@ import {
 import { Stack, useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomButtonRN from "@/components/common/customButtonRN/index";
 
 const DateScreen = () => {
   const router = useRouter();
@@ -82,12 +83,10 @@ const DateScreen = () => {
           )}
 
           {/* Next button */}
-          <TouchableOpacity
-            className="bg-orange-500 rounded-full py-4 items-center"
+          <CustomButtonRN
+            title="Tiếp tục"
             onPress={() => router.replace("./hobbies")}
-          >
-            <Text className="text-white text-base font-bold">Tiếp tục</Text>
-          </TouchableOpacity>
+          />
         </View>
       </SafeAreaView>
     </>

@@ -7,8 +7,10 @@ import {
   Image,
   ScrollView,
   ImageBackground,
+  StatusBar,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
+import CustomButtonRN from "@/components/common/customButtonRN";
 
 export default function RegisterEmail() {
   const router = useRouter();
@@ -30,12 +32,10 @@ export default function RegisterEmail() {
         source={require("../../../assets/images/BackGroud.png")}
         style={{ flex: 1, width: "100%", minHeight: "100%" }}
       >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          className="bg-white pt-12"
-        >
+        <StatusBar translucent backgroundColor="transparent" />
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
           {/* Logo */}
-          <View className="items-center mb-40 mt-1">
+          <View className="items-center mb-24 mt-6">
             <Image
               source={require("../../../assets/images/imagLogo.png")}
               resizeMode="contain"
@@ -52,7 +52,7 @@ export default function RegisterEmail() {
             <TextInput
               placeholder="Nhập email"
               keyboardType="email-address"
-              className="border border-gray-300 rounded-full px-4 py-2 mt-1 mb-4"
+              className="border border-gray-300 rounded-full px-4 py-3 mt-1 mb-4"
             />
 
             <Text className="text-xs text-gray-500 mb-4">
@@ -65,14 +65,10 @@ export default function RegisterEmail() {
             </Text>
 
             {/* Tiếp tục */}
-            <TouchableOpacity
-              className="bg-orange-600 rounded-full py-3 items-center mb-4"
+            <CustomButtonRN
+              title="Tiếp tục"
               onPress={VerifyPhone}
-            >
-              <Text className="text-white font-semibold text-base">
-                Tiếp tục
-              </Text>
-            </TouchableOpacity>
+            />
 
             {/* Divider */}
             <View className="flex-row items-center my-4">
@@ -86,21 +82,21 @@ export default function RegisterEmail() {
               <Image
                 source={require("../../../assets/images/social/Phone.png")}
               />
-              <Text className="ml-20">Tiếp tục với số điện thoại</Text>
+              <Text className="ml-16">Tiếp tục với số điện thoại</Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
               <Image
                 source={require("../../../assets/images/social/Google.png")}
               />
-              <Text className="ml-20">Tiếp tục với Google</Text>
+              <Text className="ml-16">Tiếp tục với Google</Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4">
               <Image
                 source={require("../../../assets/images/social/Facebook.png")}
               />
-              <Text className="ml-20">Tiếp tục với Facebook</Text>
+              <Text className="ml-16">Tiếp tục với Facebook</Text>
             </TouchableOpacity>
 
             {/* Login link */}
