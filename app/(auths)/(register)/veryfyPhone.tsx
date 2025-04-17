@@ -65,13 +65,33 @@ export default function VerifyPhone() {
 
           {/* Form container */}
           <View className="bg-white rounded-t-3xl px-6 py-8 shadow-md">
-            <Text className="text-xl font-bold text-center mb-1">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 24,
+                color: "black",
+              }}
+            >
               Xác thực số điện thoại của bạn
             </Text>
-            <Text className="text-center text-gray-600 mb-3">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 16,
+                color: "black",
+              }}
+            >
               Vui lòng nhập mã xác nhận vừa gửi qua SĐT
             </Text>
-            <Text className="text-center text-red-500 font-semibold mb-4">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 16,
+                textAlign:"center",
+                color: "red",
+                marginBottom: 15,
+              }}
+            >
               039****267
             </Text>
 
@@ -93,10 +113,7 @@ export default function VerifyPhone() {
             </View>
 
             {/* Continue button */}
-            <CustomButtonRN
-              title="Tiếp tục"
-              onPress={handleContinue}
-            />
+            <CustomButtonRN title="Tiếp tục" onPress={handleContinue} />
 
             {/* Resend button */}
             <TouchableOpacity

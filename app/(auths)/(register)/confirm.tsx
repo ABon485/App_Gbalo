@@ -36,12 +36,25 @@ export default function Confirm() {
 
           {/* Form */}
           <View className="bg-white rounded-t-6xl px-6 py-8 shadow-md">
-            <Text className="text-xl font-bold text-center mb-6">
+            <Text
+              style={{
+                fontFamily: "Inter-Medium",
+                fontSize: 24,
+                textAlign: "center",
+                color: "black",
+              }}
+            >
               Hoàn tất đăng ký
             </Text>
 
             {/* Họ và tên */}
-            <Text className="font-semibold">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 16,
+                color: "black",
+              }}
+            >
               Họ và tên <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -50,7 +63,13 @@ export default function Confirm() {
             />
 
             {/* Email */}
-            <Text className="font-semibold">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 16,
+                color: "black",
+              }}
+            >
               Email <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -61,7 +80,13 @@ export default function Confirm() {
             />
 
             {/* Mật khẩu */}
-            <Text className="font-semibold">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 16,
+                color: "black",
+              }}
+            >
               Mật khẩu <Text className="text-red-500">*</Text>
             </Text>
             <View className="flex-row items-center border border-gray-300 rounded-full px-4 mt-1 mb-4">
@@ -80,7 +105,13 @@ export default function Confirm() {
             </View>
 
             {/* Xác nhận mật khẩu */}
-            <Text className="font-semibold">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 16,
+                color: "black",
+              }}
+            >
               Xác nhận mật khẩu <Text className="text-red-500">*</Text>
             </Text>
             <View className="flex-row items-center border border-gray-300 rounded-full px-4 mt-1 mb-6">
@@ -99,13 +130,18 @@ export default function Confirm() {
             </View>
 
             {/* Tiếp tục */}
-            <CustomButtonRN
-              title="Tiếp tục"
-              onPress={handleLogin}
-            />
+            <CustomButtonRN title="Tiếp tục" onPress={handleLogin} />
 
             {/* Chính sách */}
-            <Text className="text-xs text-center text-gray-500 leading-5 mt-3">
+            <Text
+              style={{
+                fontFamily: "Inter-Extra",
+                fontSize: 14,
+                color: "black",
+                top: 8,
+                textAlign: "center",
+              }}
+            >
               Bằng việc chọn Đồng ý và tiếp tục, tôi đồng ý với{" "}
               <Text className="text-black font-semibold">
                 Điều khoản dịch vụ

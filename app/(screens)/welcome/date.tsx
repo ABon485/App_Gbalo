@@ -40,7 +40,7 @@ const DateScreen = () => {
           <TouchableOpacity onPress={() => router.replace("./welcome")}>
             <AntDesign name="arrowleft" size={24} color="black" />
           </TouchableOpacity>
-          <View className="w-4/5 flex-row h-2 bg-gray-300 rounded ml-4 overflow-hidden">
+          <View className="w-4/5 flex-row h-1.5 bg-gray-300 rounded ml-4 overflow-hidden">
             <View className="w-[66.666667%] bg-orange-500" />
             <View className="flex-1" />
           </View>
@@ -48,13 +48,28 @@ const DateScreen = () => {
 
         {/* Content */}
         <View className="flex-1 pt-10">
-          <Text className="text-xl font-bold mb-2">
+          <Text
+            style={{
+              fontFamily: "Mulish-ExtraBold",
+              fontSize: 24,
+              color: "black",
+            }}
+          >
             Chào mừng bạn đến với Gbalo!
           </Text>
-          <Text className="text-sm text-gray-500 mb-8">
+          <Text
+            style={{ fontFamily: "Mulish-Extra", fontSize: 16, color: "black" }}
+          >
             Cảm ơn bạn đã cung cấp thông tin, chỉ còn một bước nữa...
           </Text>
-          <Text className="text-xl font-bold mb-2 mt-10">
+          <Text
+            style={{
+              fontFamily: "Mulish-ExtraBold",
+              fontSize: 24,
+              color: "black",
+              paddingTop: 100,
+            }}
+          >
             Vui lòng cho chúng tôi biết ngày sinh của bạn?
           </Text>
 
