@@ -44,10 +44,12 @@ const styles = StyleSheet.create({
     marginTop: "auto",
   },
   title: {
-    fontSize: 24,
+    fontSize: 25,
     fontWeight: "bold",
     marginBottom: 20,
     color: "#000",
+    fontFamily:'Mulish-Black',
+
   },
   inputContainer: {
     width: "100%",
