@@ -10,7 +10,7 @@ import { Stack, useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
-
+import CustomButtonRN from "@/components/common/customButtonRN/index";
 interface City {
   id: string | number;
   name: string;
@@ -100,13 +100,10 @@ const Welcome = () => {
             </Picker>
             {/* )} */}
           </View>
-
-          <TouchableOpacity
-            className="bg-orange-500 rounded-full py-4 items-center"
+          <CustomButtonRN
+            title="Tiếp tục"
             onPress={() => router.replace("./date")}
-          >
-            <Text className="text-white text-base font-bold">Tiếp tục</Text>
-          </TouchableOpacity>
+          />
         </View>
       </SafeAreaView>
     </>

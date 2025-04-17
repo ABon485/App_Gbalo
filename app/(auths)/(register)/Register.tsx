@@ -7,8 +7,10 @@ import {
   Image,
   ScrollView,
   ImageBackground,
+  StatusBar,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
+import CustomButtonRN from "@/components/common/customButtonRN";
 
 export default function Register() {
   const router = useRouter();
@@ -29,9 +31,10 @@ export default function Register() {
         source={require("../../../assets/images/BackGroud.png")}
         style={{ flex: 1, width: "100%", height: "100%" }}
       >
+        <StatusBar translucent backgroundColor="transparent" />
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
           {/* Logo */}
-          <View className="items-center mb-28">
+          <View className="items-center mb-14 mt-6">
             <Image
               source={require("../../../assets/images/imagLogo.png")}
               resizeMode="contain"
@@ -51,7 +54,7 @@ export default function Register() {
               <TextInput
                 placeholder="Số điện thoại"
                 keyboardType="phone-pad"
-                className="px-4 py-3 text-base text-gray-800"
+                className="px-4 py-2 text-base text-gray-800"
               />
             </View>
 
@@ -66,14 +69,10 @@ export default function Register() {
             </Text>
 
             {/* Tiếp tục */}
-            <TouchableOpacity
-              className="bg-orange-600 rounded-full py-3 items-center mb-4"
+            <CustomButtonRN
+              title="Tiếp tục"
               onPress={handleRegisterEmail}
-            >
-              <Text className="text-white font-semibold text-base">
-                Tiếp tục
-              </Text>
-            </TouchableOpacity>
+            />
 
             {/* Divider */}
             <View className="flex-row items-center my-4">
@@ -87,21 +86,21 @@ export default function Register() {
               <Image
                 source={require("../../../assets/images/social/Phone.png")}
               />
-              <Text className="ml-20">Tiếp tục với số điện thoại</Text>
+              <Text className="ml-16">Tiếp tục với số điện thoại</Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
               <Image
                 source={require("../../../assets/images/social/Google.png")}
               />
-              <Text className="ml-20">Tiếp tục với Google</Text>
+              <Text className="ml-16">Tiếp tục với Google</Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4">
               <Image
                 source={require("../../../assets/images/social/Facebook.png")}
               />
-              <Text className="ml-20">Tiếp tục với Facebook</Text>
+              <Text className="ml-16">Tiếp tục với Facebook</Text>
             </TouchableOpacity>
 
             {/* Login link */}
