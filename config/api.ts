@@ -3,7 +3,7 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Lấy base URL từ biến môi trường (nếu có) hoặc hardcode
-const API_BASE_URL = 'https://your-api-base-url.com'; // Thay bằng URL API của bạn, hoặc dùng biến môi trường nếu cần
+const API_BASE_URL = 'https://api-acc.vbalo.com'; 
 
 // Tạo instance của Axios
 const api: AxiosInstance = axios.create({
@@ -17,7 +17,7 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     // Danh sách các route không cần token
-    const authRoutes = ['/auth/login', '/auth/signUp'];
+    const authRoutes = ['/login', '/register'];
 
     // Lấy dữ liệu từ AsyncStorage thay vì localStorage
     const data = await AsyncStorage.getItem('data');
