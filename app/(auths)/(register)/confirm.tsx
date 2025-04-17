@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { router, Stack } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
+import CustomButtonRN from "@/components/common/customButtonRN";
 
 export default function Confirm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,12 +25,9 @@ export default function Confirm() {
         source={require("../../../assets/images/BackGroud.png")}
         style={{ flex: 1, width: "100%", height: "100%" }}
       >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          className="bg-white pt-12"
-        >
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
           {/* Logo */}
-          <View className="items-center mb-40">
+          <View className="items-center mb-20 mt-6">
             <Image
               source={require("../../../assets/images/imagLogo.png")}
               resizeMode="contain"
@@ -37,7 +35,7 @@ export default function Confirm() {
           </View>
 
           {/* Form */}
-          <View className="bg-white rounded-t-3xl px-6 py-8 shadow-md">
+          <View className="bg-white rounded-t-6xl px-6 py-8 shadow-md">
             <Text className="text-xl font-bold text-center mb-6">
               Hoàn tất đăng ký
             </Text>
@@ -48,7 +46,7 @@ export default function Confirm() {
             </Text>
             <TextInput
               placeholder="Nhập tên của bạn"
-              className="border border-gray-300 rounded-full px-4 py-2 mt-1 mb-4"
+              className="border border-gray-300 rounded-full px-4 mt-1 mb-4"
             />
 
             {/* Email */}
@@ -59,14 +57,14 @@ export default function Confirm() {
               placeholder="Email của bạn"
               keyboardType="email-address"
               defaultValue="gbalovietnam@gmail.com"
-              className="border border-gray-300 rounded-full px-4 py-2 mt-1 mb-4"
+              className="border border-gray-300 rounded-full px-4 mt-1 mb-4"
             />
 
             {/* Mật khẩu */}
             <Text className="font-semibold">
               Mật khẩu <Text className="text-red-500">*</Text>
             </Text>
-            <View className="flex-row items-center border border-gray-300 rounded-full px-4 py-2 mt-1 mb-4">
+            <View className="flex-row items-center border border-gray-300 rounded-full px-4 mt-1 mb-4">
               <TextInput
                 placeholder="Nhập mật khẩu"
                 secureTextEntry={!showPassword}
@@ -85,7 +83,7 @@ export default function Confirm() {
             <Text className="font-semibold">
               Xác nhận mật khẩu <Text className="text-red-500">*</Text>
             </Text>
-            <View className="flex-row items-center border border-gray-300 rounded-full px-4 py-2 mt-1 mb-6">
+            <View className="flex-row items-center border border-gray-300 rounded-full px-4 mt-1 mb-6">
               <TextInput
                 placeholder="Nhập lại mật khẩu"
                 secureTextEntry={!showConfirm}
@@ -101,14 +99,13 @@ export default function Confirm() {
             </View>
 
             {/* Tiếp tục */}
-            <TouchableOpacity className="bg-orange-600 rounded-full py-3 items-center mb-4" onPress={handleLogin}>
-              <Text className="text-white font-semibold text-base">
-                Tiếp tục
-              </Text>
-            </TouchableOpacity>
+            <CustomButtonRN
+              title="Tiếp tục"
+              onPress={handleLogin}
+            />
 
             {/* Chính sách */}
-            <Text className="text-xs text-center text-gray-500 leading-5">
+            <Text className="text-xs text-center text-gray-500 leading-5 mt-3">
               Bằng việc chọn Đồng ý và tiếp tục, tôi đồng ý với{" "}
               <Text className="text-black font-semibold">
                 Điều khoản dịch vụ
