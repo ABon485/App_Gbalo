@@ -43,7 +43,7 @@ export default function RegisterEmail() {
           </View>
 
           {/* Form */}
-          <View className="bg-white rounded-t-3xl px-6 py-4 shadow-md">
+          <View className="bg-white rounded-t-3xl px-6 shadow-md">
             <Text
               style={{
                 fontFamily: "Mulish-ExtraBold",
@@ -69,11 +69,12 @@ export default function RegisterEmail() {
               placeholder="Nhập email"
               keyboardType="email-address"
               className="border border-gray-300 rounded-full px-4 py-3 mt-1 mb-4"
+              style={{ fontFamily:"Inter-Medium" }}
             />
 
             <Text
               style={{
-                fontFamily: "Inter-Extra",
+                fontFamily: "Inter-Medium",
                 fontSize: 10,
                 color: "black",
                 marginBottom: 13,
@@ -95,7 +96,7 @@ export default function RegisterEmail() {
               <View className="flex-1 h-px bg-gray-300" />
               <Text
                 style={{
-                  fontFamily: "Inter-Extra",
+                  fontFamily: "Inter-Medium",
                   fontSize: 16,
                   color: "black",
                 }}
@@ -110,28 +111,28 @@ export default function RegisterEmail() {
               <Image
                 source={require("../../../assets/images/social/Phone.png")}
               />
-              <Text className="ml-16">Tiếp tục với số điện thoại</Text>
+              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với số điện thoại</Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
               <Image
                 source={require("../../../assets/images/social/Google.png")}
               />
-              <Text className="ml-16">Tiếp tục với Google</Text>
+              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với Google</Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4">
               <Image
                 source={require("../../../assets/images/social/Facebook.png")}
               />
-              <Text className="ml-16">Tiếp tục với Facebook</Text>
+              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với Facebook</Text>
             </TouchableOpacity>
 
             {/* Login link */}
             <View className="flex-row justify-center items-center mt-3">
-              <Text>Bạn đã có tài khoản? </Text>
+              <Text style={{ fontFamily:"Inter-Medium" }}>Bạn đã có tài khoản? </Text>
               <TouchableOpacity onPress={handleLogin}>
-                <Text className="text-blue-500 underline">Đăng nhập</Text>
+                <Text className="text-blue-500 underline" style={{ fontFamily:"Inter-Medium" }}>Đăng nhập</Text>
               </TouchableOpacity>
             </View>
           </View>

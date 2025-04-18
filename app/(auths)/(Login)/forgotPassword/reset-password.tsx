@@ -57,7 +57,7 @@ const ResetPasswordScreen = () => {
                         />
 
                         <View className="w-full h-3/4 bg-white rounded-t-3xl px-6 pt-6 pb-5 items-center shadow-lg shadow-black/25">
-                            <Text className="text-2xl font-bold mb-6 text-black text-center">
+                            <Text className="text-2xl  mb-6 text-black text-center" style={{ fontFamily:"Inter-Black"  }}>
                                 Đặt lại mật khẩu
                             </Text>
 
@@ -65,6 +65,7 @@ const ResetPasswordScreen = () => {
                             <View className="flex-row items-center w-full h-[50px] border border-gray-300 rounded-full mb-4 pl-1 pr-4">
                                 <TextInput
                                     className="flex-1 h-full text-base px-2 text-gray-800"
+                                    style={{ fontFamily:"Inter-Medium"  }}
                                     placeholder="Nhập mật khẩu của bạn"
                                     value={password}
                                     onChangeText={setPassword}
@@ -88,7 +89,7 @@ const ResetPasswordScreen = () => {
                                         size={16}
                                         color={isMinLength ? "green" : "red"}
                                     />
-                                    <Text className="text-sm text-gray-600 ml-2">
+                                    <Text className="text-sm text-gray-600 ml-2" style={{ fontFamily:"Inter-Medium"}}>
                                         Dài ít nhất 8 ký tự
                                     </Text>
                                 </View>
@@ -98,7 +99,7 @@ const ResetPasswordScreen = () => {
                                         size={16}
                                         color={isSpecialChar ? "green" : "red"}
                                     />
-                                    <Text className="text-sm text-gray-600 ml-2">
+                                    <Text className="text-sm text-gray-600 ml-2" style={{ fontFamily:"Inter-Medium"}}>
                                         Bao gồm số ký và ký tự đặc biệt
                                     </Text>
                                 </View>
@@ -110,7 +111,7 @@ const ResetPasswordScreen = () => {
                                 onPress={handleResetAndLogin}
                                 disabled={!(isMinLength && isSpecialChar)}
                             >
-                                <Text className="text-base font-bold text-white">
+                                <Text className="text-base text-white" style={{ fontFamily:"Inter-Medium"  }}>
                                     Đặt lại và đăng nhập
                                 </Text>
                             </TouchableOpacity>

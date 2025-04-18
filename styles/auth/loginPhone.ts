@@ -44,8 +44,8 @@
       marginTop: "auto",
     },
     title: {
-      fontSize: 24,
-      fontWeight: "bold",
+      fontSize: 25,
+      fontFamily:'Mulish-Black',
       marginBottom: 25,
       color: "#000",
       alignSelf: "center",
@@ -79,6 +79,7 @@
       fontSize: 16,
       paddingHorizontal: 10,
       color: "#333",
+      fontFamily:'Inter-Medium'
     },
     loginButton: {
       width: "100%",
@@ -92,7 +93,7 @@
     loginButtonText: {
       color: "white",
       fontSize: 16,
-      fontWeight: "bold",
+      fontFamily:'Inter-Black'
     },
     
     dividerContainer: {
@@ -110,6 +111,7 @@
       paddingHorizontal: 10,
       color: "#777",
       fontSize: 14,
+      fontFamily:'Inter-Medium'
     },
     socialButton: {
       flexDirection: "row",
@@ -135,7 +137,8 @@
       color: "#333",
       flex: 1,
       textAlign: "center",
-      paddingRight:40
+      paddingRight:40,
+      fontFamily:'Inter-Medium'
     },
     registerContainer: {
       flexDirection: "row",
@@ -146,11 +149,12 @@
     registerText: {
       fontSize: 14,
       color: "#333",
+      fontFamily:'Inter-Medium'
     },
     registerLink: {
       fontSize: 14,
       color: "#007AFF",
-      fontWeight: "bold",
+      fontFamily:'Inter-Medium'
     },
   })
 

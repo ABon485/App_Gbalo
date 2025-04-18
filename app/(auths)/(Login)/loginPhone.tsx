@@ -32,6 +32,9 @@ const LoginScreen = () => {
   const handleEmailLogin = () => {
     router.push("/(auths)/(Login)/loginEmail") // Navigate to email login screen
   }
+  const handleRegister = () => {
+    router.push("/(auths)/(register)/Register")
+  }
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -93,7 +96,7 @@ const LoginScreen = () => {
 
               <View style={styles.registerContainer}>
                 <Text style={styles.registerText}>Bạn chưa có tài khoản? </Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={handleRegister}>
                   <Text style={styles.registerLink}>Đăng ký</Text>
                 </TouchableOpacity>
               </View>

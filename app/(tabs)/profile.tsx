@@ -29,7 +29,7 @@ export default function ProfileScreen() {
       <StatusBar barStyle="dark-content" />
       <ScrollView className="flex-1">
         <View className="bg-white rounded-3xl mx-4 mb-4 p-5 mt-10">
-          <Text className="text-xl font-bold text-black mb-4">Hồ sơ</Text>
+          <Text className="text-xl  text-black mb-4" style={{ fontFamily:"Inter-Medium" }}>Hồ sơ</Text>
 
           <View className="flex-row items-center mb-4">
             <View className="w-16 h-16 rounded-full bg-gray-200 justify-center items-center mr-4">
@@ -38,20 +38,20 @@ export default function ProfileScreen() {
 
             <View className="flex-row flex-1 justify-end">
               <TouchableOpacity className="bg-[#FF5722] py-2 px-6 rounded-full mr-3" onPress={handleLogin}>
-                <Text className="text-white font-medium text-sm">Đăng nhập</Text>
+                <Text className="text-white font-medium text-sm" style={{ fontFamily:"Inter-Medium" }}>Đăng nhập</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 className="bg-white py-2 px-6 rounded-full border border-[#FF5722]"
                 onPress={handleRegister}
               >
-                <Text className="text-[#FF5722] font-medium text-sm">Đăng kí</Text>
+                <Text className="text-[#FF5722] font-medium text-sm" style={{ fontFamily:"Inter-Medium" }}>Đăng kí</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           <View className="flex-row items-center">
-            <Text className="text-gray-500 text-xs flex-1 leading-4">
+            <Text className="text-gray-500 text-xs flex-1 leading-4" style={{ fontFamily:"Inter-Medium" }}>
               Đăng ký/Đăng nhập để trở thành thành viên và nhận được nhiều voucher từ Giao
             </Text>
             <View className="ml-2">
@@ -60,9 +60,9 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View className="bg-white rounded-3xl mx-4 overflow-hidden">
+        <View  className="bg-white rounded-3xl mx-4 overflow-hidden">
           {menuItems.map((item, index) => (
-            <TouchableOpacity
+            <TouchableOpacity 
               key={item.id}
               className={`flex-row items-center justify-between py-3.5 px-5 ${
                 index < menuItems.length - 1 ? "border-b border-gray-100" : ""
@@ -70,7 +70,7 @@ export default function ProfileScreen() {
             >
               <View className="flex-row items-center">
                 {item.icon}
-                <Text className="ml-3 text-sm text-gray-800">{item.title}</Text>
+                <Text className="ml-3 text-sm text-gray-800" style={{ fontFamily:"Inter-Medium" }}>{item.title}</Text>
               </View>
               <ChevronRight size={18} color="#999" />
             </TouchableOpacity>
