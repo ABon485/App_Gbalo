@@ -38,7 +38,7 @@ const ForgotPasswordScreen = () => {
             <Image source={require("@/assets/images/imagLogo.png")} className="w-1/2 h-[15%] mb-5" resizeMode="contain" />
 
             <View className="w-full h-3/4 bg-white rounded-t-3xl px-6 pt-6 pb-5 items-center shadow-lg shadow-black/25">
-              <Text className="text-2xl font-bold mb-6 text-black text-center">Quên mật khẩu</Text>
+              <Text className="text-2xl mb-6 text-black text-center" style={{ fontFamily:"Inter-Black"  }}>Quên mật khẩu</Text>
 
               <View className="flex-row items-center w-full h-[50px] border border-gray-300 rounded-full mb-4 pl-1 pr-4">
                 <TouchableOpacity className="flex-row items-center px-2 h-full">
@@ -47,6 +47,7 @@ const ForgotPasswordScreen = () => {
                 </TouchableOpacity>
                 <TextInput
                   className="flex-1 h-full text-base px-2 text-gray-800"
+                  style={{ fontFamily:"Inter-Medium"  }}
                   placeholder="Nhập số điện thoại"
                   value={phoneNumber}
                   onChangeText={setPhoneNumber}
@@ -56,7 +57,7 @@ const ForgotPasswordScreen = () => {
               </View>
 
               <TouchableOpacity className="w-full h-[50px] bg-orange-500 rounded-full justify-center items-center mb-2.5" onPress={handleSendCode}>
-                <Text className="text-white text-base font-bold">Gửi mã xác minh</Text>
+                <Text className="text-white text-base " style={{ fontFamily:"Inter-Medium"  }}>Gửi mã xác minh </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

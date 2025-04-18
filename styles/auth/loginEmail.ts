@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily:'Mulish-Black',
     marginBottom: 25,
     color: "#000",
   },
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: "white",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily:'Inter-Black'
   },
   dividerContainer: {
     flexDirection: "row",
@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     color: "#777",
     fontSize: 14,
+    fontFamily:'Inter-Medium'
   },
   socialButton: {
     flexDirection: "row",
@@ -126,7 +127,8 @@ const styles = StyleSheet.create({
     color: "#333",
     flex: 1, // Take remaining space
     textAlign: "center", // Center the text horizontally
-    paddingRight:25
+    paddingRight:25,
+    fontFamily:'Inter-Medium'
   },
   // New styles for email login
   emailLoginContainer: {
@@ -146,11 +148,13 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginRight: 10,
+    
   },
   input: {
     flex: 1,
     height: "100%",
     fontSize: 16,
+    fontFamily:'Inter-Medium'
   },
   forgotPasswordContainer: {
     alignSelf: "center",
@@ -161,21 +165,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     paddingLeft:200,
     textDecorationLine: 'underline',
+    fontFamily:'Inter-Medium'
   },
   registerContainer: {
     flexDirection: "row",
-    marginTop: 15,
+    marginTop: 10,
     alignItems: "center",
     justifyContent: "center",
   },
   registerText: {
     fontSize: 14,
     color: "#333",
+    fontFamily:'Inter-Medium'
   },
   registerLink: {
     fontSize: 14,
     color: "#007AFF",
-    fontWeight: "bold",
+    fontFamily:'Inter-Medium'
   },
   socialIconContainer: {
     width: 24,
