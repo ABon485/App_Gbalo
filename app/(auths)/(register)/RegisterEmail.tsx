@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,18 +8,71 @@ import {
   ScrollView,
   ImageBackground,
   StatusBar,
+  Alert,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
+import api from "@/config/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ApiResponse } from "@/types/api";
+import { RegisterType } from "@/types/user";
 
 export default function RegisterEmail() {
   const router = useRouter();
+  const [userName, setUserName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = () => {
     router.push("/(auths)/(Login)/login");
   };
-  const VerifyPhone = () => {
-    router.push("/(auths)/(register)/veryfyPhone");
+
+  const handleRegister = async () => {
+    if (!userName || !email || !password || !confirmPassword) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Lỗi", "Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const formData: RegisterType = {
+        userName,
+        email,
+        password,
+        confirmPassword,
+      };
+
+      const response: ApiResponse = await api.post(
+        "/Accounts/Register",
+        formData
+      ); // Sửa lỗi chính tả nếu cần
+      if (response.success) {
+        await AsyncStorage.setItem(
+          "data",
+          JSON.stringify({
+            token: response.data.token,
+            user: response.data.user,
+          })
+        );
+        Alert.alert("Thành công", "Đăng ký thành công!");
+        router.replace("/(auths)/(register)/veryfyPhone");
+      } else {
+        Alert.alert("Lỗi", response.message || "Đăng ký thất bại");
+      }
+    }
+    catch (error) {
+      // Alert.alert("Lỗi", error.message || "Có lỗi xảy ra, vui lòng thử lại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,7 +87,6 @@ export default function RegisterEmail() {
       >
         <StatusBar translucent backgroundColor="transparent" />
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
-          {/* Logo */}
           <View className="items-center mb-24 mt-6">
             <Image
               source={require("../../../assets/images/imagLogo.png")}
@@ -42,7 +94,6 @@ export default function RegisterEmail() {
             />
           </View>
 
-          {/* Form */}
           <View className="bg-white rounded-t-3xl px-6 py-4 shadow-md">
             <Text
               style={{
@@ -63,11 +114,68 @@ export default function RegisterEmail() {
                 color: "black",
               }}
             >
+              Tên người dùng <Text className="text-red-500">*</Text>
+            </Text>
+
+            <TextInput
+              placeholder="Nhập tên người dùng"
+              value={userName}
+              onChangeText={setUserName}
+              className="border border-gray-300 rounded-full px-4 py-3 mt-1 mb-4"
+            />
+
+            <Text
+              style={{
+                fontFamily: "Mulish-ExtraBold",
+                fontSize: 16,
+                color: "black",
+              }}
+            >
               Email <Text className="text-red-500">*</Text>
             </Text>
+
             <TextInput
               placeholder="Nhập email"
+              value={email}
+              onChangeText={setEmail}
               keyboardType="email-address"
+              autoCapitalize="none"
+              className="border border-gray-300 rounded-full px-4 py-3 mt-1 mb-4"
+            />
+
+            <Text
+              style={{
+                fontFamily: "Mulish-ExtraBold",
+                fontSize: 16,
+                color: "black",
+              }}
+            >
+              Mật khẩu
+            </Text>
+
+            <TextInput
+              placeholder="Nhập mật khẩu"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              className="border border-gray-300 rounded-full px-4 py-3 mt-1 mb-4"
+            />
+
+            <Text
+              style={{
+                fontFamily: "Mulish-ExtraBold",
+                fontSize: 16,
+                color: "black",
+              }}
+            >
+              Xác nhận mật khẩu
+            </Text>
+
+            <TextInput
+              placeholder="Xác nhận mật khẩu"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
               className="border border-gray-300 rounded-full px-4 py-3 mt-1 mb-4"
             />
 
@@ -87,21 +195,16 @@ export default function RegisterEmail() {
               </Text>
             </Text>
 
-            {/* Tiếp tục */}
-            <CustomButtonRN title="Tiếp tục" onPress={VerifyPhone} />
+            <CustomButtonRN
+              title={loading ? "Đang xử lý..." : "Tiếp tục"}
+              onPress={handleRegister}
+              // disabled={loading}
+            />
 
             {/* Divider */}
             <View className="flex-row items-center my-4">
               <View className="flex-1 h-px bg-gray-300" />
-              <Text
-                style={{
-                  fontFamily: "Inter-Extra",
-                  fontSize: 16,
-                  color: "black",
-                }}
-              >
-                Hoặc
-              </Text>
+              <Text className="mx-2 text-black">Hoặc</Text>
               <View className="flex-1 h-px bg-gray-300" />
             </View>
 
@@ -127,7 +230,6 @@ export default function RegisterEmail() {
               <Text className="ml-16">Tiếp tục với Facebook</Text>
             </TouchableOpacity>
 
-            {/* Login link */}
             <View className="flex-row justify-center items-center mt-3">
               <Text>Bạn đã có tài khoản? </Text>
               <TouchableOpacity onPress={handleLogin}>
