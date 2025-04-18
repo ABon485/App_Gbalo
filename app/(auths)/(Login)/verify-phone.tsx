@@ -55,14 +55,14 @@ const VerifyPhoneScreen = () => {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <ImageBackground
-        source={require("../../../assets/images/BackGroud.png")}
+        source={require("@/assets/images/BackGroud.png")}
         className="flex-1 w-full h-full"
       >
         <StatusBar translucent backgroundColor="transparent" />
         <SafeAreaView className="flex-1 w-full">
           <View className="flex-1 items-center w-full pt-20">
             <Image
-              source={require("../../../assets/images/imagLogo.png")}
+              source={require("@/assets/images/imagLogo.png")}
               className="w-1/2 h-[15%] mb-5"
               resizeMode="contain"
             />
