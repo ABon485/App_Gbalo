@@ -99,7 +99,7 @@ const VerifyPhoneForgotPasswordScreen = () => {
 
                             {/* Continue Button */}
                             <TouchableOpacity
-                                className={`w-full h-[50px] rounded-full justify-center items-center ${isOtpComplete ? "bg-orange-500" : "bg-gray-300"
+                                className={`w-full h-[43px] rounded-full justify-center items-center ${isOtpComplete ? "bg-orange-500" : "bg-gray-300"
                                     }`}
                                 onPress={handleContinue}
                                 disabled={!isOtpComplete}

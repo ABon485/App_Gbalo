@@ -132,14 +132,14 @@ const LoginEmail = () => {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <ImageBackground
-        source={require("../../../assets/images/BackGroud.png")}
+        source={require("@/assets/images/BackGroud.png")}
         style={styles.backgroundImage}
       >
         <StatusBar translucent backgroundColor="transparent" />
         <SafeAreaView style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContainer}>
             <Image
-              source={require("../../../assets/images/imagLogo.png")}
+              source={require("@/assets/images/imagLogo.png")}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -209,7 +209,7 @@ const LoginEmail = () => {
 
               <TouchableOpacity style={styles.socialButton}>
                 <Image
-                  source={require("../../../assets/images/Google.png")}
+                  source={require("@/assets/images/Google.png")}
                   className="w-6 h-6"
                 />
                 <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
@@ -217,7 +217,7 @@ const LoginEmail = () => {
 
               <TouchableOpacity style={styles.socialButton}>
                 <Image
-                  source={require("../../../assets/images/Facebook.png")}
+                  source={require("@/assets/images/Facebook.png")}
                   className="w-6 h-6"
                 />
                 <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>

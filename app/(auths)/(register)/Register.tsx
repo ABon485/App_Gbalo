@@ -42,7 +42,7 @@ export default function Register() {
           </View>
 
           {/* Form */}
-          <View className="bg-white rounded-t-3xl px-6 py-1 shadow-md">
+          <View className="bg-white rounded-t-3xl px-6 py-3 shadow-md">
             <Text
               style={{
                 fontFamily: "Mulish-ExtraBold",
@@ -121,25 +121,25 @@ export default function Register() {
             </View>
 
             {/* Social buttons */}
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
+            <TouchableOpacity className="h-[43px] flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
               <Image
                 source={require("../../../assets/images/social/Phone.png")}
               />
-              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với số điện thoại</Text>
+              <Text className="ml-16 " style={{ fontFamily:"Inter-Medium",fontSize: 13 }}>Tiếp tục với số điện thoại</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
+            <TouchableOpacity className="h-[43px] flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
               <Image
                 source={require("../../../assets/images/social/Google.png")}
               />
-              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với Google</Text>
+              <Text className="ml-20" style={{ fontFamily:"Inter-Medium",fontSize: 13 }}>Tiếp tục với Google</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4">
+            <TouchableOpacity className="h-[43px] flex-row items-center border border-gray-300 rounded-full py-3 px-4">
               <Image
                 source={require("../../../assets/images/social/Facebook.png")}
               />
-              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với Facebook</Text>
+              <Text className="ml-20 text" style={{ fontFamily:"Inter-Medium",fontSize: 13 }}>Tiếp tục với Facebook</Text>
             </TouchableOpacity>
 
             {/* Login link */}
