@@ -36,6 +36,9 @@ const LoginEmail = () => {
   const handleForgotPassword = () => {
     router.push("/(auths)/(Login)/forgotPassword/forgot-password")
   }
+  const handleRegister = () => {
+    router.push("/(auths)/(register)/Register")
+  }
 
   const handleLogin = async () => {
     // Kiểm tra email rỗng
@@ -222,7 +225,7 @@ const LoginEmail = () => {
 
               <View style={styles.registerContainer}>
                 <Text style={styles.registerText}>Bạn chưa có tài khoản? </Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={handleRegister}>
                   <Text style={styles.registerLink}>Đăng ký</Text>
                 </TouchableOpacity>
               </View>

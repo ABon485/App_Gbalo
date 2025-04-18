@@ -67,25 +67,27 @@ export default function VerifyPhone() {
           <View className="bg-white rounded-t-3xl px-6 py-8 shadow-md">
             <Text
               style={{
-                fontFamily: "Inter-Extra",
+                fontFamily: "Inter-Black",
                 fontSize: 24,
                 color: "black",
+                textAlign:"center"
               }}
             >
               Xác thực số điện thoại của bạn
             </Text>
             <Text
               style={{
-                fontFamily: "Inter-Extra",
+                fontFamily: "Inter-Medium",
                 fontSize: 16,
                 color: "black",
+                textAlign:"center"
               }}
             >
               Vui lòng nhập mã xác nhận vừa gửi qua SĐT
             </Text>
             <Text
               style={{
-                fontFamily: "Inter-Extra",
+                fontFamily: "Inter-Medium",
                 fontSize: 16,
                 textAlign:"center",
                 color: "red",
@@ -120,7 +122,7 @@ export default function VerifyPhone() {
               className="border border-gray-400 rounded-full py-3 items-center mb-40 mt-7"
               onPress={handleResend}
             >
-              <Text className="text-base text-black">Gửi lại</Text>
+              <Text className="text-base text-black" style={{ fontFamily:"Inter-Black" }}>Gửi lại</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

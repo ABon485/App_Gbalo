@@ -45,7 +45,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 25,
-    fontWeight: "bold",
     marginBottom: 20,
     color: "#000",
     fontFamily:'Mulish-Black',
@@ -76,6 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     paddingRight:40,
+    fontFamily:'Inter-Medium'
   },
   dividerContainer: {
     flexDirection: "row",
@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     color: "#777",
     fontSize: 14,
+    fontFamily:'Inter-Medium'
   },
   socialButton: {
     flexDirection: "row",
@@ -110,7 +111,8 @@ const styles = StyleSheet.create({
     color: "#333",
     flex: 1, // Chiếm toàn bộ không gian còn lại
     textAlign: "center",
-    paddingRight: 23 // Căn giữa chữ
+    paddingRight: 23 ,// Căn giữa chữ
+    fontFamily:'Inter-Medium'
   },
   registerContainer: {
     flexDirection: "row",
@@ -121,11 +123,12 @@ const styles = StyleSheet.create({
   registerText: {
     fontSize: 14,
     color: "#333",
+    fontFamily:'Inter-Medium'
   },
   registerLink: {
     fontSize: 14,
     color: "#007AFF",
-    fontWeight: "bold",
+    fontFamily:'Inter-Medium'
   },
 });
 

@@ -13,7 +13,7 @@ const CustomButtonRN = ({
       style={[styles.button, { backgroundColor }]}
       onPress={onPress}
     >
-      <Text style={[styles.text, { color: textColor, fontFamily: "Inter-ExtraBold" }]}>
+      <Text style={[styles.text, { color: textColor, fontFamily: "Inter-Black" }]}>
         {title}
       </Text>
     </TouchableOpacity>

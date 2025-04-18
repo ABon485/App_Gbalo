@@ -22,6 +22,7 @@ function RootLayoutNav() {
     (async () => {
       await Font.loadAsync({
         "Inter-Black": require("../assets/fonts/Inter_18pt-Black.ttf"),
+        "Inter-Medium": require("../assets/fonts/Inter_18pt-Medium.ttf"),
         "Inter-Bold": require("../assets/fonts/Inter_18pt-Bold.ttf"),
         "Inter-BlackItalic": require("../assets/fonts/Inter_18pt-BlackItalic.ttf"),
         "Inter-BoldItalic": require("../assets/fonts/Inter_18pt-BoldItalic.ttf"),

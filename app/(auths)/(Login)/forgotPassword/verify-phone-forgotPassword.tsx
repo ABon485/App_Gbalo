@@ -71,13 +71,13 @@ const VerifyPhoneForgotPasswordScreen = () => {
                         />
 
                         <View className="w-full h-3/4 bg-white rounded-t-3xl px-6 pt-6 pb-5 items-center shadow-lg shadow-black/25">
-                            <Text className="text-2xl font-bold mb-2 text-black text-center">
+                            <Text className="text-2xl  mb-2 text-center"style={{ fontFamily:"Inter-Black"  }}>
                                 Xác thực số điện thoại của bạn
                             </Text>
-                            <Text className="text-base text-gray-600 mb-1 text-center">
+                            <Text className="text-base text-gray-600 mb-1 text-center" style={{ fontFamily:"Inter-Medium"  }}>
                                 Vui lòng nhập mã xác nhận vừa gửi qua SDT
                             </Text>
-                            <Text className="font-bold text-red-500 text-base mb-6 text-center">
+                            <Text className=" text-red-500 text-base mb-6 text-center" style={{ fontFamily:"Inter-Medium"  }}>
                                 {phoneNumber?.toString().replace(/^(\d{3})\d{4}(\d{3})$/, "$1****$2")}
                             </Text>     
 
@@ -104,8 +104,8 @@ const VerifyPhoneForgotPasswordScreen = () => {
                                 onPress={handleContinue}
                                 disabled={!isOtpComplete}
                             >
-                                <Text
-                                    className={`text-base font-bold ${isOtpComplete ? "text-white" : "text-gray-600"
+                                <Text style={{ fontFamily:"Inter-Medium"  }}
+                                    className={`text-base  ${isOtpComplete ? "text-white" : "text-gray-600"
                                         }`}
                                 >
                                     Tiếp tục
