@@ -12,7 +12,7 @@ import {
   StatusBar,
   TextInput,
 } from "react-native"
-import styles from "../../../styles/auth/loginPhone"
+import styles from "@/styles/auth/loginPhone"
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import MaterialIcons from "react-native-vector-icons/MaterialIcons"
 import { Stack, router } from "expo-router"
@@ -29,11 +29,9 @@ const LoginScreen = () => {
       })
     }
   }
-
   const handleEmailLogin = () => {
     router.push("/(auths)/(Login)/loginEmail") // Navigate to email login screen
   }
-
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -41,7 +39,7 @@ const LoginScreen = () => {
         <StatusBar translucent backgroundColor="transparent" />
         <SafeAreaView style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContainer}>
-            <Image source={require("../../../assets/images/imagLogo.png")} style={styles.logo} resizeMode="contain" />
+            <Image source={require("@/assets/images/imagLogo.png")} style={styles.logo} resizeMode="contain" />
 
             <View style={styles.formContainer}>
               <Text style={styles.title}>Đăng nhập</Text>
@@ -81,14 +79,14 @@ const LoginScreen = () => {
 
               <TouchableOpacity style={styles.socialButton}>
                 <View style={styles.socialIconContainer}>
-                <Image source={require("../../../assets/images/Google.png")} className="w-6 h-6"/>
+                <Image source={require("@/assets/images/Google.png")} className="w-6 h-6"/>
                 </View>
                 <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.socialButton}>
                 <View style={styles.socialIconContainer}>
-                <Image source={require("../../../assets/images/Facebook.png")} className="w-6 h-6"/>
+                <Image source={require("@/assets/images/Facebook.png")} className="w-6 h-6"/>
                 </View>
                 <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
               </TouchableOpacity>
