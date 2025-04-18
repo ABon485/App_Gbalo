@@ -8,7 +8,7 @@ export default function IndexScreen() {
 
   useEffect(() => {
     if (rootNavigationState?.key) {
-      router.replace("/(auths)/(register)/confirm");
+      router.replace("/(auths)/(Login)/loginEmail");
     }
   }, [rootNavigationState?.key]);  
 
