@@ -9,7 +9,6 @@ import {
   ImageBackground,
   StatusBar,
   TextInput,
-  Alert,
 } from "react-native"
 import styles from "@/styles/auth/loginEmail"
 import EvilIcons from "react-native-vector-icons/EvilIcons"
@@ -18,8 +17,9 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { Stack, router } from "expo-router"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import api from "@/config/api"
-import { LoginEmailType } from "@/types/user" // Import LoginEmailType
-import { ApiResponse } from "@/types/api" // Import ApiResponse
+import { LoginEmailType } from "@/types/user"
+import { ApiResponse } from "@/types/api"
+import { useToast } from "@/context/ToastContext" // 👈 import useToast
 
 const LoginEmail = () => {
   const [email, setEmail] = useState("")
@@ -27,49 +27,103 @@ const LoginEmail = () => {
   const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  const { showToast } = useToast() // 👈 sử dụng useToast
+
   const handlePhoneLogin = () => {
     router.push("/(auths)/(Login)/loginPhone")
   }
+
   const handleForgotPassword = () => {
     router.push("/(auths)/(Login)/forgotPassword/forgot-password")
   }
+
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ email và mật khẩu")
+    // Kiểm tra email rỗng
+    if (!email) {
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Vui lòng nhập email",
+      })
       return
     }
-
+  
+    // Kiểm tra định dạng email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Định dạng email không hợp lệ",
+      })
+      return
+    }
+  
+    // Kiểm tra password rỗng
+    if (!password) {
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Vui lòng nhập mật khẩu",
+      })
+      return
+    }
+  
     setLoading(true)
-
+  
     try {
       const formData: LoginEmailType = {
         email,
         password,
         rememberMe,
       }
-
-      // Gọi API đăng nhập với kiểu ApiResponse
+  
       const response: ApiResponse = await api.post("/LoginByEmail", formData)
+  
       if (response.success) {
-        // Lưu token và thông tin người dùng vào AsyncStorage
         await AsyncStorage.setItem(
           "data",
           JSON.stringify({
-            token: response.data.token, // Giả sử API trả về token
-            user: response.data.user,   // Giả sử API trả về thông tin user
+            token: response.data.token,
+            user: response.data.user,
           })
         )
-        Alert.alert("Thành công", "Đăng nhập thành công!")
+  
+        showToast({
+          type: "success",
+          heading: "Thành công",
+          message: "Đăng nhập thành công!",
+        })
+  
         router.replace("/(tabs)/assistant")
       } else {
-        Alert.alert("Lỗi", response.message || "Đăng nhập thất bại")
+        // Xử lý lỗi chi tiết từ backend
+        let errorMessage = response.message || "Đăng nhập thất bại"
+  
+        // Ví dụ: phân tích message trả về để hiển thị chính xác hơn
+        if (response.message?.toLowerCase().includes("password")) {
+          errorMessage = "Sai mật khẩu"
+        } else if (response.message?.toLowerCase().includes("not found")) {
+          errorMessage = "Tài khoản không tồn tại"
+        }
+  
+        showToast({
+          type: "error",
+          heading: "Lỗi",
+          message: errorMessage,
+        })
       }
     } catch (error: any) {
-      Alert.alert("Lỗi", error.message || "Có lỗi xảy ra, vui lòng thử lại")
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+      })
     } finally {
       setLoading(false)
     }
   }
+  
 
   return (
     <>
