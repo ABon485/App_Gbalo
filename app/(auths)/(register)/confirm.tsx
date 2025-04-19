@@ -84,7 +84,7 @@ export default function Confirm() {
         style={{ flex: 1, width: "100%", height: "100%" }}
       >
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
-          <View className="items-center mb-20 mt-6">
+          <View className="items-center mb-auto mt-6">
             <Image
               source={require("../../../assets/images/imagLogo.png")}
               resizeMode="contain"

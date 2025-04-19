@@ -11,6 +11,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,  
     width: "100%",
+    
 
   },
   scrollContainer: {
@@ -20,6 +21,7 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     paddingBottom: 0, // No bottom padding
     justifyContent: "space-between", // This will push content to top and bottom
+    
   },
   logo: {
     width: width * 2,
@@ -77,7 +79,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     width: "100%",
-    height: 50,
+    height: 43,
     backgroundColor: "#FF5722",
     borderRadius: 25,
     justifyContent: "center",
@@ -116,21 +118,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: "#ddd",
-    paddingHorizontal: 15, // Add padding to control left spacing
+    paddingHorizontal: 15, 
   },
   socialIcon: {
-    marginRight: 10, // Space between icon and text
+    marginRight: 10, 
   },
   
   socialButtonText: {
     fontSize: 13,
     color: "#333",
-    flex: 1, // Take remaining space
-    textAlign: "center", // Center the text horizontally
+    flex: 1, 
+    textAlign: "center", 
     paddingRight:25,
     fontFamily:'Inter-Medium',
   },
-  // New styles for email login
+  
   emailLoginContainer: {
     width: "100%",
     marginBottom: 10,
