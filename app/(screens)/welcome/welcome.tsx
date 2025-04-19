@@ -98,7 +98,7 @@ const Welcome = () => {
             <Picker
               selectedValue={selectedValue}
               onValueChange={(itemValue) => setSelectedValue(itemValue)}
-              style={{ height: 53, width: "100%" }}
+              style={{ height: 50, width: "100%" }}
               dropdownIconColor="#000"
             >
               <Picker.Item label="Chọn" value="" />

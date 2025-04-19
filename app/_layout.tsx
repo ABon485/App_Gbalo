@@ -10,9 +10,9 @@ import * as Font from "expo-font";
 import { View, ActivityIndicator } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import "@/global.css";
-import Toast from "react-native-toast-message";
+// import Toast from "react-native-toast-message";
 import { toastConfig } from "@/components/Toast";
-import { ToastProvider } from "@/context/ToastContext"; 
+import { ToastProvider } from "@/context/ToastContext";
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -57,14 +57,20 @@ function RootLayoutNav() {
   }
 
   return (
-    <ToastProvider> {/* ✅ Bọc toàn bộ app bằng ToastProvider */}
+    <ToastProvider>
+      {" "}
+      {/* ✅ Bọc toàn bộ app bằng ToastProvider */}
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
+          <Stack.Screen name="slash" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/register" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
-        <Toast config={toastConfig} /> {/* vẫn giữ để hiển thị Toast */}
+        {/* <Toast config={toastConfig} /> vẫn giữ để hiển thị Toast */}
       </ThemeProvider>
     </ToastProvider>
   );

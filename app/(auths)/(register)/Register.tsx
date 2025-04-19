@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
+import VerifyPhone from "./veryfyPhone";
 
 export default function Register() {
   const router = useRouter();
@@ -20,6 +21,9 @@ export default function Register() {
   };
   const handleRegisterEmail = () => {
     router.push("/(auths)/(register)/RegisterEmail");
+  };
+  const VerifyPhone = () => {
+    router.push("/(auths)/(register)/veryfyPhone");
   };
   return (
     <>
@@ -34,7 +38,7 @@ export default function Register() {
         <StatusBar translucent backgroundColor="transparent" />
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
           {/* Logo */}
-          <View className="items-center mb-14 mt-6">
+          <View className="items-center mb-auto mt-6">
             <Image
               source={require("../../../assets/images/imagLogo.png")}
               resizeMode="contain"
@@ -42,7 +46,7 @@ export default function Register() {
           </View>
 
           {/* Form */}
-          <View className="bg-white rounded-t-3xl px-6 py-1 shadow-md">
+          <View className="bg-white rounded-t-3xl px-6 py-3 shadow-md">
             <Text
               style={{
                 fontFamily: "Mulish-ExtraBold",
@@ -103,7 +107,7 @@ export default function Register() {
             </Text>
 
             {/* Tiếp tục */}
-            <CustomButtonRN title="Tiếp tục" onPress={handleRegisterEmail} />
+            <CustomButtonRN title="Tiếp tục" onPress={VerifyPhone} />
 
             {/* Divider */}
             <View className="flex-row items-center my-4">
@@ -121,25 +125,25 @@ export default function Register() {
             </View>
 
             {/* Social buttons */}
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
+            <TouchableOpacity className="h-[43px] flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3" onPress={handleRegisterEmail}>
               <Image
-                source={require("../../../assets/images/social/Phone.png")}
+                source={require("../../../assets/images/social/email.png")}
               />
-              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với số điện thoại</Text>
+              <Text className="ml-20" style={{ fontFamily:"Inter-Medium",fontSize: 13 }}>Tiếp tục với email</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
+            <TouchableOpacity className="h-[43px] flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
               <Image
                 source={require("../../../assets/images/social/Google.png")}
               />
-              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với Google</Text>
+              <Text className="ml-[62px]" style={{ fontFamily:"Inter-Medium",fontSize: 13 }}>Tiếp tục với Google</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4">
+            <TouchableOpacity className="h-[43px] flex-row items-center border border-gray-300 rounded-full py-3 px-4">
               <Image
                 source={require("../../../assets/images/social/Facebook.png")}
               />
-              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với Facebook</Text>
+              <Text className="ml-[53px]" style={{ fontFamily:"Inter-Medium",fontSize: 13 }}>Tiếp tục với Facebook</Text>
             </TouchableOpacity>
 
             {/* Login link */}
