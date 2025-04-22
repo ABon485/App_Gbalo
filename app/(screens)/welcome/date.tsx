@@ -5,7 +5,9 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Platform,
+  StyleSheet,
 } from "react-native";
+import styles from "@/styles/welcome/date";
 import { Stack, useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -34,55 +36,34 @@ const DateScreen = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-white px-5 pt-12">
+      <SafeAreaView style={styles.container}>
         {/* Header */}
-        <View className="flex-row items-center mt-2.5">
+        <View style={styles.header}>
           <TouchableOpacity onPress={() => router.replace("./welcome")}>
             <AntDesign name="arrowleft" size={24} color="black" />
           </TouchableOpacity>
-          <View className="w-4/5 flex-row h-1.5 bg-gray-300 rounded ml-4 overflow-hidden">
-            <View className="w-[66.666667%] bg-orange-500" />
-            <View className="flex-1" />
+          <View style={styles.progressWrapper}>
+            <View style={styles.progressFill} />
+            <View style={{ flex: 1 }} />
           </View>
         </View>
 
         {/* Content */}
-        <View className="flex-1 pt-10">
-          <Text
-            style={{
-              fontFamily: "Mulish-ExtraBold",
-              fontSize: 24,
-              color: "black",
-            }}
-          >
-            Chào mừng bạn đến với Gbalo!
-          </Text>
-          <Text
-            style={{ fontFamily: "Mulish-Extra", fontSize: 16, color: "black" }}
-          >
+        <View style={styles.content}>
+          <Text style={styles.title}>Chào mừng bạn đến với Gbalo!</Text>
+          <Text style={styles.subtitle}>
             Cảm ơn bạn đã cung cấp thông tin, chỉ còn một bước nữa...
           </Text>
-          <Text
-            style={{
-              fontFamily: "Mulish-ExtraBold",
-              fontSize: 24,
-              color: "black",
-              paddingTop: 100,
-            }}
-          >
+          <Text style={styles.question}>
             Vui lòng cho chúng tôi biết ngày sinh của bạn?
           </Text>
 
           {/* Date Picker Button */}
           <TouchableOpacity
             onPress={() => setShow(true)}
-            className="border border-gray-300 rounded-full py-4 px-5 my-8"
+            style={styles.dateButton}
           >
-            <Text
-              className={`text-base ${
-                !date ? "text-gray-400" : "text-gray-700"
-              }`}
-            >
+            <Text style={[styles.dateText, { color: date ? "#374151" : "#9CA3AF" }]}>
               {formatDate(date)}
             </Text>
           </TouchableOpacity>
@@ -98,10 +79,7 @@ const DateScreen = () => {
           )}
 
           {/* Next button */}
-          <CustomButtonRN
-            title="Tiếp tục"
-            onPress={() => router.replace("./hobbies")}
-          />
+          <CustomButtonRN title="Tiếp tục" onPress={() => router.replace("./hobbies")} />
         </View>
       </SafeAreaView>
     </>

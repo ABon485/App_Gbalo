@@ -16,14 +16,14 @@
       flexGrow: 1,
       alignItems: "center",
       width: "100%",
-      paddingTop: 80,
+      paddingTop: 100,
       paddingBottom: 0,
       justifyContent: "space-between",
     },
     logo: {
       width: width * 0.5,
       height: height * 0.15,
-      marginBottom: 20,
+      marginBottom: "auto",
     },
     formContainer: {
       width: "100%",

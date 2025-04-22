@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { View, Text, Image, Animated } from "react-native";
+import { View, Text, Image, Animated, StyleSheet } from "react-native";
 import { router, Stack } from "expo-router";
 
 const SplashScreen = () => {
@@ -30,40 +30,40 @@ const SplashScreen = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1 bg-white justify-center items-center">
+      <View style={styles.container}>
         <Animated.View style={{ opacity: fadeOutAnim }}>
-          <View className="flex-row items-center space-x-2">
+          <View style={styles.logoRow}>
             <Image
               source={require("@/assets/images/Gbalo_logo.png")}
-              className="w-30 h-30 ml-8"
+              style={styles.logo}
               resizeMode="contain"
             />
-            <View className="flex-row">
+            <View style={styles.letterRow}>
               {letters.map((letter, index) => (
                 <Animated.Text
                   key={index}
-                  style={{
-                    opacity: animations[index],
-                    transform: [
-                      {
-                        translateY: animations[index].interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [20, 0],
-                        }),
-                      },
-                    ],
-                    top: 17,
-                    fontSize: 55,
-                    lineHeight: 120,
-                    color:
-                      index === 0
-                        ? "#FFE700"
-                        : index === 1
-                        ? "#65B741"
-                        : index === 2
-                        ? "#00CCDD"
-                        : "#A5158C",
-                  }}
+                  style={[
+                    styles.letter,
+                    {
+                      opacity: animations[index],
+                      transform: [
+                        {
+                          translateY: animations[index].interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [20, 0],
+                          }),
+                        },
+                      ],
+                      color:
+                        index === 0
+                          ? "#FFE700"
+                          : index === 1
+                          ? "#65B741"
+                          : index === 2
+                          ? "#00CCDD"
+                          : "#A5158C",
+                    },
+                  ]}
                 >
                   {letter}
                 </Animated.Text>
@@ -72,7 +72,7 @@ const SplashScreen = () => {
           </View>
           <Image
             source={require("@/assets/images/Slash.png")}
-            className="w-80 h-80"
+            style={styles.slash}
             resizeMode="contain"
           />
         </Animated.View>
@@ -80,5 +80,37 @@ const SplashScreen = () => {
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    marginLeft: 32,
+  },
+  letterRow: {
+    flexDirection: "row",
+  },
+  letter: {
+    fontSize: 55,
+    lineHeight: 120,
+    position: "relative",
+    top: 17,
+  },
+  slash: {
+    width: 320,
+    height: 320,
+  },
+});
 
 export default SplashScreen;

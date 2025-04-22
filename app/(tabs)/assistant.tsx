@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   View,
   Text,
@@ -12,28 +12,32 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
-} from "react-native"
-import { DestinationCard } from "../../components/chatAI/destination-card"
-import { MessageBubble } from "../../components/chatAI/message-bubble"
-import FontAwesome from "react-native-vector-icons/FontAwesome"
+  StyleSheet,
+} from "react-native";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 
-// ✅ Khai báo type ở đây để tránh lỗi TS
-type SenderType = "user" | "ai"
+type SenderType = "user" | "ai";
 
 interface Message {
-  id: number
-  sender: SenderType
-  text: string
-  avatar: any
+  id: number;
+  sender: SenderType;
+  text: string;
+  avatar: any;
+}
+
+interface Destination {
+  id: number;
+  name: string;
+  image: any;
 }
 
 export default function Home() {
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: "ai",
-      text: "Xin chào, tôi là Gbao, trợ lý du lịch của bạn. Tôi có thể giúp bạn tìm kiếm giá khách sạn, tour, giới thiệu khách sạn hoặc trả lời bất kỳ câu hỏi nào liên quan đến du lịch.",
+      text: "Xin chào, tôi là Gbalo, trợ lý du lịch của bạn. Tôi có thể giúp bạn tìm kiếm giá khách sạn, tour, giới thiệu khách sạn hoặc trả lời bất kỳ câu hỏi nào liên quan đến du lịch.",
       avatar: require("../../assets/images/AI.png"),
     },
     {
@@ -57,28 +61,28 @@ export default function Home() {
     {
       id: 5,
       sender: "user",
-      text: "Tôi muốn đi Hà Nội\nDu lịch khoảng 4 ngày",
+      text: "Hãy gợi ý cho tôi một số tour Đà Nẵng",
       avatar: require("../../assets/images/react-logo.png"),
     },
-  ])
+  ]);
 
-  const destinations = [
+  const destinations: Destination[] = [
     {
       id: 1,
-      name: "TP Hồ Chí Minh",
+      name: "Tour Đà Nẵng Bà Nà Hills Hội An",
       image: require("../../assets/images/image2.png"),
     },
     {
       id: 2,
-      name: "Đà Nẵng",
+      name: "Tour Đà Nẵng Cù Lao Chàm Ngũ Hành Sơn (2N1Đ)",
       image: require("../../assets/images/image2.png"),
     },
     {
       id: 3,
-      name: "Hà Nội",
+      name: "Tour Đà Nẵng Huế Hội An Bà Nà (4N3Đ)",
       image: require("../../assets/images/image2.png"),
     },
-  ]
+  ];
 
   const handleSend = () => {
     if (message.trim()) {
@@ -87,60 +91,257 @@ export default function Home() {
         sender: "user",
         text: message,
         avatar: require("../../assets/images/react-logo.png"),
-      }
-      setMessages([...messages, newMessage])
-      setMessage("")
+      };
+      setMessages([...messages, newMessage]);
+      setMessage("");
     }
-  }
+  };
+
+  const renderDestinationCard = (destination: Destination) => (
+    <View key={destination.id} style={styles.cardHorizontal}>
+      <Image source={destination.image} style={styles.cardHorizontalImage} />
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle}>{destination.name}</Text>
+        <TouchableOpacity style={styles.bookButton}>
+          <Text style={styles.bookButtonText}>Đặt ngay</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View className="h-[50px] mt-7 justify-center items-center border-b border-gray-100">
-        <Text className="text-lg font-semibold">Trợ lý AI</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Trợ lý AI</Text>
       </View>
 
       {/* Chat Area */}
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
-        <ScrollView className="flex-1 px-4" contentContainerClassName="py-4">
-          {messages.map((msg, index) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              showAvatar={index === 0 || messages[index - 1].sender !== msg.sender}
-            />
-          ))}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {messages.map((msg, index) => {
+            const showAvatar =
+              index === 0 || messages[index - 1].sender !== msg.sender;
+            return (
+              <View
+                key={msg.id}
+                style={[
+                  styles.messageContainer,
+                  msg.sender === "user" ? styles.alignRight : styles.alignLeft,
+                ]}
+              >
+                {showAvatar && msg.sender === "ai" && (
+                  <Image source={msg.avatar} style={styles.avatar} />
+                )}
+                <View style={styles.bubble}>
+                  <Text>{msg.text}</Text>
+                </View>
+                {showAvatar && msg.sender === "user" && (
+                  <Image source={msg.avatar} style={styles.avatar} />
+                )}
+              </View>
+            );
+          })}
 
-          {/* Destination Cards - shown after the last AI message */}
+          {/* Destination Cards */}
           {messages[messages.length - 2]?.sender === "ai" &&
             messages[messages.length - 1]?.sender === "user" && (
-              <View className="flex-row mt-4 mb-2">
-                <Image source={require("../../assets/images/AI.png")} className="w-10 h-10 rounded-full mr-2" />
-                <View className="flex-1 bg-[#FFF9F2] rounded-2xl p-3 border border-[#FFE8CC]">
-                  {destinations.map((destination) => (
-                    <DestinationCard key={destination.id} destination={destination} />
-                  ))}
+              <View style={styles.destinationContainer}>
+                <Image
+                  source={require("../../assets/images/AI.png")}
+                  style={styles.avatar}
+                />
+                <View style={styles.destinationCardBox}>
+                  {destinations.map(renderDestinationCard)}
                 </View>
               </View>
             )}
         </ScrollView>
 
-        {/* Message Input */}
-        <View className="flex-row items-center px-4 py-2 border-t border-gray-100 bg-white">
+        {/* Input */}
+        <View style={styles.inputContainer}>
           <TextInput
-            className="flex-1 border border-gray-100 rounded-full px-4 bg-white "
+            style={styles.textInput}
             placeholder="Nhập"
             value={message}
             onChangeText={setMessage}
             multiline
           />
-          <TouchableOpacity className="ml-2 w-10 h-10 justify-center items-center" onPress={handleSend}>
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
             <FontAwesome name="send" size={20} color="#FF5722" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  )
+  );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  flex: {
+    flex: 1,
+  },
+  header: {
+    height: 50,
+    marginTop: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderColor: "#f3f4f6",
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  scroll: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  scrollContent: {
+    paddingVertical: 16,
+  },
+  messageContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginVertical: 6,
+  },
+  alignLeft: {
+    justifyContent: "flex-start",
+  },
+  alignRight: {
+    justifyContent: "flex-end",
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    marginHorizontal: 8,
+  },
+  bubble: {
+    backgroundColor: "#fff",
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+    maxWidth: "70%",
+  },
+  destinationContainer: {
+    flexDirection: "row",
+    marginTop: 16,
+    alignItems: "flex-start",
+  },
+  destinationCardBox: {
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    backgroundColor: "#FFF9F2",
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#FFE8CC",
+    gap: 8,
+  },
+  card: {
+    width: 255,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#eee",
+    overflow: "hidden",
+  },
+  cardImage: {
+    width: "100%",
+    height: 90,
+    resizeMode: "cover",
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    padding: 8,
+  },
+  cardButton: {
+    fontSize: 12,
+    color: "#fff",
+    backgroundColor: "#FF5722",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    alignSelf: "flex-start",
+    borderRadius: 6,
+    margin: 8,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderColor: "#f3f4f6",
+    backgroundColor: "#ffffff",
+  },
+  textInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+    borderRadius: 9999,
+    paddingHorizontal: 16,
+    backgroundColor: "#ffffff",
+    fontSize: 16,
+  },
+  sendButton: {
+    marginLeft: 8,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardHorizontal: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#eee",
+    overflow: "hidden",
+    marginBottom: 12,
+  },
+
+  cardHorizontalImage: {
+    width: 100,
+    height: 100,
+    resizeMode: "cover",
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+  },
+
+  cardContent: {
+    flex: 1,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+  },
+
+  bookButton: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+    backgroundColor: "#FF5722",
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+
+  bookButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+});

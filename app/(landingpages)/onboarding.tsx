@@ -1,7 +1,13 @@
 import React, { useState, useRef } from "react";
-import { View, FlatList, Dimensions, TouchableOpacity } from "react-native";
+import {
+  View,
+  FlatList,
+  Dimensions,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { router,Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 
 import Intro1 from "./intro1";
 import Intro2 from "./intro2";
@@ -24,7 +30,7 @@ const Onboarding = () => {
   }: {
     item: { key: string; component: JSX.Element };
   }) => {
-    return <View className="w-full flex-1">{item.component}</View>;
+    return <View style={styles.slide}>{item.component}</View>;
   };
 
   const handleNext = () => {
@@ -50,22 +56,20 @@ const Onboarding = () => {
   };
 
   const renderPagination = () => (
-    <View className="absolute bottom-10 left-0 right-0 px-5">
-      <View className="flex-row justify-between items-center">
-        <View className="flex-row">
+    <View style={styles.paginationContainer}>
+      <View style={styles.paginationRow}>
+        <View style={styles.dotsContainer}>
           {slides.map((_, index) => (
             <View
               key={index}
-              className={`w-[10px] h-[10px] rounded-full mx-[5px] ${
-                index === currentIndex ? "bg-orange-600" : "bg-gray-300"
-              }`}
+              style={[
+                styles.dot,
+                index === currentIndex ? styles.dotActive : styles.dotInactive,
+              ]}
             />
           ))}
         </View>
-        <TouchableOpacity
-          className="w-[50px] h-[50px] justify-center items-center rounded-full"
-          onPress={handleNext}
-        >
+        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
           <AntDesign name="rightcircle" size={40} color="white" />
         </TouchableOpacity>
       </View>
@@ -75,7 +79,7 @@ const Onboarding = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1">
+      <View style={styles.container}>
         <FlatList
           ref={flatListRef}
           data={slides}
@@ -92,5 +96,49 @@ const Onboarding = () => {
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  slide: {
+    width: width,
+    flex: 1,
+  },
+  paginationContainer: {
+    position: "absolute",
+    bottom: 40,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+  },
+  paginationRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  dotsContainer: {
+    flexDirection: "row",
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  dotActive: {
+    backgroundColor: "#ea580c", // Tailwind's orange-600
+  },
+  dotInactive: {
+    backgroundColor: "#d1d5db", // Tailwind's gray-300
+  },
+  nextButton: {
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 25,
+  },
+});
 
 export default Onboarding;
