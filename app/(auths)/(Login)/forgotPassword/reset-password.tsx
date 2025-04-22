@@ -62,7 +62,7 @@ const ResetPasswordScreen = () => {
                             </Text>
 
                             {/* Password Input Field */}
-                            <View className="flex-row items-center w-full h-[50px] border border-gray-300 rounded-full mb-4 pl-1 pr-4">
+                            <View className="flex-row items-center w-full h-[43px] border border-gray-300 rounded-full mb-4 pl-1 pr-4">
                                 <TextInput
                                     className="flex-1 h-full text-base px-2 text-gray-800"
                                     style={{ fontFamily:"Inter-Medium"  }}
@@ -107,7 +107,7 @@ const ResetPasswordScreen = () => {
 
                             {/* Reset and Login Button */}
                             <TouchableOpacity
-                                className="w-full h-[50px] rounded-full justify-center items-center bg-[#FF5722]"
+                                className="w-full h-[43px] rounded-full justify-center items-center bg-[#FF5722]"
                                 onPress={handleResetAndLogin}
                                 disabled={!(isMinLength && isSpecialChar)}
                             >

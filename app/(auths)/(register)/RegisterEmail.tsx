@@ -7,7 +7,6 @@ import {
   Image,
   ScrollView,
   ImageBackground,
-  StatusBar,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
@@ -21,6 +20,10 @@ export default function RegisterEmail() {
   const VerifyPhone = () => {
     router.push("/(auths)/(register)/veryfyPhone");
   };
+  const HandleRegister = () => {
+    router.push("/(auths)/(register)/Register");
+  };
+
 
   return (
     <>
@@ -32,10 +35,12 @@ export default function RegisterEmail() {
         source={require("../../../assets/images/BackGroud.png")}
         style={{ flex: 1, width: "100%", minHeight: "100%" }}
       >
-        <StatusBar translucent backgroundColor="transparent" />
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          className="pt-12"
+        >
           {/* Logo */}
-          <View className="items-center mb-24 mt-6">
+          <View className="items-center mb-auto mt-1">
             <Image
               source={require("../../../assets/images/imagLogo.png")}
               resizeMode="contain"
@@ -43,43 +48,20 @@ export default function RegisterEmail() {
           </View>
 
           {/* Form */}
-          <View className="bg-white rounded-t-3xl px-6 shadow-md">
-            <Text
-              style={{
-                fontFamily: "Mulish-ExtraBold",
-                fontSize: 30,
-                color: "black",
-                textAlign: "center",
-                margin: 5,
-              }}
-            >
-              Đăng ký
-            </Text>
+          <View className="bg-white rounded-t-3xl px-6 py-4 shadow-md">
+            <Text className="text-3xl text-center mb-4" style={{ fontFamily:"Inter-Black"}}>Đăng ký</Text>
 
-            <Text
-              style={{
-                fontFamily: "Mulish-ExtraBold",
-                fontSize: 16,
-                color: "black",
-              }}
-            >
+            <Text className="font-semibold" style={{ fontFamily:"Inter-Black"}}>
               Email <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
+            style={{ fontFamily:"Inter-Medium"}}
               placeholder="Nhập email"
               keyboardType="email-address"
-              className="border border-gray-300 rounded-full px-4 py-3 mt-1 mb-4"
-              style={{ fontFamily:"Inter-Medium" }}
+              className="border border-gray-300 rounded-full px-4 py-2 mt-1 mb-4"
             />
 
-            <Text
-              style={{
-                fontFamily: "Inter-Medium",
-                fontSize: 10,
-                color: "black",
-                marginBottom: 13,
-              }}
-            >
+            <Text className="text-xs text-gray-500 mb-4" style={{ fontFamily:"Inter-Medium"}}>
               Chúng tôi sẽ gọi điện hoặc nhắn tin cho bạn để xác nhận số điện
               thoại. Có áp dụng phí dữ liệu và phí tin nhắn tiêu chuẩn.
               <Text className="text-blue-500 underline">
@@ -94,45 +76,37 @@ export default function RegisterEmail() {
             {/* Divider */}
             <View className="flex-row items-center my-4">
               <View className="flex-1 h-px bg-gray-300" />
-              <Text
-                style={{
-                  fontFamily: "Inter-Medium",
-                  fontSize: 16,
-                  color: "black",
-                }}
-              >
-                Hoặc
-              </Text>
+              <Text className="mx-2 text-gray-500" style={{ fontFamily:"Inter-Medium"}}>Hoặc</Text>
               <View className="flex-1 h-px bg-gray-300" />
             </View>
 
             {/* Social buttons */}
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
+            <TouchableOpacity className=" h-[43px] flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3" onPress={HandleRegister}>
               <Image
                 source={require("../../../assets/images/social/Phone.png")}
               />
-              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với số điện thoại</Text>
+              <Text className="ml-12" style={{ fontFamily:"Inter-Medium"}}>Tiếp tục với số điện thoại</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
+            <TouchableOpacity className=" h-[43px] flex-row items-center border border-gray-300 rounded-full py-3 px-4 mb-3">
               <Image
                 source={require("../../../assets/images/social/Google.png")}
               />
-              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với Google</Text>
+              <Text className="ml-[55px]" style={{ fontFamily:"Inter-Medium"}}>Tiếp tục với Google</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full py-3 px-4">
+            <TouchableOpacity className="h-[43px] flex-row items-center border border-gray-300 rounded-full py-3 px-4">
               <Image
                 source={require("../../../assets/images/social/Facebook.png")}
               />
-              <Text className="ml-16" style={{ fontFamily:"Inter-Medium" }}>Tiếp tục với Facebook</Text>
+              <Text className="ml-[45px]" style={{ fontFamily:"Inter-Medium"}}>Tiếp tục với Facebook</Text>
             </TouchableOpacity>
 
             {/* Login link */}
             <View className="flex-row justify-center items-center mt-3">
-              <Text style={{ fontFamily:"Inter-Medium" }}>Bạn đã có tài khoản? </Text>
+              <Text>Bạn đã có tài khoản? </Text>
               <TouchableOpacity onPress={handleLogin}>
-                <Text className="text-blue-500 underline" style={{ fontFamily:"Inter-Medium" }}>Đăng nhập</Text>
+                <Text className="text-blue-500 underline">Đăng nhập</Text>
               </TouchableOpacity>
             </View>
           </View>

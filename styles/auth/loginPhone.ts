@@ -44,7 +44,7 @@
       marginTop: "auto",
     },
     title: {
-      fontSize: 25,
+      fontSize: 30,
       fontFamily:'Mulish-Black',
       marginBottom: 25,
       color: "#000",
@@ -54,7 +54,7 @@
       flexDirection: "row",
       alignItems: "center",
       width: "100%",
-      height: 50,
+      height: 43,
       borderWidth: 1,
       borderColor: "#ddd",
       borderRadius: 25,
@@ -83,7 +83,7 @@
     },
     loginButton: {
       width: "100%",
-      height: 50,
+      height: 43,
       backgroundColor: "#FF5722",
       borderRadius: 25,
       justifyContent: "center",
@@ -117,7 +117,7 @@
       flexDirection: "row",
       alignItems: "center",
       width: "100%",
-      height: 50,
+      height: 43,
       backgroundColor: "white",
       borderRadius: 25,
       marginBottom: 10,
@@ -133,7 +133,7 @@
       marginRight: 10,
     },
     socialButtonText: {
-      fontSize: 16,
+      fontSize: 13,
       color: "#333",
       flex: 1,
       textAlign: "center",
@@ -147,12 +147,12 @@
       justifyContent: "center",
     },
     registerText: {
-      fontSize: 14,
+      fontSize: 13,
       color: "#333",
       fontFamily:'Inter-Medium'
     },
     registerLink: {
-      fontSize: 14,
+      fontSize: 13,
       color: "#007AFF",
       fontFamily:'Inter-Medium'
     },

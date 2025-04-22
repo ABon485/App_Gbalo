@@ -2,7 +2,7 @@
 
     import { useState } from "react"
     import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, ImageBackground, StatusBar } from "react-native"
-    import styles from "../../../styles/auth/loginScreen"
+    import styles from "@/styles/auth/loginScreen"
     import Feather from "react-native-vector-icons/Feather"
     import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
     import { Stack, useRouter } from "expo-router" // ✅ Thêm useRouter
@@ -23,11 +23,11 @@
       return (
         <>
           <Stack.Screen options={{ headerShown: false }} />
-          <ImageBackground source={require("../../../assets/images/BackGroud.png")} style={styles.backgroundImage}>
+          <ImageBackground source={require("@/assets/images/BackGroud.png")} style={styles.backgroundImage}>
             <StatusBar translucent backgroundColor="transparent" />
             <SafeAreaView style={styles.container}>
               <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <Image source={require("../../../assets/images/imagLogo.png")} style={styles.logo} resizeMode="contain" />
+                <Image source={require("@/assets/images/imagLogo.png")} style={styles.logo} resizeMode="contain" />
 
                 <View style={styles.formContainer}>
                   <Text style={styles.title}>Đăng nhập</Text>
@@ -55,12 +55,12 @@
                   </View>
 
                   <TouchableOpacity style={styles.socialButton}>
-                    <Image source={require("../../../assets/images/Google.png")} className="w-6 h-6"/>
+                    <Image source={require("@/assets/images/Google.png")} className="w-6 h-6"/>
                     <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity style={styles.socialButton}>
-                  <Image source={require("../../../assets/images/Facebook.png")} className="w-6 h-6"/>
+                  <Image source={require("@/assets/images/Facebook.png")} className="w-6 h-6"/>
                     <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
                   </TouchableOpacity>
                   <View style={styles.registerContainer}>

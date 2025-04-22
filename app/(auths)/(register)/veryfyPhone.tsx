@@ -119,7 +119,7 @@ export default function VerifyPhone() {
 
             {/* Resend button */}
             <TouchableOpacity
-              className="border border-gray-400 rounded-full py-3 items-center mb-40 mt-7"
+              className=" h-[43px] border border-gray-400 rounded-full py-3 items-center mb-40 mt-7"
               onPress={handleResend}
             >
               <Text className="text-base text-black" style={{ fontFamily:"Inter-Black" }}>Gửi lại</Text>
