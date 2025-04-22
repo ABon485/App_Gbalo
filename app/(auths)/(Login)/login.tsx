@@ -17,7 +17,7 @@
         router.push('/(auths)/(Login)/loginPhone'); // ✅ Điều hướng đến trang login
       };
       const handleRegister = () => {
-        router.replace("/(auths)/(register)/Register")
+        router.replace("/(auths)/(register)/registerPhone/RegisterPhone")
       }
 
       return (

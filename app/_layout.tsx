@@ -9,7 +9,6 @@ import { StatusBar } from "expo-status-bar";
 import * as Font from "expo-font";
 import { View, ActivityIndicator } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import "../global.css";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/components/Toast";
 import { ToastProvider } from "@/context/ToastContext";

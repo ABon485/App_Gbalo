@@ -8,8 +8,10 @@ import {
   ScrollView,
   ImageBackground,
   Alert,
+  StyleSheet,
 } from "react-native";
-import { router, Stack, useRouter } from "expo-router";
+import styles from "@/styles/auth/register/confirmEmail";
+import { router, Stack } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import CustomButtonRN from "@/components/common/customButtonRN";
 import api from "@/config/api";
@@ -20,7 +22,6 @@ import { RegisterType } from "@/types/user";
 export default function Confirm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const router = useRouter();
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -65,7 +66,7 @@ export default function Confirm() {
           })
         );
         Alert.alert("Thành công", "Đăng ký thành công!");
-        router.replace("/(auths)/(Login)/login");
+        router.replace("/(tabs)/assistant");
       } else {
         Alert.alert("Lỗi", response.message || "Đăng ký thất bại");
       }
@@ -80,92 +81,59 @@ export default function Confirm() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <ImageBackground
-        source={require("../../../assets/images/BackGroud.png")}
-        style={{ flex: 1, width: "100%", height: "100%" }}
+        source={require("../../../../assets/images/BackGroud.png")}
+        style={styles.backgroundImage}
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="pt-12">
-          <View className="items-center mb-auto mt-6">
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          <View style={styles.logoContainer}>
             <Image
-              source={require("../../../assets/images/imagLogo.png")}
+              source={require("../../../../assets/images/imagLogo.png")}
               resizeMode="contain"
             />
           </View>
 
-          <View className="bg-white rounded-t-6xl px-6 py-8 shadow-md">
-            <Text
-              style={{
-                fontFamily: "Inter-Black",  
-                fontSize: 24,
-                textAlign: "center",
-                color: "black",
-              }}
-            >
-              Hoàn tất đăng ký
-            </Text>
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Hoàn tất đăng ký</Text>
 
             {/* Họ và tên */}
-            <Text
-              style={{
-                fontFamily: "Inter-Medium",
-                fontSize: 16,
-                color: "black",
-              }}
-            >
-              Họ và tên <Text className="text-red-500">*</Text>
+            <Text style={styles.label}>
+              Họ và tên <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
-            style={{
-              fontFamily: "Inter-Medium",
-            }}
+              style={styles.input}
               placeholder="Nhập tên của bạn"
-              className=" h-[43px] border border-gray-300 rounded-full px-4 mt-1 mb-4"
               value={userName}
               onChangeText={(text) => setUserName(text)}
             />
 
             {/* Email */}
-            <Text
-              style={{
-                fontFamily: "Inter-Medium",
-                fontSize: 16,
-                color: "black",
-              }}
-            >
-              Email <Text className="text-red-500">*</Text>
+            <Text style={styles.label}>
+              Email <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
-             style={{
-              fontFamily: "Inter-Medium",
-            }}
+              style={styles.input}
               placeholder="Email của bạn"
               keyboardType="email-address"
-              className="h-[43px] border border-gray-300 rounded-full px-4 mt-1 mb-4"
               value={email}
               onChangeText={(text) => setEmail(text)}
             />
 
             {/* Mật khẩu */}
-            <Text
-              style={{
-                fontFamily: "Inter-Medium",
-                fontSize: 16,
-                color: "black",
-              }}
-            >
-              Mật khẩu <Text className="text-red-500">*</Text>
+            <Text style={styles.label}>
+              Mật khẩu <Text style={styles.required}>*</Text>
             </Text>
-            <View className=" h-[43px] flex-row items-center border border-gray-300 rounded-full px-4 mt-1 mb-4">
+            <View style={styles.inputContainer}>
               <TextInput
-               style={{
-                fontFamily: "Inter-Medium",
-              }}
+                style={[styles.input, styles.inputWithIcon]}
                 placeholder="Nhập mật khẩu"
                 secureTextEntry={!showPassword}
-                className="flex-1"
                 value={password}
                 onChangeText={(text) => setPassword(text)}
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
                 <FontAwesome
                   name={showPassword ? "eye" : "eye-slash"}
                   size={18}
@@ -175,27 +143,21 @@ export default function Confirm() {
             </View>
 
             {/* Xác nhận mật khẩu */}
-            <Text
-              style={{
-                fontFamily: "Inter-Medium",
-                fontSize: 16,
-                color: "black",
-              }}
-            >
-              Xác nhận mật khẩu <Text className="text-red-500">*</Text>
+            <Text style={styles.label}>
+              Xác nhận mật khẩu <Text style={styles.required}>*</Text>
             </Text>
-            <View className="h-[43px] flex-row items-center border border-gray-300 rounded-full px-4 mt-1 mb-6">
+            <View style={styles.inputContainer}>
               <TextInput
-               style={{
-                fontFamily: "Inter-Medium",
-              }}
+                style={[styles.input, styles.inputWithIcon]}
                 placeholder="Nhập lại mật khẩu"
                 secureTextEntry={!showConfirm}
-                className="flex-1"
                 value={confirmPassword}
                 onChangeText={(text) => setConfirmPassword(text)}
               />
-              <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowConfirm(!showConfirm)}
+              >
                 <FontAwesome
                   name={showConfirm ? "eye" : "eye-slash"}
                   size={18}
@@ -208,28 +170,12 @@ export default function Confirm() {
             <CustomButtonRN title="Tiếp tục" onPress={handleRegister} />
 
             {/* Chính sách */}
-            <Text
-              style={{
-                fontFamily: "Inter-Medium",
-                fontSize: 14,
-                color: "black",
-                top: 8,
-                textAlign: "center",
-              }}
-            >
+            <Text style={styles.policyText}>
               Bằng việc chọn Đồng ý và tiếp tục, tôi đồng ý với{" "}
-              <Text className="text-black font-semibold">
-                Điều khoản dịch vụ
-              </Text>{" "}
-              và{" "}
-              <Text className="text-black font-semibold">
-                Chính sách của Gbalo
-              </Text>
-              , đồng thời chấp thuận{" "}
-              <Text className="text-black font-semibold">
-                Chính sách về quyền riêng tư
-              </Text>
-              .
+              <Text style={styles.boldText}>Điều khoản dịch vụ</Text> và{" "}
+              <Text style={styles.boldText}>Chính sách của Gbalo</Text>, đồng
+              thời chấp thuận{" "}
+              <Text style={styles.boldText}>Chính sách về quyền riêng tư</Text>.
             </Text>
           </View>
         </ScrollView>
@@ -237,3 +183,4 @@ export default function Confirm() {
     </>
   );
 }
+

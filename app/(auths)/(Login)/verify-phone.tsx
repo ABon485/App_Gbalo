@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { View, Text, TouchableOpacity, Image, SafeAreaView, ImageBackground, StatusBar, TextInput } from "react-native"
+import { View, Text, TouchableOpacity, Image, SafeAreaView, ImageBackground, StatusBar, TextInput, StyleSheet } from "react-native"
 import { Stack, useLocalSearchParams, router } from "expo-router"
 import type { TextInput as RNTextInput } from "react-native"
 
@@ -56,35 +56,29 @@ const VerifyPhoneScreen = () => {
       <Stack.Screen options={{ headerShown: false }} />
       <ImageBackground
         source={require("@/assets/images/BackGroud.png")}
-        className="flex-1 w-full h-full"
+        style={styles.backgroundImage}
       >
         <StatusBar translucent backgroundColor="transparent" />
-        <SafeAreaView className="flex-1 w-full">
-          <View className="flex-1 items-center w-full pt-20">
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.container}>
             <Image
               source={require("@/assets/images/imagLogo.png")}
-              className="w-1/2 h-[15%] mb-5"
+              style={styles.logo}
               resizeMode="contain"
             />
 
-            <View className="w-full h-3/4 bg-white rounded-t-3xl px-6 pt-6 pb-5 items-center shadow-md mt-auto">
-              <Text className="text-xl font-bold mb-2 text-black text-center">
-                Xác thực số điện thoại của bạn
-              </Text>
-              <Text className="text-sm text-gray-600 text-center mb-2">
-                Vui lòng nhập mã xác nhận vừa gửi qua SĐT
-              </Text>
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>Xác thực số điện thoại của bạn</Text>
+              <Text style={styles.subtitle}>Vui lòng nhập mã xác nhận vừa gửi qua SĐT</Text>
 
-              <Text className="text-base text-[#FF5722] font-medium mb-6">
-                {formatPhoneNumber(phoneNumber)}
-              </Text>
+              <Text style={styles.phoneNumber}>{formatPhoneNumber(phoneNumber)}</Text>
 
-              <View className="flex-row justify-between w-full px-5 mb-8">
+              <View style={styles.codeInputContainer}>
                 {verificationCode.map((digit, index) => (
                   <TextInput
                     key={index}
                     ref={(ref) => (inputRefs.current[index] = ref)}
-                    className="w-10 h-12 border border-gray-300 rounded-lg text-center text-lg text-gray-800"
+                    style={styles.codeInput}
                     value={digit}
                     onChangeText={(text) => handleCodeChange(text, index)}
                     onKeyPress={(e) => handleKeyPress(e, index)}
@@ -96,14 +90,11 @@ const VerifyPhoneScreen = () => {
               </View>
 
               <TouchableOpacity
-                className={`w-full h-12 rounded-3xl justify-center items-center mt-2 ${isCodeComplete ? "bg-[#FF5722]" : "bg-gray-300"
-                  }`}
+                style={[styles.continueButton, isCodeComplete ? styles.activeButton : styles.inactiveButton]}
                 onPress={handleContinue}
+                disabled={!isCodeComplete}
               >
-                <Text
-                  className={`text-base font-bold ${isCodeComplete ? "text-white" : "text-gray-600"
-                    }`}
-                >
+                <Text style={[styles.continueButtonText, isCodeComplete ? styles.activeButtonText : styles.inactiveButtonText]}>
                   Tiếp tục
                 </Text>
               </TouchableOpacity>
@@ -114,5 +105,103 @@ const VerifyPhoneScreen = () => {
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  safeArea: {
+    flex: 1,
+    width: '100%',
+  },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    width: '100%',
+    paddingTop: 90,
+  },
+  logo: {
+    width: '50%',
+    height: '15%',
+    marginBottom:"auto",
+  },
+  formContainer: {
+    width: '100%',
+    height: '75%',
+    backgroundColor: 'white',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    shadowColor: 'black',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    marginTop: 'auto',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+    color: 'black',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#777',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  phoneNumber: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#FF5722',
+    marginBottom: 20,
+  },
+  codeInputContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 20,
+    paddingHorizontal: 30,
+  },
+  codeInput: {
+    width: 40,
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 5,
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#333',
+  },
+  continueButton: {
+    width: '100%',
+    height: 50,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  activeButton: {
+    backgroundColor: '#FF5722',
+  },
+  inactiveButton: {
+    backgroundColor: '#ddd',
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  activeButtonText: {
+    color: 'white',
+  },
+  inactiveButtonText: {
+    color: '#666',
+  },
+})
 
 export default VerifyPhoneScreen
