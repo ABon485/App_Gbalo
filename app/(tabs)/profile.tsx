@@ -8,7 +8,6 @@ import {
   StatusBar,
   SafeAreaView,
   Image,
-  StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import {
@@ -24,6 +23,8 @@ import {
 } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
+import { StyleSheet } from "react-native";
+
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -37,11 +38,11 @@ export default function ProfileScreen() {
     const checkLoginStatus = async () => {
       try {
         const data = await AsyncStorage.getItem("data");
-        if (!data) return;
-
-        const { user } = JSON.parse(data);
-        setUser(user);
-        setIsLoggedIn(true);
+        if (data) {
+          const parsedData = JSON.parse(data);
+          setUser(parsedData.user); // Lấy thông tin user từ AsyncStorage
+          setIsLoggedIn(true); // Đánh dấu trạng thái đăng nhập
+        }
       } catch (error) {
         console.error("Lỗi khi kiểm tra trạng thái đăng nhập:", error);
       }
@@ -168,7 +169,8 @@ export default function ProfileScreen() {
 
               <View style={styles.pointsInfo}>
                 <Text style={styles.pointsText}>
-                  Đăng ký để trở thành thành viên bạch kim. Cần 120 điểm nữa để đạt hạng Vàng
+                  Đăng ký để trở thành thành viên bạch kim. Cần 120 điểm nữa để
+                  đạt hạng Vàng
                 </Text>
                 <View style={styles.iconWrapper}>
                   <FileText size={18} color="#999" />
@@ -201,7 +203,8 @@ export default function ProfileScreen() {
 
               <View style={styles.pointsInfo}>
                 <Text style={styles.pointsText}>
-                  Đăng ký/Đăng nhập để trở thành thành viên và nhận được nhiều voucher từ Giao
+                  Đăng ký/Đăng nhập để trở thành thành viên và nhận được nhiều
+                  voucher từ Giao
                 </Text>
                 <View style={styles.iconWrapper}>
                   <FileText size={18} color="#999" />
@@ -350,7 +353,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: 45,
     width: 100,
-
   },
   loginButtonText: {
     color: "white",
