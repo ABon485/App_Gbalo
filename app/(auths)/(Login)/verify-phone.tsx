@@ -3,14 +3,14 @@
 import { useState, useRef } from "react"
 import { View, Text, TouchableOpacity, Image, SafeAreaView, ImageBackground, StatusBar, TextInput, StyleSheet } from "react-native"
 import { Stack, useLocalSearchParams, router } from "expo-router"
+import { useToast } from "@/context/ToastContext" // 👈 Import useToast
 import type { TextInput as RNTextInput } from "react-native"
 
 const VerifyPhoneScreen = () => {
   const { phoneNumber } = useLocalSearchParams()
   const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""])
-
-  // 👇 Fix 1: Khai báo rõ kiểu của ref
   const inputRefs = useRef<Array<RNTextInput | null>>([])
+  const { showToast } = useToast() // 👈 Use toast hook
 
   // Format phone number to display with asterisks
   const formatPhoneNumber = (phone: string | string[] | undefined) => {
@@ -25,7 +25,7 @@ const VerifyPhoneScreen = () => {
     return `${firstPart}${middlePart}${lastPart}`
   }
 
-  // 👇 Fix 2: Gán kiểu cho index
+  // Handle code input change
   const handleCodeChange = (text: string, index: number) => {
     const newCode = [...verificationCode]
     newCode[index] = text
@@ -42,10 +42,26 @@ const VerifyPhoneScreen = () => {
     }
   }
 
+  // Handle continue button press with OTP verification
   const handleContinue = () => {
     const code = verificationCode.join("")
-    if (code.length === 6) {
+    const validOTP = "123456" // Hardcoded backend OTP
+
+    if (code === validOTP) {
+      // OTP is correct, navigate to assistant screen
+      showToast({
+        type: "success",
+        heading: "Thành công",
+        message: "Xác thực thành công!",
+      })
       router.push("/(tabs)/assistant")
+    } else {
+      // OTP is incorrect, show error toast
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Mã xác nhận không đúng. Vui lòng thử lại.",
+      })
     }
   }
 
@@ -125,7 +141,7 @@ const styles = StyleSheet.create({
   logo: {
     width: '50%',
     height: '15%',
-    marginBottom:"auto",
+    marginBottom: "auto",
   },
   formContainer: {
     width: '100%',
