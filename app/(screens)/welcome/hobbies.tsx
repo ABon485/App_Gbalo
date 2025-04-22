@@ -6,7 +6,9 @@ import {
   ScrollView,
   SafeAreaView,
   Image,
+  StyleSheet,
 } from "react-native";
+import styles from "@/styles/welcome/hobbies";
 import { AntDesign } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN/index";
@@ -78,63 +80,41 @@ const Hobbies = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-white px-5 pt-12">
+      <SafeAreaView style={styles.container}>
         {/* Header */}
-        <View className="flex-row items-center mt-2.5">
+        <View style={styles.header}>
           <TouchableOpacity onPress={() => router.replace("/welcome/date")}>
             <AntDesign name="arrowleft" size={24} color="black" />
           </TouchableOpacity>
-          <View className="w-4/5 flex-row h-1.5 bg-gray-300 rounded ml-4 overflow-hidden">
-            <View className="w-[100%] bg-orange-500" />
-            <View className="flex-1" />
+          <View style={styles.progressWrapper}>
+            <View style={styles.progressFill} />
+            <View style={{ flex: 1 }} />
           </View>
         </View>
 
         {/* Title */}
-        <Text
-          style={{
-            fontFamily: "Mulish-ExtraBold",
-            fontSize: 24,
-            color: "black",
-            marginTop: 40,
-            marginBottom: 30,
-          }}
-        >
-          Sở thích du lịch của bạn là gì?
-        </Text>
+        <Text style={styles.title}>Sở thích du lịch của bạn là gì?</Text>
 
         {/* List */}
-        <View className="flex-1">
-          <ScrollView showsVerticalScrollIndicator={false} className="mb-4">
+        <View style={styles.listContainer}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
             {visibleData.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                className="flex-row items-center border border-gray-300 rounded-xl px-4 py-3 space-x-2 mb-3"
-              >
+              <TouchableOpacity key={index} style={styles.hobbyItem}>
                 <Image
                   source={item.icon}
-                  className="w-6 h-6"
+                  style={styles.hobbyIcon}
                   resizeMode="contain"
                 />
-                <Text
-                  style={{
-                    fontFamily: "Mulish-Extra",
-                    fontSize: 16,
-                    color: "black",
-                    marginLeft: 14,
-                  }}
-                >
-                  {item.title}
-                </Text>
+                <Text style={styles.hobbyText}>{item.title}</Text>
               </TouchableOpacity>
             ))}
 
             {/* Toggle Button */}
             <TouchableOpacity
-              className="items-center mt-2 mb-4"
+              style={styles.toggleBtn}
               onPress={() => setShowMore(!showMore)}
             >
-              <Text className="text-black font-semibold underline">
+              <Text style={styles.toggleText}>
                 {showMore ? "Ẩn bớt" : "Xem thêm"}
               </Text>
             </TouchableOpacity>
@@ -142,7 +122,7 @@ const Hobbies = () => {
         </View>
 
         {/* Finish Button */}
-        <View className="pb-16">
+        <View style={styles.buttonWrapper}>
           <CustomButtonRN
             title="Tiếp tục"
             onPress={() => router.replace("/(tabs)/assistant")}

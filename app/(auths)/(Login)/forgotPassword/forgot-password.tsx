@@ -11,6 +11,7 @@ import {
   ImageBackground,
   StatusBar,
   TextInput,
+  StyleSheet
 } from "react-native"
 import MaterialIcons from "react-native-vector-icons/MaterialIcons"
 import { Stack, router } from "expo-router"
@@ -31,23 +32,22 @@ const ForgotPasswordScreen = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ImageBackground source={require("@/assets/images/BackGroud.png")} className="flex-1 w-full h-full">
+      <ImageBackground source={require("@/assets/images/BackGroud.png")} style={styles.background}>
         <StatusBar translucent backgroundColor="transparent" />
-        <SafeAreaView className="flex-1 w-full">
-          <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: "center", width: "100%", paddingTop: 80, paddingBottom: 0, justifyContent: "space-between" }}>
-            <Image source={require("@/assets/images/imagLogo.png")} className="w-1/2 h-[15%] mb-5" resizeMode="contain" />
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <Image source={require("@/assets/images/imagLogo.png")} style={styles.logo} resizeMode="contain" />
 
-            <View className="w-full h-3/4 bg-white rounded-t-3xl px-6 pt-6 pb-5 items-center shadow-lg shadow-black/25">
-              <Text className="text-2xl mb-6 text-black text-center" style={{ fontFamily:"Inter-Black"  }}>Quên mật khẩu</Text>
+            <View style={styles.formContainer}>
+              <Text style={styles.headerText}>Quên mật khẩu</Text>
 
-              <View className="flex-row items-center w-full h-[43px] border border-gray-300 rounded-full mb-4 pl-1 pr-4">
-                <TouchableOpacity className="flex-row items-center px-2 h-full">
-                  <Text className="text-base mr-0.5 text-gray-800">{countryCode}</Text>
+              <View style={styles.inputContainer}>
+                <TouchableOpacity style={styles.countryCodeButton}>
+                  <Text style={styles.countryCodeText}>{countryCode}</Text>
                   <MaterialIcons name="keyboard-arrow-down" size={18} color="#999999" />
                 </TouchableOpacity>
                 <TextInput
-                  className="flex-1 h-full text-base px-2 text-gray-800"
-                  style={{ fontFamily:"Inter-Medium"  }}
+                  style={styles.input}
                   placeholder="Nhập số điện thoại"
                   value={phoneNumber}
                   onChangeText={setPhoneNumber}
@@ -56,8 +56,8 @@ const ForgotPasswordScreen = () => {
                 />
               </View>
 
-              <TouchableOpacity className="w-full h-[43px] bg-orange-500 rounded-full justify-center items-center mb-2.5" onPress={handleSendCode}>
-                <Text className="text-white text-base " style={{ fontFamily:"Inter-Medium"  }}>Gửi mã xác minh </Text>
+              <TouchableOpacity style={styles.sendCodeButton} onPress={handleSendCode}>
+                <Text style={styles.sendCodeButtonText}>Gửi mã xác minh</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -66,5 +66,94 @@ const ForgotPasswordScreen = () => {
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  safeArea: {
+    flex: 1,
+    width: "100%",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    alignItems: "center",
+    width: "100%",
+    paddingTop: 80,
+    paddingBottom: 0,
+    justifyContent: "space-between",
+  },
+  logo: {
+    width: "50%",
+    height: "15%",
+    marginBottom: 20,
+  },
+  formContainer: {
+    width: "100%",
+    height: "75%",
+    backgroundColor: "white",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  headerText: {
+    fontSize: 24,
+    marginBottom: 20,
+    color: "#000",
+    fontFamily: "Inter-Black",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    height: 43,
+    borderColor: "#D1D5DB",
+    borderWidth: 1,
+    borderRadius: 50,
+    marginBottom: 16,
+    paddingLeft: 10,
+    paddingRight: 20,
+  },
+  countryCodeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 10,
+  },
+  countryCodeText: {
+    fontSize: 16,
+    color: "#4B5563",
+  },
+  input: {
+    flex: 1,
+    height: "100%",
+    fontSize: 16,
+    paddingLeft: 10,
+    color: "#4B5563",
+    fontFamily: "Inter-Medium",
+  },
+  sendCodeButton: {
+    width: "100%",
+    height: 43,
+    backgroundColor: "#FF5722",
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  sendCodeButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "Inter-Medium",
+  },
+})
 
 export default ForgotPasswordScreen

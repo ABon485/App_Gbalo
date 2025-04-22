@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: "center",
     width: "100%",
-    paddingTop: 80,
+    paddingTop: 50,
     paddingBottom: 0, // No bottom padding
     justifyContent: "space-between", // This will push content to top and bottom
     
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
   logo: {
     width: width * 2,
     height: height * 0.15,
-    marginBottom: 20,
+    marginBottom:"auto",
   },
   formContainer: {
     width: "100%", // Full width
