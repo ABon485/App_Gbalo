@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     fontFamily:'Inter-Medium'
   },
   reviews: {
-    fontSize: 12,
+    fontSize: 10,
     color: "#8E8E93",
     fontFamily:'Inter-Medium'
   },

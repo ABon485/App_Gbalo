@@ -132,8 +132,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    fontSize: 14,
-    fontWeight: "bold",
+    fontSize: 12,
+    fontFamily:'Inter-Medium',
     marginBottom: 3,
     color: "#333",
   },
@@ -143,17 +143,21 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   rating: {
-    fontSize: 12,
+    fontSize: 10,
     color: "#FF9500",
     marginRight: 4,
+    fontFamily:'Inter-Medium'
+
   },
   reviews: {
-    fontSize: 12,
+    fontSize: 10,
     color: "#8E8E93",
+    fontFamily:'Inter-Medium'
+
   },
   price: {
-    fontSize: 13,
-    fontWeight: "bold",
+    fontSize: 12,
+    fontFamily:'Inter-Medium',
     color: "#333",
   },
 })
