@@ -11,6 +11,7 @@ import {
     ImageBackground,
     StatusBar,
     TextInput,
+    StyleSheet
 } from "react-native"
 import { Stack, useLocalSearchParams, router } from "expo-router"
 
@@ -48,46 +49,28 @@ const VerifyPhoneForgotPasswordScreen = () => {
     return (
         <>
             <Stack.Screen options={{ headerShown: false }} />
-            <ImageBackground
-                source={require("@/assets/images/BackGroud.png")}
-                className="flex-1 w-full h-full"
-            >
+            <ImageBackground source={require("@/assets/images/BackGroud.png")} style={styles.background}>
                 <StatusBar translucent backgroundColor="transparent" />
-                <SafeAreaView className="flex-1 w-full">
-                    <ScrollView
-                        contentContainerStyle={{
-                            flexGrow: 1,
-                            alignItems: "center",
-                            width: "100%",
-                            paddingTop: 80,
-                            paddingBottom: 0,
-                            justifyContent: "space-between",
-                        }}
-                    >
-                        <Image
-                            source={require("@/assets/images/imagLogo.png")}
-                            className="w-1/2 h-[15%] mb-5"
-                            resizeMode="contain"
-                        />
+                <SafeAreaView style={styles.safeArea}>
+                    <ScrollView contentContainerStyle={styles.scrollContainer}>
+                        <Image source={require("@/assets/images/imagLogo.png")} style={styles.logo} resizeMode="contain" />
 
-                        <View className="w-full h-3/4 bg-white rounded-t-3xl px-6 pt-6 pb-5 items-center shadow-lg shadow-black/25">
-                            <Text className="text-2xl  mb-2 text-center"style={{ fontFamily:"Inter-Black"  }}>
-                                Xác thực số điện thoại của bạn
-                            </Text>
-                            <Text className="text-base text-gray-600 mb-1 text-center" style={{ fontFamily:"Inter-Medium"  }}>
-                                Vui lòng nhập mã xác nhận vừa gửi qua SDT
-                            </Text>
-                            <Text className=" text-red-500 text-base mb-6 text-center" style={{ fontFamily:"Inter-Medium"  }}>
+                        <View style={styles.formContainer}>
+                            <Text style={styles.headerText}>Xác thực số điện thoại của bạn</Text>
+                            <Text style={styles.subHeaderText}>Vui lòng nhập mã xác nhận vừa gửi qua SDT</Text>
+                            <Text style={styles.phoneNumberText}>
                                 {phoneNumber?.toString().replace(/^(\d{3})\d{4}(\d{3})$/, "$1****$2")}
-                            </Text>     
+                            </Text>
 
                             {/* OTP Input Fields */}
-                            <View className="flex-row justify-between w-full mb-6">
+                            <View style={styles.otpContainer}>
                                 {otp.map((digit, index) => (
                                     <TextInput
                                         key={index}
-                                        className={`w-12 h-12 border-2 rounded-lg text-center text-base font-bold ${otpError && !digit ? "border-red-500" : "border-gray-300"
-                                            }`}
+                                        style={[
+                                            styles.otpInput,
+                                            otpError && !digit && styles.otpErrorInput,
+                                        ]}
                                         value={digit}
                                         onChangeText={(value) => handleOtpChange(value, index)}
                                         keyboardType="numeric"
@@ -99,15 +82,11 @@ const VerifyPhoneForgotPasswordScreen = () => {
 
                             {/* Continue Button */}
                             <TouchableOpacity
-                                className={`w-full h-[50px] rounded-full justify-center items-center ${isOtpComplete ? "bg-orange-500" : "bg-gray-300"
-                                    }`}
+                                style={[styles.continueButton, !isOtpComplete && styles.disabledButton]}
                                 onPress={handleContinue}
                                 disabled={!isOtpComplete}
                             >
-                                <Text style={{ fontFamily:"Inter-Medium"  }}
-                                    className={`text-base  ${isOtpComplete ? "text-white" : "text-gray-600"
-                                        }`}
-                                >
+                                <Text style={[styles.buttonText, !isOtpComplete && styles.disabledButtonText]}>
                                     Tiếp tục
                                 </Text>
                             </TouchableOpacity>
@@ -118,5 +97,103 @@ const VerifyPhoneForgotPasswordScreen = () => {
         </>
     )
 }
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  safeArea: {
+    flex: 1,
+    width: "100%",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    alignItems: "center",
+    width: "100%",
+    paddingTop: 80,
+    paddingBottom: 0,
+    justifyContent: "space-between",
+  },
+  logo: {
+    width: "50%",
+    height: "15%",
+    marginBottom: 20,
+  },
+  formContainer: {
+    width: "100%",
+    height: "75%",
+    backgroundColor: "white",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  headerText: {
+    fontSize: 24,
+    marginBottom: 10,
+    color: "#000",
+    fontFamily: "Inter-Black",
+  },
+  subHeaderText: {
+    fontSize: 16,
+    marginBottom: 10,
+    color: "#4B5563",
+    fontFamily: "Inter-Medium",
+  },
+  phoneNumberText: {
+    fontSize: 16,
+    color: "#FF5722",
+    marginBottom: 30,
+    fontFamily: "Inter-Medium",
+  },
+  otpContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 30,
+  },
+  otpInput: {
+    width: 50,
+    height: 50,
+    borderWidth: 2,
+    borderRadius: 10,
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    borderColor: "#D1D5DB",
+  },
+  otpErrorInput: {
+    borderColor: "red",
+  },
+  continueButton: {
+    width: "100%",
+    height: 43,
+    backgroundColor: "#FF5722",
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  disabledButton: {
+    backgroundColor: "#D1D5DB",
+  },
+  buttonText: {
+    fontSize: 16,
+    color: "white",
+    fontFamily: "Inter-Medium",
+  },
+  disabledButtonText: {
+    color: "#A1A1A1",
+  },
+})
 
 export default VerifyPhoneForgotPasswordScreen

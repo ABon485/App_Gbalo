@@ -29,12 +29,15 @@ const LoginScreen = () => {
       })
     }
   }
+  
   const handleEmailLogin = () => {
     router.push("/(auths)/(Login)/loginEmail") // Navigate to email login screen
   }
+  
   const handleRegister = () => {
-    router.push("/(auths)/(register)/Register")
+    router.push("/(auths)/(register)/registerPhone/RegisterPhone")
   }
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -82,14 +85,14 @@ const LoginScreen = () => {
 
               <TouchableOpacity style={styles.socialButton}>
                 <View style={styles.socialIconContainer}>
-                <Image source={require("@/assets/images/Google.png")} className="w-6 h-6"/>
+                  <Image source={require("@/assets/images/Google.png")} className="w-6 h-6"/>
                 </View>
                 <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.socialButton}>
                 <View style={styles.socialIconContainer}>
-                <Image source={require("@/assets/images/Facebook.png")} className="w-6 h-6"/>
+                  <Image source={require("@/assets/images/Facebook.png")} className="w-6 h-6"/>
                 </View>
                 <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
               </TouchableOpacity>

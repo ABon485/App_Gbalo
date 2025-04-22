@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     marginTop: "auto",
   },
   title: {
-    fontSize: 25,
+    fontSize: 30,
     marginBottom: 20,
     color: "#000",
     fontFamily:'Mulish-Black',
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginBottom: 15,
     paddingHorizontal: 15,
-    height: 50,
+    height: 43,
     borderWidth: 1,
     borderColor: "#ddd",
     width: "100%",
@@ -91,14 +91,14 @@ const styles = StyleSheet.create({
   dividerText: {
     paddingHorizontal: 10,
     color: "#777",
-    fontSize: 14,
+    fontSize: 16,
     fontFamily:'Inter-Medium'
   },
   socialButton: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    height: 50,
+    height: 43,
     backgroundColor: "white",
     borderRadius: 25,
     marginBottom: 10,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15, // Thêm padding để icon không sát mép
   },
   socialButtonText: {
-    fontSize: 16,
+    fontSize: 13,
     color: "#333",
     flex: 1, // Chiếm toàn bộ không gian còn lại
     textAlign: "center",
@@ -121,12 +121,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   registerText: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#333",
     fontFamily:'Inter-Medium'
   },
   registerLink: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#007AFF",
     fontFamily:'Inter-Medium'
   },

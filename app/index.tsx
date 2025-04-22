@@ -8,7 +8,7 @@ export default function IndexScreen() {
 
   useEffect(() => {
     if (rootNavigationState?.key) {
-      router.replace("/(landingpages)/slash");
+      router.replace("/(screens)/welcome/welcome");
     }
   }, [rootNavigationState?.key]);  
 
