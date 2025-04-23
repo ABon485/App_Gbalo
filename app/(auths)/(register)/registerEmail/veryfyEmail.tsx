@@ -8,15 +8,18 @@ import {
   ScrollView,
   Alert,
   ImageBackground,
-  StyleSheet,
 } from "react-native";
 import styles from "@/styles/auth/register/veryfyEmail";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
+import api from "@/config/api";
+import { ApiResponse } from "@/types/api";
 
-export default function VerifyPhone() {
+export default function VerifyEmail() {
   const router = useRouter();
+  const { email } = useLocalSearchParams<{ email: string }>();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
   const inputRefs = useRef<TextInput[]>([]);
 
   const handleOtpChange = (text: string, index: number) => {
@@ -38,14 +41,34 @@ export default function VerifyPhone() {
       return;
     }
 
-    // Gửi mã về server hoặc điều hướng tiếp
-    Alert.alert("Xác thực", `Mã xác nhận là: ${code}`);
-    router.push("/(auths)/(register)/registerEmail/confirmEmail");
+    // Bỏ qua gọi API và điều hướng thẳng đến ConfirmEmail
+    setLoading(true);
+    setTimeout(() => {
+      Alert.alert("Thành công", "Xác minh OTP thành công!");
+      router.push({
+        pathname: "/(auths)/(register)/registerEmail/confirmEmail",
+        params: { email },
+      });
+      setLoading(false);
+    }, 500); // Giả lập thời gian xử lý
   };
 
-  const handleResend = () => {
-    Alert.alert("Gửi lại", "Đã gửi lại mã xác nhận.");
-    // Gọi API gửi lại mã OTP ở đây
+  const handleResend = async () => {
+    try {
+      const response: ApiResponse = await api.post(
+        "/Accounts/SendResgiterCode",
+        {
+          email,
+        }
+      );
+      if (response.success) {
+        Alert.alert("Thành công", "Đã gửi lại mã OTP!");
+      } else {
+        Alert.alert("Lỗi", response.message || "Gửi lại OTP thất bại");
+      }
+    } catch (error: any) {
+      Alert.alert("Lỗi", error.message || "Có lỗi xảy ra, vui lòng thử lại");
+    }
   };
 
   return (
@@ -66,11 +89,11 @@ export default function VerifyPhone() {
 
           {/* Form container */}
           <View style={styles.formContainer}>
-            <Text style={styles.title}>Xác thực số email của bạn</Text>
+            <Text style={styles.title}>Xác thực email của bạn</Text>
             <Text style={styles.subtitle}>
               Vui lòng nhập mã xác nhận vừa gửi qua email
             </Text>
-            <Text style={styles.phoneNumber}>...@gmail.com</Text>
+            <Text style={styles.phoneNumber}>{email}</Text>
 
             {/* OTP inputs */}
             <View style={styles.otpContainer}>
@@ -90,7 +113,11 @@ export default function VerifyPhone() {
             </View>
 
             {/* Continue button */}
-            <CustomButtonRN title="Tiếp tục" onPress={handleContinue} />
+            <CustomButtonRN
+              title={loading ? "Đang xác minh..." : "Tiếp tục"}
+              onPress={handleContinue}
+              // disabled={loading}
+            />
 
             {/* Resend button */}
             <TouchableOpacity
@@ -105,4 +132,3 @@ export default function VerifyPhone() {
     </>
   );
 }
-

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,9 @@ import {
   ScrollView,
   ImageBackground,
   Alert,
-  StyleSheet,
 } from "react-native";
 import styles from "@/styles/auth/register/confirmEmail";
-import { router, Stack } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import CustomButtonRN from "@/components/common/customButtonRN";
 import api from "@/config/api";
@@ -19,7 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ApiResponse } from "@/types/api";
 import { RegisterType } from "@/types/user";
 
-export default function Confirm() {
+export default function ConfirmEmail() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [userName, setUserName] = useState("");
@@ -27,6 +26,14 @@ export default function Confirm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { email: emailFromParams } = useLocalSearchParams<{ email: string }>();
+
+  // Điền email từ params và khóa input
+  useEffect(() => {
+    if (emailFromParams) {
+      setEmail(emailFromParams);
+    }
+  }, [emailFromParams]);
 
   const handleLogin = () => {
     router.push("/(auths)/(Login)/login");
@@ -47,6 +54,8 @@ export default function Confirm() {
 
     try {
       const formData: RegisterType = {
+        token: "",
+        code: "",
         userName,
         email,
         password,
@@ -54,7 +63,7 @@ export default function Confirm() {
       };
 
       const response: ApiResponse = await api.post(
-        "/Accounts/Resgiter",
+        "/Accounts/ResgiterByCode",
         formData
       );
       if (response.success) {
@@ -115,6 +124,7 @@ export default function Confirm() {
               placeholder="Email của bạn"
               keyboardType="email-address"
               value={email}
+              editable={false} // Khóa input email
               onChangeText={(text) => setEmail(text)}
             />
 
@@ -167,7 +177,11 @@ export default function Confirm() {
             </View>
 
             {/* Tiếp tục */}
-            <CustomButtonRN title="Tiếp tục" onPress={handleRegister} />
+            <CustomButtonRN
+              title={loading ? "Đang đăng ký..." : "Tiếp tục"}
+              onPress={handleRegister}
+              // disabled={loading}
+            />
 
             {/* Chính sách */}
             <Text style={styles.policyText}>
@@ -183,4 +197,3 @@ export default function Confirm() {
     </>
   );
 }
-
