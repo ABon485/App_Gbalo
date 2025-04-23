@@ -15,19 +15,16 @@ import {
 import { Heart } from "lucide-react-native"
 import { TourItem } from "@/types/tour"
 
-
-
 // Get screen width to calculate item width
 const { width } = Dimensions.get("window")
 const itemWidth = (width - 40) / 2 // 2 items per row with 40px total padding
 
-
-// Update the sample data to use local image paths
+// Sample data
 const tourData: TourItem[] = [
   {
     id: "1",
     title: "Tour sớm đến đói BanaHill/Cầu vàng",
-    image: require("@/assets/images/home/Property1.png"), // Local image path
+    image: require("@/assets/images/home/Property1.png"),
     rating: 4.5,
     reviews: 848,
     price: 1234567,
@@ -36,7 +33,7 @@ const tourData: TourItem[] = [
   {
     id: "2",
     title: "Tour sớm đến đói BanaHill/Cầu vàng",
-    image: require("@/assets/images/home/Property1.png"), // Local image path
+    image: require("@/assets/images/home/Property1.png"),
     rating: 4.5,
     reviews: 848,
     price: 1234567,
@@ -45,7 +42,7 @@ const tourData: TourItem[] = [
   {
     id: "3",
     title: "Tour sớm đến đói BanaHill/Cầu vàng",
-    image: require("@/assets/images/home/Property1.png"), // Local image path
+    image: require("@/assets/images/home/Property1.png"),
     rating: 4.5,
     reviews: 848,
     price: 1234567,
@@ -54,7 +51,25 @@ const tourData: TourItem[] = [
   {
     id: "4",
     title: "Tour sớm đến đói BanaHill/Cầu vàng",
-    image: require("@/assets/images/home/Property1.png"), // Local image path
+    image: require("@/assets/images/home/Property1.png"),
+    rating: 4.5,
+    reviews: 848,
+    price: 1234567,
+    isFavorite: false,
+  },
+  {
+    id: "5",
+    title: "Tour sớm đến đói BanaHill/Cầu vàng",
+    image: require("@/assets/images/home/Property1.png"),
+    rating: 4.5,
+    reviews: 848,
+    price: 1234567,
+    isFavorite: false,
+  },
+  {
+    id: "6",
+    title: "Tour sớm đến đói BanaHill/Cầu vàng",
+    image: require("@/assets/images/home/Property1.png"),
     rating: 4.5,
     reviews: 848,
     price: 1234567,
@@ -69,14 +84,19 @@ const formatPrice = (price: number): string => {
 
 const TourListScreen = () => {
   const [tours, setTours] = useState<TourItem[]>(tourData)
+  const [visibleItems, setVisibleItems] = useState<number>(4) // Hiển thị 4 item ban đầu
 
   const toggleFavorite = (id: string) => {
     setTours(tours.map((tour) => (tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour)))
   }
 
+  // Hàm hiển thị thêm item khi nhấn "Xem thêm"
+  const handleShowMore = () => {
+    setVisibleItems(tours.length) // Hiển thị toàn bộ danh sách
+  }
+
   const renderTourItem = ({ item }: { item: TourItem }) => (
     <View style={styles.itemContainer}>
-      {/* Image container with heart icon */}
       <View style={styles.imageContainer}>
         <Image source={item.image} style={styles.image} />
         <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(item.id)}>
@@ -88,8 +108,6 @@ const TourListScreen = () => {
           />
         </TouchableOpacity>
       </View>
-
-      {/* Simple text below image */}
       <Text style={styles.title} numberOfLines={2}>
         {item.title}
       </Text>
@@ -105,11 +123,16 @@ const TourListScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <FlatList
-        data={tours}
+        data={tours.slice(0, visibleItems)} // Chỉ hiển thị số item theo visibleItems
         renderItem={renderTourItem}
         keyExtractor={(item) => item.id}
         numColumns={2}
         contentContainerStyle={styles.listContainer}
+        ListFooterComponent={
+          visibleItems < tours.length ? ( // Hiển thị nút "Xem thêm" nếu còn item chưa hiển thị
+            <Text style={styles.showMoreText} onPress={handleShowMore}>Xem thêm</Text>
+          ) : null
+        }
       />
     </SafeAreaView>
   )
@@ -127,7 +150,6 @@ const styles = StyleSheet.create({
     width: itemWidth,
     margin: 5,
     marginBottom: 15,
-  
   },
   imageContainer: {
     position: "relative",
@@ -154,7 +176,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 3,
     color: "#333",
-    fontFamily:'Inter-Medium'
+    fontFamily: "Inter-Medium",
   },
   ratingContainer: {
     flexDirection: "row",
@@ -165,17 +187,23 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#FF9500",
     marginRight: 4,
-    fontFamily:'Inter-Medium'
+    fontFamily: "Inter-Medium",
   },
   reviews: {
     fontSize: 10,
     color: "#8E8E93",
-    fontFamily:'Inter-Medium'
+    fontFamily: "Inter-Medium",
   },
   price: {
     fontSize: 12,
     color: "#333",
-    fontFamily:'Inter-Medium'
+    fontFamily: "Inter-Medium",
+  },
+  showMoreText: {
+    fontSize: 14,
+    color: "#FF9500",
+    fontFamily: "Inter-Medium",
+    textAlign:"center"
   },
 })
 

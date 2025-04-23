@@ -51,9 +51,14 @@ const formatPrice = (price: number): string => {
 
 const Popular = () => {
   const [tours, setTours] = useState<TourItem[]>(tourData)
+  const [visibleItems, setVisibleItems] = useState<number>(4)
 
   const toggleFavorite = (id: string) => {
     setTours(tours.map((tour) => (tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour)))
+  }
+  // Hàm hiển thị thêm item khi nhấn "Xem thêm"
+  const handleShowMore = () => {
+    setVisibleItems(tours.length) // Hiển thị toàn bộ danh sách
   }
 
   const renderTourItem = ({ item }: { item: TourItem }) => (
@@ -87,11 +92,16 @@ const Popular = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <FlatList
-        data={tours}
+        data={tours.slice(0, visibleItems)}
         renderItem={renderTourItem}
         keyExtractor={(item) => item.id}
         numColumns={2}
         contentContainerStyle={styles.listContainer}
+        ListFooterComponent={
+          visibleItems < tours.length ? ( // Hiển thị nút "Xem thêm" nếu còn item chưa hiển thị
+            <Text style={styles.showMoreText} onPress={handleShowMore}>Xem thêm</Text>
+          ) : null
+        }
       />
     </SafeAreaView>
   )
@@ -159,6 +169,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily:'Inter-Medium',
     color: "#333",
+  },
+  showMoreText: {
+    fontSize: 14,
+    color: "#FF9500",
+    fontFamily: "Inter-Medium",
+    textAlign:"center"
   },
 })
 

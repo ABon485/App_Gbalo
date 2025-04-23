@@ -4,6 +4,7 @@ import Suggested from '@/components/home/Suggested';
 import Recent from '@/components/home/Recent';
 import Popular from '@/components/home/Popular';
 import SearchHeader from '@/components/home/search';
+import DestinationSection from '@/components/home/attractive';
 
 // Import hình ảnh từ thư mục assets
 const bannerImage = require('@/assets/images/home/Caurong.png');
@@ -45,8 +46,10 @@ const Home = () => {
         {activeTab === 'suggested' && <Suggested />}
         {activeTab === 'recent' && <Recent />}
         {activeTab === 'popular' && <Popular />}
+        <DestinationSection />
       </ScrollView>
     </SafeAreaView>
+
   );
 };
 
