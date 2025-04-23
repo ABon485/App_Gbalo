@@ -8,7 +8,7 @@ export default function IndexScreen() {
 
   useEffect(() => {
     if (rootNavigationState?.key) {
-      router.replace("/(screens)/welcome/welcome");
+      router.replace("/profile");
     }
   }, [rootNavigationState?.key]);  
 
