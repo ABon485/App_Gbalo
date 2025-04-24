@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { ApiResponse } from '@/types/api' // Import kiểu ApiResponse
+import { ApiResponse } from '@/types/api' 
 
 const API_BASE_URL = 'https://api-acc.vbalo.com'
 
