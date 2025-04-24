@@ -40,7 +40,7 @@ const TourListScreen = () => {
       setLoading(true);
       let allTours: TourItem[] = [];
       let currentPage = 1;
-      let totalPages = 33;
+      let totalPages = 1;
 
       // Loop through all pages
       while (currentPage <= totalPages) {
@@ -141,6 +141,7 @@ const TourListScreen = () => {
         </TouchableOpacity>
       </SafeAreaView>
     );
+    
   }
 
   return (

@@ -1,16 +1,23 @@
-import { View, Text, TextInput, StyleSheet } from "react-native"
+import React from "react"
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { Fontisto, Ionicons, FontAwesome6 } from "@expo/vector-icons"
+import { router } from "expo-router"
 
 const SearchHeader = () => {
+  const handleLoginPres = () => {
+    router.push('/(screens)/search/searchTour'); // ✅ Điều hướng đến trang login
+  };
+
   return (
     <View style={styles.headerContainer}>
-      <View style={styles.searchContainer}>
+      <TouchableOpacity style={styles.searchContainer} onPress={handleLoginPres} activeOpacity={0.8}>
         <FontAwesome6 name="location-dot" size={20} color="#f97316" style={styles.searchIcon} />
-        <TextInput placeholder="Bạn muốn đi đâu?" style={styles.searchInput} placeholderTextColor="#000" />
+        <Text style={styles.fakeInput}>Bạn muốn đi đâu?</Text>
         <View style={styles.searchButtonContainer}>
           <Ionicons name="search" size={18} color="#fff" />
         </View>
-      </View>
+      </TouchableOpacity>
+
       <View style={styles.iconsContainer}>
         <View style={styles.iconWrapper}>
           <View style={styles.iconBackground}>
@@ -50,17 +57,17 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderWidth: 1,
     borderColor: "#e0e0e0",
-    
+    height:43,
   },
   searchIcon: {
     marginRight: 10,
   },
-  searchInput: {
+  fakeInput: {
     flex: 1,
     fontSize: 13,
     color: "#000",
     padding: 0,
-    fontFamily:'Inter-Medium'
+    fontFamily: "Inter-Medium",
   },
   searchButtonContainer: {
     backgroundColor: "#f97316",
@@ -69,7 +76,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-    
   },
   iconsContainer: {
     flexDirection: "row",
