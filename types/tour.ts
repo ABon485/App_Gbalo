@@ -49,8 +49,12 @@ export type TourExtraService = {
     policies: string;
     rules: string;
     fromPrice: number;
-    tourExtraServices: TourExtraService[];
-    tourPrices: TourPrice[];
+    tourExtraServices: {
+      id: number;
+      name: string;
+    }[];
+    tourPrices: {
+    }[];
   };
   
   export type TourDetailResponse = {
