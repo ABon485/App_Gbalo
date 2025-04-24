@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 14,
+    fontFamily: "Inter-Medium",
     marginBottom: 16,
   },
   scrollContent: {
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 12, // Tăng kích thước chữ tiêu đề
-    fontWeight: "bold",
+    fontFamily: "Inter-Medium",
     marginBottom: 4,
     color: "#000", // Đảm bảo chữ màu đen
   },
@@ -156,12 +156,14 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   ratingText: {
-    fontSize: 10,
+    fontSize: 8,
     color: "#666",
+    fontFamily: "Inter-Medium",
   },
   distanceText: {
     fontSize: 10,
     color: "#666",
+    fontFamily: "Inter-Medium",
   },
   promoTag: {
     position: "absolute",
@@ -174,8 +176,8 @@ const styles = StyleSheet.create({
   },
   promoText: {
     color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
+    fontSize: 8,
+    fontFamily: "Inter-Medium",
   },
 });
 export default DestinationSection

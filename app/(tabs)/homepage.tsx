@@ -5,6 +5,7 @@ import Recent from '@/components/home/Recent';
 import Popular from '@/components/home/Popular';
 import SearchHeader from '@/components/home/search';
 import DestinationSection from '@/components/home/attractive';
+import Banner from '@/components/banner';
 
 // Import hình ảnh từ thư mục assets
 const bannerImage = require('@/assets/images/home/Caurong.png');
@@ -16,13 +17,14 @@ const Home = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <SearchHeader />
+        <Banner/>
         {/* Banner */}
-        <View style={styles.bannerContainer}>
+        {/* <View style={styles.bannerContainer}>
           <Image source={bannerImage} style={styles.bannerImage} />
           <Text style={styles.bannerText}>
             
           </Text>
-        </View>
+        </View> */}
         {/* Tabs */}
         <View style={styles.tabsContainer}>
           <TouchableOpacity onPress={() => setActiveTab('suggested')}>
@@ -58,25 +60,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 30,
     backgroundColor:'white' 
-  },
-  bannerContainer: {
-    marginTop: 8, 
-    alignItems:'center',
-    
-  },
-  bannerImage: {
-    width: 340,
-    height: 160, 
-    borderRadius:10
-  },
-  bannerText: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -50 }, { translateY: -50 }],
-    color: 'white',
-    fontSize: 24, // text-2xl
-    fontWeight: 'bold',
   },
   tabsContainer: {
     flexDirection: 'row',
