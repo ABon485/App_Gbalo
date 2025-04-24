@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -11,23 +11,21 @@ import {
   Dimensions,
   StatusBar,
   SafeAreaView,
-} from "react-native"
-import { Heart } from "lucide-react-native"
-import { TourItem } from "@/types/tour"
-
-
+} from "react-native";
+import { Heart } from "lucide-react-native";
+import { TourItem } from "@/types/tour";
+import { useRouter } from "expo-router"; // Sử dụng expo-router để điều hướng
 
 // Get screen width to calculate item width
-const { width } = Dimensions.get("window")
-const itemWidth = (width - 40) / 2 // 2 items per row with 40px total padding
-
+const { width } = Dimensions.get("window");
+const itemWidth = (width - 40) / 2; // 2 items per row with 40px total padding
 
 // Update the sample data to use local image paths
 const tourData: TourItem[] = [
   {
     id: "1",
     title: "Tour sớm đến đói BanaHill/Cầu vàng",
-    image: require("@/assets/images/home/Property1.png"), // Local image path
+    image: require("@/assets/images/home/Property1.png"),
     rating: 4.5,
     reviews: 848,
     price: 1234567,
@@ -36,7 +34,7 @@ const tourData: TourItem[] = [
   {
     id: "2",
     title: "Tour sớm đến đói BanaHill/Cầu vàng",
-    image: require("@/assets/images/home/Property1.png"), // Local image path
+    image: require("@/assets/images/home/Property1.png"),
     rating: 4.5,
     reviews: 848,
     price: 1234567,
@@ -45,7 +43,7 @@ const tourData: TourItem[] = [
   {
     id: "3",
     title: "Tour sớm đến đói BanaHill/Cầu vàng",
-    image: require("@/assets/images/home/Property1.png"), // Local image path
+    image: require("@/assets/images/home/Property1.png"),
     rating: 4.5,
     reviews: 848,
     price: 1234567,
@@ -54,32 +52,47 @@ const tourData: TourItem[] = [
   {
     id: "4",
     title: "Tour sớm đến đói BanaHill/Cầu vàng",
-    image: require("@/assets/images/home/Property1.png"), // Local image path
+    image: require("@/assets/images/home/Property1.png"),
     rating: 4.5,
     reviews: 848,
     price: 1234567,
     isFavorite: false,
   },
-]
+];
 
 // Format price with commas
 const formatPrice = (price: number): string => {
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-}
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
 
 const TourListScreen = () => {
-  const [tours, setTours] = useState<TourItem[]>(tourData)
+  const [tours, setTours] = useState<TourItem[]>(tourData);
+  const router = useRouter(); // Khởi tạo router
 
   const toggleFavorite = (id: string) => {
-    setTours(tours.map((tour) => (tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour)))
-  }
+    setTours(
+      tours.map((tour) =>
+        tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour
+      )
+    );
+  };
+
+  const handleCardPress = (id: string) => {
+    router.push(`/[detailID]?detailID=${id}`);
+  };
 
   const renderTourItem = ({ item }: { item: TourItem }) => (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={() => handleCardPress(item.id)}
+    >
       {/* Image container with heart icon */}
       <View style={styles.imageContainer}>
         <Image source={item.image} style={styles.image} />
-        <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(item.id)}>
+        <TouchableOpacity
+          style={styles.favoriteButton}
+          onPress={() => toggleFavorite(item.id)}
+        >
           <Heart
             size={22}
             color="#fff"
@@ -98,8 +111,8 @@ const TourListScreen = () => {
         <Text style={styles.reviews}>({item.reviews})</Text>
       </View>
       <Text style={styles.price}>Từ {formatPrice(item.price)}đ/Người</Text>
-    </View>
-  )
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -112,8 +125,8 @@ const TourListScreen = () => {
         contentContainerStyle={styles.listContainer}
       />
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -127,7 +140,6 @@ const styles = StyleSheet.create({
     width: itemWidth,
     margin: 5,
     marginBottom: 15,
-  
   },
   imageContainer: {
     position: "relative",
@@ -154,7 +166,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 3,
     color: "#333",
-    fontFamily:'Inter-Medium'
+    fontFamily: "Inter-Medium",
   },
   ratingContainer: {
     flexDirection: "row",
@@ -165,18 +177,18 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#FF9500",
     marginRight: 4,
-    fontFamily:'Inter-Medium'
+    fontFamily: "Inter-Medium",
   },
   reviews: {
     fontSize: 10,
     color: "#8E8E93",
-    fontFamily:'Inter-Medium'
+    fontFamily: "Inter-Medium",
   },
   price: {
     fontSize: 12,
     color: "#333",
-    fontFamily:'Inter-Medium'
+    fontFamily: "Inter-Medium",
   },
-})
+});
 
-export default TourListScreen
+export default TourListScreen;
