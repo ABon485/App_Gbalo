@@ -16,7 +16,7 @@ import { Heart } from "lucide-react-native";
 import { TourItem, TourListResponse } from "@/types/tour";
 import tourApi from "@/services/tour";
 import { AntDesign } from "@expo/vector-icons";
-
+import { router } from "expo-router";
 
 // Get screen width to calculate item width
 const { width } = Dimensions.get("window");
@@ -33,7 +33,6 @@ const TourListScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState<boolean>(false);
 
-
   // Function to fetch all tours from API across all pages
   const fetchTours = async () => {
     try {
@@ -44,17 +43,19 @@ const TourListScreen = () => {
 
       // Loop through all pages
       while (currentPage <= totalPages) {
-        const response: TourListResponse = await tourApi.ListTour(); // Assume API supports pagination query
-        const fetchedTours: TourItem[] = response.data.datas.map((item: any) => ({
-          id: item.id.toString(),
-          name: item.name,
-          slug: item.slug,
-          featuredImageUrl: item.featuredImageUrl,
-          provinceId: item.provinceId,
-          vote: item.vote || 0,
-          fromPrice: item.fromPrice || 0,
-          isFavorite: false,
-        }));
+        const response: TourListResponse = await tourApi.ListTour(); 
+        const fetchedTours: TourItem[] = response.data.datas.map(
+          (item: any) => ({
+            id: item.id.toString(),
+            name: item.name,
+            slug: item.slug,
+            featuredImageUrl: item.featuredImageUrl,
+            provinceId: item.provinceId,
+            vote: item.vote || 0,
+            fromPrice: item.fromPrice || 0,
+            isFavorite: false,
+          })
+        );
 
         allTours = [...allTours, ...fetchedTours];
         totalPages = response.data.totalPages;
@@ -76,23 +77,37 @@ const TourListScreen = () => {
 
   // Toggle favorite status
   const toggleFavorite = (id: string) => {
-    setTours(tours.map((tour) =>
-      tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour
-    ));
+    setTours(
+      tours.map((tour) =>
+        tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour
+      )
+    );
+  };
+
+  const handleCardPress = (id: string) => {
+    router.push({
+      pathname: "/(screens)/[detailID]",
+      params: { detailID: id },
+    });
   };
 
   // Render each tour item
   const renderTourItem = ({ item }: { item: TourItem }) => (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity
+      onPress={() => handleCardPress(item.id)}
+      style={styles.itemContainer}
+    >
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: item.featuredImageUrl }}
           style={styles.image}
           resizeMode="cover"
           onError={() => {
-            setTours(tours.map((tour) =>
-              tour.id === item.id ? { ...tour, featuredImageUrl: "" } : tour
-            ));
+            setTours(
+              tours.map((tour) =>
+                tour.id === item.id ? { ...tour, featuredImageUrl: "" } : tour
+              )
+            );
           }}
         />
         <TouchableOpacity
@@ -119,7 +134,7 @@ const TourListScreen = () => {
         <Text style={styles.reviews}>({item.vote})</Text>
       </View>
       <Text style={styles.price}>Từ {formatPrice(item.fromPrice)}đ/Người</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   // Loading state
@@ -154,13 +169,15 @@ const TourListScreen = () => {
         contentContainerStyle={styles.listContainer}
         ListFooterComponent={
           !showAll && tours.length > 4 ? (
-            <TouchableOpacity style={styles.loadMoreButton} onPress={() => setShowAll(true)}>
+            <TouchableOpacity
+              style={styles.loadMoreButton}
+              onPress={() => setShowAll(true)}
+            >
               <Text style={styles.loadMoreText}>Xem thêm</Text>
             </TouchableOpacity>
           ) : null
         }
       />
-
     </SafeAreaView>
   );
 };
