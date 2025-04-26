@@ -1,6 +1,6 @@
 // services/tour.ts
 import api from "@/config/tourApi";
-import { TourListResponse } from "@/types/tour";
+import { TourListResponse, TourDetail} from "@/types/tour";
 
 const tourApi = {
   ListTour: async (page: number = 1, pageSize: number = 20): Promise<TourListResponse> => {
@@ -13,6 +13,17 @@ const tourApi = {
       throw error;
     }
   },
+TourDetail: async (id: number): Promise<TourDetail> => {
+    try {
+      const response = await api.get(`/tour/getbyid/?id=${id}`);
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  
+
 };
 
 export default tourApi;
