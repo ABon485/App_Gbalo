@@ -1,4 +1,10 @@
-// types/tour.ts
+export type ProvinceType = {
+  id:string 
+  name:string 
+  image?: string[];
+  description?: string; 
+};
+
 export type TourItem = {
   id: string; 
   name: string;
@@ -76,4 +82,6 @@ export type TourDetail = {
 
 export type TourDetailResponse = {
   data: TourDetail;
-};
+}; 
+
+ 

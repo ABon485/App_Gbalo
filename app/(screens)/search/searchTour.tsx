@@ -1,141 +1,230 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, FlatList, StyleSheet } from 'react-native';
 import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
-
-interface SearchItem {
-  id: string;
-  title: string;
-  description: string;
-}
+import tourApi from '@/services/tour';
+import { ProvinceType, TourItem, TourListResponse } from '@/types/tour';
 
 const SearchTour = () => {
   const [activeTab, setActiveTab] = useState('Tour');
-  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [province, setProvince] = useState<ProvinceType[]>([]);
+  const [tours, setTours] = useState<TourItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const recentSearches: SearchItem[] = [
-    { id: '1', title: 'Đà Lạt', description: 'Đà Lạt là thành phố ngàn hoa nổi tiếng với khí hậu mát mẻ, cảnh quan thiên nhiên thơ mộng, hồ Xuân Hương.' },
-    { id: '2', title: 'Đà Nẵng', description: 'Đà Nẵng là thành phố du lịch nổi tiếng với bãi biển đẹp, cầu Rồng, Bà Nà Hills và nhiều điểm tham quan hấp dẫn.' },
-    { id: '3', title: 'Phú Quốc', description: 'Phú Quốc là thiên đường biển đảo nổi tiếng với bãi biển đẹp, nước trong xanh, và các hoạt động lặn ngắm san hô.' },
-    { id: '4', title: 'Huế', description: 'Huế là thành phố cổ kính với nét đẹp văn hóa, lịch sử, Kinh thành Huế, sông Hương và các lăng tẩm.' },
-    { id: '5', title: 'Kon Tum', description: 'Măng Đen là Kon Tum của thiên nhiên hoang sơ với rừng nguyên sinh, khí hậu mát mẻ và văn hóa dân tộc.' },
-    { id: '6', title: 'Hội An', description: 'Hội An là phố cổ nổi tiếng với đèn lồng, kiến trúc cổ kính, và không gian văn hóa đậm đà bản sắc.' },
-  ];
+  // Fetch provinces on component mount
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      try {
+        setLoading(true);
+        const response = await tourApi.getProvince();
+        console.log("Processed response:", response);
+        setProvince(
+          response.map((province: ProvinceType) => ({
+            ...province,
+            id: String(province.id),
+          }))
+        );
+      } catch (error) {
+        console.error('Error fetching provinces:', error);
+        setError('Failed to fetch provinces');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const renderItem = ({ item }: { item: SearchItem }) => (
+    fetchProvinces();
+  }, []);
+
+  // Search tours by provinceId
+  const searchToursByProvince = async (provinceId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const formData = {
+        provinceIds: [parseInt(provinceId)], // Convert to number and pass as array
+        fromPrice: 0,
+        toPrice: 0,
+        groupIds: [],
+        durations: [],
+        guestQuantitys: [],
+        page: 1,
+        pageSize: 20,
+      };
+      const response: TourListResponse = await tourApi.searchTour(formData);
+      const fetchedTours: TourItem[] = response.data.datas.map((item: any) => ({
+        id: item.id.toString(),
+        name: item.name,
+        slug: item.slug,
+        featuredImageUrl: item.featuredImageUrl,
+        vote: item.vote || 0,
+        fromPrice: item.fromPrice || 0,
+        isFavorite: false,
+      }));
+      setTours(fetchedTours);
+    } catch (error: any) {
+      console.error('Error searching tours:', error);
+      setError(error.message || 'Failed to fetch tours');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle search submission
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+    const matchedProvince = province.find(
+      (prov) => prov.name.toLowerCase() === searchQuery.trim().toLowerCase()
+    );
+    if (matchedProvince) {
+      searchToursByProvince(matchedProvince.id);
+    } else {
+      setError('No province found for the search query');
+      setTours([]);
+    }
+  };
+
+  // Handle clicking on a province (e.g., Đà Nẵng filter button)
+  const handleProvinceClick = (provinceName: string) => {
+    const matchedProvince = province.find(
+      (prov) => prov.name.toLowerCase() === provinceName.toLowerCase()
+    );
+    if (matchedProvince) {
+      searchToursByProvince(matchedProvince.id);
+      setSearchQuery(provinceName); // Update search input to reflect clicked province
+    }
+  };
+
+  // Render province item
+  const renderProvinceItem = ({ item }: { item: ProvinceType }) => (
     <View style={styles.itemContainer}>
-      <Image source={{ uri: 'https://via.placeholder.com/60' }} style={styles.itemImage} />
+      <Image source={{ uri: item.image?.[0] || 'https://via.placeholder.com/60' }} style={styles.itemImage} />
       <View style={styles.itemTextContainer}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={styles.itemDescription} numberOfLines={2}>{item.description}</Text>
+        <Text style={styles.itemname}>{item.name}</Text>
+        <Text style={styles.itemDescription} numberOfLines={2}>
+          {item.description || 'Khám phá điểm đến tuyệt vời với những trải nghiệm độc đáo.'}
+        </Text>
       </View>
     </View>
   );
 
+  // Render tour item
+  const renderTourItem = ({ item }: { item: TourItem }) => (
+    <TouchableOpacity style={styles.tourItemContainer}>
+      <Image
+        source={{ uri: item.featuredImageUrl || 'https://via.placeholder.com/150' }}
+        style={styles.tourImage}
+      />
+      <View style={styles.tourTextContainer}>
+        <Text style={styles.tourName} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.tourPrice}>Từ {item.fromPrice.toLocaleString()}đ/Người</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  // Handle tab press
   const handleTabPress = (tabName: string) => {
     setActiveTab(tabName);
-  };
-
-  const handleInputFocus = () => {
-    setIsInputFocused(true);
-  };
-
-  const handleInputBlur = () => {
-    setIsInputFocused(false);
   };
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        {!isInputFocused && (
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => handleTabPress('Tour')}>
-              <Text style={[styles.tab, activeTab === 'Tour' ? styles.tabActive : null]}>Tour</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleTabPress('Khách sạn')}>
-              <Text style={[styles.tab, activeTab === 'Khách sạn' ? styles.tabActive : null]}>Khách sạn</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleTabPress('Vé tham quan')}>
-              <Text style={[styles.tab, activeTab === 'Vé tham quan' ? styles.tabActive : null]}>Vé tham quan</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleTabPress('Đặt xe')}>
-              <Text style={[styles.tab, activeTab === 'Đặt xe' ? styles.tabActive : null]}>Đặt xe</Text>
+        {/* Header Tabs */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => handleTabPress('Tour')}>
+            <Text style={[styles.tab, activeTab === 'Tour' ? styles.tabActive : null]}>Tour</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleTabPress('Khách sạn')}>
+            <Text style={[styles.tab, activeTab === 'Khách sạn' ? styles.tabActive : null]}>
+              Khách sạn
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleTabPress('Vé tham quan')}>
+            <Text style={[styles.tab, activeTab === 'Vé tham quan' ? styles.tabActive : null]}>
+              Vé tham quan
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleTabPress('Đặt xe')}>
+            <Text style={[styles.tab, activeTab === 'Đặt xe' ? styles.tabActive : null]}>Đặt xe</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.containerBorder}>
+          {/* Search Bar */}
+          <Text style={styles.searchname}>Bạn sẽ đi đâu ?</Text>
+          <View style={styles.searchContainer}>
+            <FontAwesome6 name="location-dot" size={20} color="#f97316" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Bạn muốn đi đâu ?"
+              placeholderTextColor="#888"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
+            />
+            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+              <AntDesign name="search1" size={18} color="white" />
             </TouchableOpacity>
           </View>
-        )}
 
-        {/* Conditionally render containerBorder */}
-        {!isInputFocused ? (
-          <View style={styles.containerBorder}>
-            <Text style={styles.searchTitle}>Bạn sẽ đi đâu ?</Text>
-            <View style={styles.searchWrapper}>
-              <View style={styles.searchContainer}>
-                <FontAwesome6 name="location-dot" size={20} color="#f97316" style={styles.searchIcon} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Bạn muốn đi đâu ?"
-                  placeholderTextColor="#888"
-                  onFocus={handleInputFocus}
-                  onBlur={handleInputBlur}
-                />
-                <TouchableOpacity style={styles.searchButton}>
-                  <AntDesign name="search1" size={18} color="white" />
-                </TouchableOpacity>
-              </View>
-            </View>
+          {/* Filters */}
+          <Text style={styles.sectionname}>Tìm kiếm gần đây ?</Text>
+          <View style={styles.filterContainer}>
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => handleProvinceClick('Đà Lạt')}
+            >
+              <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
+              <Text style={styles.filterText}>Đà Lạt</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => handleProvinceClick('Đà Nẵng')}
+            >
+              <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
+              <Text style={styles.filterText}>Đà Nẵng</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => handleProvinceClick('Hội An')}
+            >
+              <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
+              <Text style={styles.filterText}>Hội An</Text>
+            </TouchableOpacity>
+          </View>
 
-            <Text style={styles.sectionTitle}>Tìm kiếm gần đây ?</Text>
-            <View style={styles.filterContainer}>
-              <TouchableOpacity style={styles.filterButton}>
-                <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
-                <Text style={styles.filterText}>Đà lạt</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterButton}>
-                <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
-                <Text style={styles.filterText}>Đà nẵng</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterButton}>
-                <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
-                <Text style={styles.filterText}>Hội an</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.sectionTitle}>Thịnh hành gần nhất</Text>
+          {/* Recent Searches or Search Results */}
+          <Text style={styles.sectionname}>
+            {tours.length > 0 ? 'Kết quả tìm kiếm' : 'Thịnh hành gần nhất'}
+          </Text>
+          {loading ? (
+            <Text>Loading...</Text>
+          ) : error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : tours.length > 0 ? (
             <FlatList
-              data={recentSearches}
-              renderItem={renderItem}
+              data={tours}
+              renderItem={renderTourItem}
               keyExtractor={(item) => item.id}
               style={styles.list}
             />
-          </View>
-        ) : (
-          <View style={styles.searchWrapper}>
-            <TouchableOpacity onPress={handleInputBlur} style={styles.backButton}>
-              <AntDesign name="arrowleft" size={24} color="#000" />
-            </TouchableOpacity>
-            <View style={[styles.searchContainer, styles.searchContainerFocused]}>
-              <FontAwesome6 name="location-dot" size={20} color="#f97316" style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Bạn muốn đi đâu ?"
-                placeholderTextColor="#888"
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
-                autoFocus={true}
-              />
-              <TouchableOpacity style={styles.searchButton}>
-                <AntDesign name="search1" size={18} color="white" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+          ) : (
+            <FlatList
+              data={province}
+              renderItem={renderProvinceItem}
+              keyExtractor={(item) => item.id}
+              style={styles.list}
+            />
+          )}
+        </View>
 
-        {!isInputFocused && (
-          <TouchableOpacity style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>TÌM KIẾM</Text>
-          </TouchableOpacity>
-        )}
+        {/* Search Button */}
+        <TouchableOpacity style={styles.submitButton} onPress={handleSearch}>
+          <Text style={styles.submitButtonText}>TÌM KIẾM</Text>
+        </TouchableOpacity>
       </View>
     </>
   );
@@ -171,24 +260,14 @@ const styles = StyleSheet.create({
     color: '#ff6200',
     fontFamily: 'Inter-Black',
   },
-  searchTitle: {
+  searchname: {
     fontSize: 18,
     fontFamily: 'Inter-Black',
     color: '#000',
     marginBottom: 20,
     marginTop: 10,
   },
-  searchWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    padding: 5,
-    marginRight: 5,
-    marginTop:15
-  },
   searchContainer: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -196,12 +275,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 10,
     elevation: 2,
-  },
-  searchContainerFocused: {
-    marginLeft: 0,
-    marginTop:30,
-
-    
   },
   searchIcon: {
     marginRight: 10,
@@ -218,7 +291,7 @@ const styles = StyleSheet.create({
     borderRadius: 255,
     padding: 9,
   },
-  sectionTitle: {
+  sectionname: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     marginVertical: 10,
@@ -262,12 +335,39 @@ const styles = StyleSheet.create({
   itemTextContainer: {
     flex: 1,
   },
-  itemTitle: {
+  itemname: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: '#000',
   },
   itemDescription: {
+    fontSize: 10,
+    color: '#666',
+    fontFamily: 'Inter-Medium',
+  },
+  tourItemContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    elevation: 1,
+  },
+  tourImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+  tourTextContainer: {
+    flex: 1,
+  },
+  tourName: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#000',
+  },
+  tourPrice: {
     fontSize: 10,
     color: '#666',
     fontFamily: 'Inter-Medium',
@@ -286,6 +386,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontFamily: 'Inter-Medium',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginVertical: 10,
   },
 });
 
