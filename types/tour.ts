@@ -1,16 +1,14 @@
 // types/tour.ts
 export type TourItem = {
-  id: string; // Chuyển đổi từ number sang string
+  id: string; 
   name: string;
   slug: string;
-  featuredImageUrl: string; // API trả về null, sẽ xử lý trong code
-  provinceId: number;
+  featuredImageUrl: string; 
   vote: number;
   fromPrice: number;
-  isFavorite: boolean; // Thêm trường isFavorite
+  isFavorite: boolean;
 };
 
-// Type cho thông tin phân trang
 export type PaginationInfo<T> = {
   datas: T[];
   page: number;
@@ -19,7 +17,6 @@ export type PaginationInfo<T> = {
   totalPages: number;
 };
 
-// Type cho API response
 export type TourListResponse = {
   status: string;
   data: PaginationInfo<TourItem>;
@@ -28,6 +25,20 @@ export type TourExtraService = {
   id: number;
   name: string;
 };
+export type searchTourType = {
+  fromPrice: number;
+  toPrice: number;
+  provinceIds: number[];
+  groupIds: number[];
+  durations: string[];
+  guestQuantitys: GuestQuantity[];
+  page: number;
+  pageSize: number;
+}
+export type GuestQuantity = {
+  guestTypeId: number;
+  quantity: number;
+}
 
 export type TourPrice = {
   id: number;

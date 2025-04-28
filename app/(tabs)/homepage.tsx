@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, TextInput, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 import Suggested from '@/components/home/Suggested';
-import Recent from '@/components/home/Recent';
-import Popular from '@/components/home/Popular';
+// import Recent from '@/components/home/Recent';
+// import Popular from '@/components/home/Popular';
 import SearchHeader from '@/components/home/search';
 import DestinationSection from '@/components/home/attractive';
 import Banner from '@/components/banner';
@@ -46,8 +46,8 @@ const Home = () => {
 
         {/* Hiển thị component tương ứng với tab */}
         {activeTab === 'suggested' && <Suggested />}
-        {activeTab === 'recent' && <Recent />}
-        {activeTab === 'popular' && <Popular />}
+        {/* {activeTab === 'recent' && <Recent />}
+        {activeTab === 'popular' && <Popular />} */}
         <DestinationSection />
       </ScrollView>
     </SafeAreaView>
