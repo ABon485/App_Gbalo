@@ -40,7 +40,7 @@ const TourListScreen = () => {
       setLoading(true);
       let allTours: TourItem[] = [];
       let currentPage = 1;
-      let totalPages = 1;
+      let totalPages = 20;
 
       // Loop through all pages
       while (currentPage <= totalPages) {
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: "relative",
     width: "100%",
-    height: 150,
+    height: 220,
     marginBottom: 5,
   },
   image: {

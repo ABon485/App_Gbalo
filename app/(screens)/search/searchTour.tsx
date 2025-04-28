@@ -3,11 +3,17 @@ import { View, Text, TextInput, TouchableOpacity, Image, FlatList, StyleSheet } 
 import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 
-const SearchTour = () => {
-  // State để theo dõi tab đang được chọn
-  const [activeTab, setActiveTab] = useState('Tour');
+interface SearchItem {
+  id: string;
+  title: string;
+  description: string;
+}
 
-  const recentSearches = [
+const SearchTour = () => {
+  const [activeTab, setActiveTab] = useState('Tour');
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  const recentSearches: SearchItem[] = [
     { id: '1', title: 'Đà Lạt', description: 'Đà Lạt là thành phố ngàn hoa nổi tiếng với khí hậu mát mẻ, cảnh quan thiên nhiên thơ mộng, hồ Xuân Hương.' },
     { id: '2', title: 'Đà Nẵng', description: 'Đà Nẵng là thành phố du lịch nổi tiếng với bãi biển đẹp, cầu Rồng, Bà Nà Hills và nhiều điểm tham quan hấp dẫn.' },
     { id: '3', title: 'Phú Quốc', description: 'Phú Quốc là thiên đường biển đảo nổi tiếng với bãi biển đẹp, nước trong xanh, và các hoạt động lặn ngắm san hô.' },
@@ -16,7 +22,7 @@ const SearchTour = () => {
     { id: '6', title: 'Hội An', description: 'Hội An là phố cổ nổi tiếng với đèn lồng, kiến trúc cổ kính, và không gian văn hóa đậm đà bản sắc.' },
   ];
 
-  const renderItem = ({ item }: { item: { id: string; title: string; description: string } }) => (
+  const renderItem = ({ item }: { item: SearchItem }) => (
     <View style={styles.itemContainer}>
       <Image source={{ uri: 'https://via.placeholder.com/60' }} style={styles.itemImage} />
       <View style={styles.itemTextContainer}>
@@ -26,77 +32,110 @@ const SearchTour = () => {
     </View>
   );
 
-  // Hàm xử lý khi nhấn vào tab
   const handleTabPress = (tabName: string) => {
     setActiveTab(tabName);
+  };
+
+  const handleInputFocus = () => {
+    setIsInputFocused(true);
+  };
+
+  const handleInputBlur = () => {
+    setIsInputFocused(false);
   };
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        {/* Header Tabs */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => handleTabPress('Tour')}>
-            <Text style={[styles.tab, activeTab === 'Tour' ? styles.tabActive : null]}>Tour</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleTabPress('Khách sạn')}>
-            <Text style={[styles.tab, activeTab === 'Khách sạn' ? styles.tabActive : null]}>Khách sạn</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleTabPress('Vé tham quan')}>
-            <Text style={[styles.tab, activeTab === 'Vé tham quan' ? styles.tabActive : null]}>Vé tham quan</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleTabPress('Đặt xe')}>
-            <Text style={[styles.tab, activeTab === 'Đặt xe' ? styles.tabActive : null]}>Đặt xe</Text>
-          </TouchableOpacity>
-        </View>
+        {!isInputFocused && (
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => handleTabPress('Tour')}>
+              <Text style={[styles.tab, activeTab === 'Tour' ? styles.tabActive : null]}>Tour</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleTabPress('Khách sạn')}>
+              <Text style={[styles.tab, activeTab === 'Khách sạn' ? styles.tabActive : null]}>Khách sạn</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleTabPress('Vé tham quan')}>
+              <Text style={[styles.tab, activeTab === 'Vé tham quan' ? styles.tabActive : null]}>Vé tham quan</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleTabPress('Đặt xe')}>
+              <Text style={[styles.tab, activeTab === 'Đặt xe' ? styles.tabActive : null]}>Đặt xe</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-        <View style={styles.containerBorder}>
-          {/* Search Bar */}
-          <Text style={styles.searchTitle}>Bạn sẽ đi đâu ?</Text>
-          <View style={styles.searchContainer}>
-            <FontAwesome6 name="location-dot" size={20} color="#f97316" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Bạn muốn đi đâu ?"
-              placeholderTextColor="#888"
+        {/* Conditionally render containerBorder */}
+        {!isInputFocused ? (
+          <View style={styles.containerBorder}>
+            <Text style={styles.searchTitle}>Bạn sẽ đi đâu ?</Text>
+            <View style={styles.searchWrapper}>
+              <View style={styles.searchContainer}>
+                <FontAwesome6 name="location-dot" size={20} color="#f97316" style={styles.searchIcon} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Bạn muốn đi đâu ?"
+                  placeholderTextColor="#888"
+                  onFocus={handleInputFocus}
+                  onBlur={handleInputBlur}
+                />
+                <TouchableOpacity style={styles.searchButton}>
+                  <AntDesign name="search1" size={18} color="white" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <Text style={styles.sectionTitle}>Tìm kiếm gần đây ?</Text>
+            <View style={styles.filterContainer}>
+              <TouchableOpacity style={styles.filterButton}>
+                <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
+                <Text style={styles.filterText}>Đà lạt</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.filterButton}>
+                <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
+                <Text style={styles.filterText}>Đà nẵng</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.filterButton}>
+                <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
+                <Text style={styles.filterText}>Hội an</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.sectionTitle}>Thịnh hành gần nhất</Text>
+            <FlatList
+              data={recentSearches}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+              style={styles.list}
             />
-            <TouchableOpacity style={styles.searchButton}>
-              <AntDesign name="search1" size={18} color="white" />
-            </TouchableOpacity>
           </View>
-
-          {/* Filters */}
-          <Text style={styles.sectionTitle}>Tìm kiếm gần đây ?</Text>
-          <View style={styles.filterContainer}>
-            <TouchableOpacity style={styles.filterButton}>
-              <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
-              <Text style={styles.filterText}>Đà lạt</Text>
+        ) : (
+          <View style={styles.searchWrapper}>
+            <TouchableOpacity onPress={handleInputBlur} style={styles.backButton}>
+              <AntDesign name="arrowleft" size={24} color="#000" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton}>
-              <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
-              <Text style={styles.filterText}>Đà nẵng</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton}>
-              <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
-              <Text style={styles.filterText}>Hội an</Text>
-            </TouchableOpacity>
+            <View style={[styles.searchContainer, styles.searchContainerFocused]}>
+              <FontAwesome6 name="location-dot" size={20} color="#f97316" style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Bạn muốn đi đâu ?"
+                placeholderTextColor="#888"
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+                autoFocus={true}
+              />
+              <TouchableOpacity style={styles.searchButton}>
+                <AntDesign name="search1" size={18} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
+        )}
 
-          {/* Recent Searches */}
-          <Text style={styles.sectionTitle}>Thịnh hành gần nhất</Text>
-          <FlatList
-            data={recentSearches}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            style={styles.list}
-          />
-        </View>
-
-        {/* Search Button */}
-        <TouchableOpacity style={styles.submitButton}>
-          <Text style={styles.submitButtonText}>TÌM KIẾM</Text>
-        </TouchableOpacity>
+        {!isInputFocused && (
+          <TouchableOpacity style={styles.submitButton}>
+            <Text style={styles.submitButtonText}>TÌM KIẾM</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </>
   );
@@ -108,15 +147,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 10,
   },
-
   containerBorder: {
     borderWidth: 1,
     borderColor: '#e5e5e5',
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
-    height:550
-
+    height: 550,
   },
   header: {
     flexDirection: 'row',
@@ -127,7 +164,6 @@ const styles = StyleSheet.create({
   },
   tab: {
     fontSize: 13,
-
     fontFamily: 'Inter-Medium',
   },
   tabActive: {
@@ -142,7 +178,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 10,
   },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    padding: 5,
+    marginRight: 5,
+    marginTop:15
+  },
   searchContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -150,6 +196,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 10,
     elevation: 2,
+  },
+  searchContainerFocused: {
+    marginLeft: 0,
+    marginTop:30,
+
+    
   },
   searchIcon: {
     marginRight: 10,
@@ -234,7 +286,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-
   },
 });
 
