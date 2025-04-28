@@ -3,17 +3,18 @@ import { View, Image, FlatList, Text, StyleSheet, Dimensions } from 'react-nativ
 
 // Định nghĩa kiểu cho ảnh banner
 type BannerImage = {
-  uri: string;
+  uri: number; // Change to number since require() returns a resource ID
+  label: string;
 };
 
-// Danh sách ảnh banner
+// Danh sách ảnh banner và văn bản tương ứng
 const bannerImages: BannerImage[] = [
-  require('@/assets/images/home/Caurong.png'),
-  require('@/assets/images/home/cauvang.png'),
-  require('@/assets/images/home/hoian.png'),
-  require('@/assets/images/home/hoian1.png'),
-  require('@/assets/images/home/tinhyeu.png'),
-  require('@/assets/images/home/linhung.png'),
+  { uri: require('@/assets/images/home/Caurong.png'), label: 'Cầu Rồng' },
+  { uri: require('@/assets/images/home/cauvang.png'), label: 'Cầu Vàng' },
+  { uri: require('@/assets/images/home/hoian.png'), label: 'Hội An' },
+  { uri: require('@/assets/images/home/hoian1.png'), label: 'Hội An 1' },
+  { uri: require('@/assets/images/home/tinhyeu.png'), label: 'Tình Yêu' },
+  { uri: require('@/assets/images/home/linhung.png'), label: 'Linh Ứng' },
 ];
 
 const { width } = Dimensions.get('window');
@@ -41,7 +42,11 @@ const Banner = () => {
   const renderItem = ({ item }: { item: BannerImage }) => (
     <View style={styles.itemContainer}>
       <View style={styles.bannerContainer}>
-        <Image source={item} style={styles.bannerImage} />
+        <Image source={item.uri} style={styles.bannerImage} />
+        {/* Thêm Text overlay */}
+        <View style={styles.textOverlay}>
+          <Text style={styles.bannerText}>{item.label}</Text>
+        </View>
       </View>
     </View>
   );
@@ -65,19 +70,37 @@ const Banner = () => {
 
 const styles = StyleSheet.create({
   itemContainer: {
-    width: width, // Chiều rộng toàn màn hình để phân trang
-    alignItems: 'center', // Căn giữa bannerContainer
+    width: width,
+    alignItems: 'center',
   },
   bannerContainer: {
     marginTop: 8,
-    width: 340, // Chiều rộng bằng với bannerImage
-    height: 160, // Chiều cao bằng với bannerImage
-    backgroundColor: 'transparent', // Trong suốt
+    width: 340,
+    height: 160,
+    backgroundColor: 'transparent',
   },
   bannerImage: {
     width: 340,
     height: 160,
     borderRadius: 10,
+  },
+  textOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 90, // Fix the bottom value (990 seems incorrect)
+    justifyContent: 'center',
+    alignItems: 'center',
+   
+  },
+  bannerText: {
+    color: '#fff',
+    fontSize: 20,
+    fontFamily:'Inter-Medium',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 5,
   },
 });
 
