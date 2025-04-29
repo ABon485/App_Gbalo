@@ -75,7 +75,17 @@ const data = [
 const Hobbies = () => {
   const router = useRouter();
   const [showMore, setShowMore] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]); // <<== lưu các item đã chọn
+
   const visibleData = showMore ? data : data.slice(0, 7);
+
+  const handleSelectItem = (title: string) => {
+    if (selectedItems.includes(title)) {
+      setSelectedItems(selectedItems.filter((item) => item !== title));
+    } else {
+      setSelectedItems([...selectedItems, title]);
+    }
+  };
 
   return (
     <>
@@ -97,17 +107,30 @@ const Hobbies = () => {
 
         {/* List */}
         <View style={styles.listContainer}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
-            {visibleData.map((item, index) => (
-              <TouchableOpacity key={index} style={styles.hobbyItem}>
-                <Image
-                  source={item.icon}
-                  style={styles.hobbyIcon}
-                  resizeMode="contain"
-                />
-                <Text style={styles.hobbyText}>{item.title}</Text>
-              </TouchableOpacity>
-            ))}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 16 }}
+          >
+            {visibleData.map((item, index) => {
+              const isSelected = selectedItems.includes(item.title);
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.hobbyItem,
+                    isSelected && { backgroundColor: "#d3d3d3" }, // <<== nếu selected thì đổi màu xám
+                  ]}
+                  onPress={() => handleSelectItem(item.title)}
+                >
+                  <Image
+                    source={item.icon}
+                    style={styles.hobbyIcon}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.hobbyText}>{item.title}</Text>
+                </TouchableOpacity>
+              );
+            })}
 
             {/* Toggle Button */}
             <TouchableOpacity
@@ -124,7 +147,7 @@ const Hobbies = () => {
         {/* Finish Button */}
         <View style={styles.buttonWrapper}>
           <CustomButtonRN
-            title="Tiếp tục"
+            title="Hoàn thành"
             onPress={() => router.replace("/(tabs)/assistant")}
           />
         </View>
