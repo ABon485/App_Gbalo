@@ -46,8 +46,8 @@ const Home = () => {
 
         {/* Hiển thị component tương ứng với tab */}
         {activeTab === 'suggested' && <Suggested />}
-        {/* {activeTab === 'recent' && <Recent />} */}
-        {/* {activeTab === 'popular' && <Popular />} */}
+        {/* {activeTab === 'recent' && <Recent />}
+        {activeTab === 'popular' && <Popular />} */}
         <DestinationSection />
       </ScrollView>
     </SafeAreaView>
