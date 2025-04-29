@@ -8,20 +8,21 @@ import {
   Image,
   ScrollView,
   ImageBackground,
-  Alert,
 } from "react-native";
 import styles from "@/styles/auth/register/registerEmail";
-import { Stack, useRouter } from "expo-router";
+import {useRouter } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
 import { Registercode } from "@/types/user";
 import { ApiResponse } from "@/types/api";
 import api from "@/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useToast } from "@/context/ToastContext"
 
 export default function RegisterEmail() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast(); 
 
   const handleLogin = () => {
     router.push("/(auths)/(Login)/login");
@@ -31,43 +32,110 @@ export default function RegisterEmail() {
     router.push("/(auths)/(register)/registerPhone/RegisterPhone");
   };
 
+//   const handleContinue = async () => {
+//   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+//   if (!email) {
+//     showToast({
+//       type: "error",
+//       message: "Vui lòng nhập email",
+//     });
+//     return;
+//   }
+
+//   if (!emailRegex.test(email)) {
+//     showToast({
+//       type: "error",
+//       message: "Email không hợp lệ",
+//     });
+//     return;
+//   }
+
+//   try {
+//     setLoading(true);
+//     const formData: Registercode = { email };
+//     const response: ApiResponse = await api.post(
+//       "/Accounts/SendResgiterCode",
+//       formData
+//     );
+
+//     if (response.success) {
+//       const token = response.data.token;
+//       if (token) {
+//         await AsyncStorage.setItem("registerToken", token);
+//       }
+//       showToast({
+//         type: "success",
+//         message: "Mã OTP đã được gửi đến email của bạn!",
+//       });
+//       router.push({
+//         pathname: "/(auths)/(register)/registerEmail/veryfyEmail",
+//         params: { email },
+//       });
+//     } else {
+//       showToast({
+//         type: "error",
+//         message: response.message || "Gửi OTP thất bại",
+//       });
+//     }
+//   } catch (error: any) {
+//     showToast({
+//       type: "error",
+//       message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+//     });
+//   } finally {
+//     setLoading(false);
+//   }
+  // };
+  
   const handleContinue = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
     if (!email) {
-      Alert.alert("Lỗi", "Vui lòng nhập email");
+      showToast({
+        type: "error",
+        message: "Vui lòng nhập email",
+      });
       return;
     }
-
+  
+    if (!emailRegex.test(email)) {
+      showToast({
+        type: "error",
+        message: "Email không hợp lệ",
+      });
+      return;
+    }
+  
     try {
       setLoading(true);
-      const formData: Registercode = { email };
-      const response: ApiResponse = await api.post(
-        "/Accounts/SendResgiterCode",
-        formData
-      );
-
-      if (response.success) {
-        const token = response.data.token;
-        if (token) {
-          await AsyncStorage.setItem("registerToken", token);
-        }
-        Alert.alert("Thành công", "Mã OTP đã được gửi đến email của bạn!");
-        router.push({
-          pathname: "/(auths)/(register)/registerEmail/veryfyEmail",
-          params: { email },
-        });
-      } else {
-        Alert.alert("Lỗi", response.message || "Gửi OTP thất bại");
-      }
+  
+      // Gán token mặc định
+      const defaultToken = "03a83b5c-be9b-4fce-81ee-601428074be5"; // <-- Token giả
+      await AsyncStorage.setItem("registerToken", defaultToken);
+  
+      showToast({
+        type: "success",
+        message: "Mã OTP đã được gửi đến email của bạn!",
+      });
+  
+      router.push({
+        pathname: "/(auths)/(register)/registerEmail/veryfyEmail",
+        params: { email },
+      });
     } catch (error: any) {
-      Alert.alert("Lỗi", error.message || "Có lỗi xảy ra, vui lòng thử lại");
+      showToast({
+        type: "error",
+        message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+      });
     } finally {
       setLoading(false);
     }
   };
+  
+
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
       <ImageBackground
         source={require("../../../../assets/images/BackGroud.png")}
         style={styles.backgroundImage}
@@ -141,6 +209,5 @@ export default function RegisterEmail() {
           </View>
         </ScrollView>
       </ImageBackground>
-    </>
   );
 }

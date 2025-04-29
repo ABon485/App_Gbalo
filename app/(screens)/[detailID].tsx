@@ -73,9 +73,6 @@ export default function Detail() {
   const handleBookTour = () => console.log("Đặt tour:", tour.id);
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" />
         <FlatList
@@ -132,8 +129,11 @@ export default function Detail() {
                 </View>
 
                 <View style={styles.tagsContainer}>
-                  <Text style={styles.tag}>Tiếng anh/ Tiếng thái</Text>
-                  <Text style={styles.tag}>Tour ghép/tour riêng</Text>
+                  {item.tourExtraServices.map((service) => (
+                    <Text key={service.id} style={styles.tag}>
+                      {service.name}
+                    </Text>
+                  ))}
                 </View>
 
                 {/* Giới thiệu về tour */}
@@ -201,6 +201,5 @@ export default function Detail() {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
-    </>
   );
 }

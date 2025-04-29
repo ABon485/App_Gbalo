@@ -7,35 +7,42 @@ import {
   Image,
   ScrollView,
   ImageBackground,
-  Alert,
-  StyleSheet,
 } from "react-native";
 import styles from "@/styles/auth/register/confirmPhone";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import CustomButtonRN from "@/components/common/customButtonRN";
+import { useToast } from "@/context/ToastContext";
+import { Phone } from "lucide-react-native";
 
 export default function Confirm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [userName, setUserName] = useState("");
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   const handleLogin = () => {
     router.push("/(auths)/(Login)/login");
   };
 
   const handleRegister = async () => {
-    if (!userName || !email || !password || !confirmPassword) {
-      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin");
+    if (!userName || !Phone || !password || !confirmPassword) {
+      showToast({
+        type: "error",
+        message: "Vui lòng nhập đầy đủ thông tin",
+      });
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Lỗi", "Mật khẩu xác nhận không khớp");
+      showToast({
+        type: "error",
+        message: "Mật khẩu xác nhận không khớp",
+      });
       return;
     }
 
@@ -43,18 +50,22 @@ export default function Confirm() {
 
     try {
       // Giả lập đăng ký thành công (không gọi API)
-      Alert.alert("Thành công", "Đăng ký thành công!");
+      showToast({
+        type: "success",
+        message: "Đăng ký thành công!",
+      });
       router.replace("/(auths)/(Login)/login");
     } catch (error: any) {
-      Alert.alert("Lỗi", "Có lỗi xảy ra, vui lòng thử lại");
+      showToast({
+        type: "error",
+        message: "Có lỗi xảy ra, vui lòng thử lại",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
       <ImageBackground
         source={require("../../../../assets/images/BackGroud.png")}
         style={styles.backgroundImage}
@@ -83,14 +94,14 @@ export default function Confirm() {
 
             {/* Email */}
             <Text style={styles.label}>
-              Email <Text style={styles.required}>*</Text>
+              Số điện thoại <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
               style={styles.input}
-              placeholder="Email của bạn"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={(text) => setEmail(text)}
+              placeholder="số điện thoại"
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={(text) => setPhone(text)}
             />
 
             {/* Mật khẩu */}
@@ -155,7 +166,5 @@ export default function Confirm() {
           </View>
         </ScrollView>
       </ImageBackground>
-    </>
   );
 }
-

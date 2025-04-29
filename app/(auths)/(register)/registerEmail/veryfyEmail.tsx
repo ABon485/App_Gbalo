@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,21 +6,30 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Alert,
   ImageBackground,
 } from "react-native";
 import styles from "@/styles/auth/register/veryfyEmail";
-import { Stack, useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
 import api from "@/config/api";
 import { ApiResponse } from "@/types/api";
+import { useToast } from "@/context/ToastContext";
 
 export default function VerifyEmail() {
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState(["1", "2", "3", "4", "5", "6"]);
   const [loading, setLoading] = useState(false);
   const inputRefs = useRef<TextInput[]>([]);
+  const { showToast } = useToast();
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true); // Trạng thái nút "Tiếp tục"
+
+  useEffect(() => {
+    // Kiểm tra mã OTP khi nó thay đổi
+    const isValidOtp =
+      otp.join("").length === 6 && otp.every((digit) => /^\d$/.test(digit));
+    setIsButtonDisabled(!isValidOtp); // Nếu mã OTP chưa đủ 6 chữ số hoặc có ký tự không hợp lệ, vô hiệu hóa nút
+  }, [otp]);
 
   const handleOtpChange = (text: string, index: number) => {
     if (/^\d*$/.test(text)) {
@@ -33,102 +42,116 @@ export default function VerifyEmail() {
       }
     }
   };
-
   const handleContinue = () => {
     const code = otp.join("");
     if (code.length < 6) {
-      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ mã xác nhận");
+      showToast({
+        type: "error",
+        message: "Vui lòng nhập đầy đủ mã xác nhận",
+      });
       return;
     }
 
-    // Bỏ qua gọi API và điều hướng thẳng đến ConfirmEmail
     setLoading(true);
     setTimeout(() => {
-      Alert.alert("Thành công", "Xác minh OTP thành công!");
+      showToast({
+        type: "success",
+        message: "Xác minh OTP thành công!",
+      });
       router.push({
         pathname: "/(auths)/(register)/registerEmail/confirmEmail",
         params: { email },
       });
       setLoading(false);
-    }, 500); // Giả lập thời gian xử lý
+    }, 500);
   };
 
   const handleResend = async () => {
     try {
       const response: ApiResponse = await api.post(
         "/Accounts/SendResgiterCode",
-        {
-          email,
-        }
+        { email }
       );
       if (response.success) {
-        Alert.alert("Thành công", "Đã gửi lại mã OTP!");
+        showToast({
+          type: "success",
+          message: "Đã gửi lại mã OTP!",
+        });
       } else {
-        Alert.alert("Lỗi", response.message || "Gửi lại OTP thất bại");
+        showToast({
+          type: "error",
+          message: response.message || "Gửi lại OTP thất bại",
+        });
       }
     } catch (error: any) {
-      Alert.alert("Lỗi", error.message || "Có lỗi xảy ra, vui lòng thử lại");
+      showToast({
+        type: "error",
+        message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+      });
     }
   };
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ImageBackground
-        source={require("../../../../assets/images/BackGroud.png")}
-        style={styles.backgroundImage}
-      >
-        <ScrollView contentContainerStyle={styles.scrollViewContent}>
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("../../../../assets/images/imagLogo.png")}
-              resizeMode="contain"
-            />
+    <ImageBackground
+      source={require("../../../../assets/images/BackGroud.png")}
+      style={styles.backgroundImage}
+    >
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../../../../assets/images/imagLogo.png")}
+            resizeMode="contain"
+          />
+        </View>
+
+        {/* Form container */}
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>Xác thực email của bạn</Text>
+          <Text style={styles.subtitle}>
+            Vui lòng nhập mã xác nhận vừa gửi qua email
+          </Text>
+          <Text style={styles.phoneNumber}>{email}</Text>
+
+          {/* OTP inputs */}
+          <View style={styles.otpContainer}>
+            {otp.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={(ref) => {
+                  if (ref) inputRefs.current[index] = ref;
+                }}
+                keyboardType="numeric"
+                maxLength={1}
+                value={digit}
+                onChangeText={(text) => handleOtpChange(text, index)}
+                style={styles.otpInput}
+              />
+            ))}
           </View>
 
-          {/* Form container */}
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>Xác thực email của bạn</Text>
-            <Text style={styles.subtitle}>
-              Vui lòng nhập mã xác nhận vừa gửi qua email
-            </Text>
-            <Text style={styles.phoneNumber}>{email}</Text>
+          <CustomButtonRN
+            title="Tiếp tục"
+            onPress={handleContinue}
+            disabled={isButtonDisabled}
+            backgroundColor={
+              isButtonDisabled
+                ? styles.disabledButton.backgroundColor
+                : styles.activeButton.backgroundColor
+            }
+            textColor={
+              isButtonDisabled
+                ? styles.disabledButton.color
+                : styles.activeButton.color
+            }
+          />
 
-            {/* OTP inputs */}
-            <View style={styles.otpContainer}>
-              {otp.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  ref={(ref) => {
-                    if (ref) inputRefs.current[index] = ref;
-                  }}
-                  keyboardType="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChangeText={(text) => handleOtpChange(text, index)}
-                  style={styles.otpInput}
-                />
-              ))}
-            </View>
-
-            {/* Continue button */}
-            <CustomButtonRN
-              title={loading ? "Đang xác minh..." : "Tiếp tục"}
-              onPress={handleContinue}
-              // disabled={loading}
-            />
-
-            {/* Resend button */}
-            <TouchableOpacity
-              style={styles.resendButton}
-              onPress={handleResend}
-            >
-              <Text style={styles.resendText}>Gửi lại</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </ImageBackground>
-    </>
+          {/* Resend button */}
+          <TouchableOpacity style={styles.resendButton} onPress={handleResend}>
+            <Text style={styles.resendText}>Gửi lại</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </ImageBackground>
   );
 }
