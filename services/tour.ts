@@ -1,6 +1,5 @@
-// services/tour.ts
-import{ apiTour, api } from "@/config/tourApi";
-import { TourListResponse, TourDetail, searchTourType, ProvinceType } from "@/types/tour";
+import { apiTour, api } from "@/config/tourApi";
+import { TourListResponse, TourDetail, searchTourType, ProvinceType, PaginationInfo, TourItem } from "@/types/tour";
 
 const tourApi = {
   ListTour: async (page: number = 1, pageSize: number = 20): Promise<TourListResponse> => {
@@ -13,9 +12,16 @@ const tourApi = {
       throw error;
     }
   },
-  searchTour: (formData: searchTourType): Promise<TourListResponse> =>
-    apiTour.post("/tour/search", formData).then((response) => response.data.data),
-  
+
+  searchTour: async (formData: searchTourType): Promise<TourListResponse> => {
+    try {
+      const response = await apiTour.post("/tour/search", formData);
+      return response.data; 
+    } catch (error) {
+      throw error;
+    }
+  },
+
   TourDetail: async (id: number): Promise<TourDetail> => {
     try {
       const response = await apiTour.get(`/tour/getbyid/?id=${id}`);
@@ -27,14 +33,13 @@ const tourApi = {
 
   getProvince: (): Promise<ProvinceType[]> =>
     api.get("/province").then((response) => {
-      console.log("Raw API response:", response); 
-      const data = response.data?.data; 
+      console.log("Raw API response:", response);
+      const data = response.data?.data;
       if (!Array.isArray(data)) {
         throw new Error("API response data is not an array");
       }
       return data;
     }),
-
 };
 
 export default tourApi;
