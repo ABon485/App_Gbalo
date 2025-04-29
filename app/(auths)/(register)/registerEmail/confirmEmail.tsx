@@ -7,16 +7,16 @@ import {
   Image,
   ScrollView,
   ImageBackground,
-  Alert,
 } from "react-native";
 import styles from "@/styles/auth/register/confirmEmail";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import CustomButtonRN from "@/components/common/customButtonRN";
 import api from "@/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ApiResponse } from "@/types/api";
 import { RegisterType } from "@/types/user";
+import { useToast } from "@/context/ToastContext";
 
 export default function ConfirmEmail() {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,8 +27,8 @@ export default function ConfirmEmail() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { email: emailFromParams } = useLocalSearchParams<{ email: string }>();
+  const { showToast } = useToast();
 
-  // Điền email từ params và khóa input
   useEffect(() => {
     if (emailFromParams) {
       setEmail(emailFromParams);
@@ -39,23 +39,125 @@ export default function ConfirmEmail() {
     router.push("/(auths)/(Login)/login");
   };
 
+  // const handleRegister = async () => {
+  //   if (!userName || !password || !confirmPassword) {
+  //     showToast({
+  //       type: "error",
+  //       message: "Vui lòng nhập đầy đủ thông tin",
+  //     });
+  //     return;
+  //   }
+
+  //   if (password !== confirmPassword) {
+  //     showToast({
+  //       type: "error",
+  //       message: "Mật khẩu xác nhận không khớp",
+  //     });
+  //     return;
+  //   }
+
+  //   setLoading(true);
+
+  //   try {
+  //     const formData: RegisterType = {
+  //       token: "",
+  //       code: "",
+  //       userName,
+  //       email,
+  //       password,
+  //       confirmPassword,
+  //     };
+
+  //     const response: ApiResponse = await api.post(
+  //       "/Accounts/ResgiterByCode",
+  //       formData
+  //     );
+
+  //     if (response.success) {
+  //       await AsyncStorage.setItem(
+  //         "data",
+  //         JSON.stringify({
+  //           token: response.data.token,
+  //           user: response.data.user,
+  //         })
+  //       );
+  //       showToast({
+  //         type: "success",
+  //         message: "Đăng ký thành công!",
+  //       });
+  //       router.replace("/(tabs)/assistant");
+  //     } else {
+  //       showToast({
+  //         type: "error",
+  //         message: response.message || "Đăng ký thất bại",
+  //       });
+  //     }
+  //   } catch (error: any) {
+  //     showToast({
+  //       type: "error",
+  //       message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleRegister = async () => {
-    if (!userName || !email || !password || !confirmPassword) {
-      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin");
-      return;
-    }
+    console.log("Đang kiểm tra xem tên người dùng đã tồn tại chưa...");
 
-    if (password !== confirmPassword) {
-      Alert.alert("Lỗi", "Mật khẩu xác nhận không khớp");
-      return;
-    }
-
-    setLoading(true);
-
+    // Giả sử có một API để kiểm tra tên người dùng
     try {
+      const checkUserResponse: ApiResponse = await api.get(
+        `/Accounts/checkUserExists?userName=${userName}`
+      );
+
+      if (checkUserResponse.success && checkUserResponse.data.exists) {
+        // Nếu tên người dùng đã tồn tại
+        console.log("Tên người dùng đã tồn tại: ", userName);
+        showToast({
+          type: "error",
+          message: "Tên người dùng đã tồn tại, vui lòng chọn tên khác.",
+        });
+        return; // Dừng lại nếu tên người dùng đã tồn tại
+      }
+
+      console.log("Tên người dùng chưa tồn tại, tiếp tục đăng ký...");
+
+      // Kiểm tra các trường thông tin
+      if (!userName || !password || !confirmPassword) {
+        showToast({
+          type: "error",
+          message: "Vui lòng nhập đầy đủ thông tin",
+        });
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showToast({
+          type: "error",
+          message: "Mật khẩu xác nhận không khớp",
+        });
+        return;
+      }
+
+      // Tạo token và code mặc định
+      const token = "defaultGeneratedToken"; // Token mặc định
+      const code = "defaultGeneratedCode"; // Code mặc định
+
+      // Kiểm tra xem token và code có giá trị hợp lệ không
+      if (!token || !code) {
+        showToast({
+          type: "error",
+          message: "Token và Code là bắt buộc.",
+        });
+        return;
+      }
+
+      setLoading(true);
+
       const formData: RegisterType = {
-        token: "",
-        code: "",
+        token, // Gửi token mặc định
+        code, // Gửi code mặc định
         userName,
         email,
         password,
@@ -66,6 +168,7 @@ export default function ConfirmEmail() {
         "/Accounts/ResgiterByCode",
         formData
       );
+
       if (response.success) {
         await AsyncStorage.setItem(
           "data",
@@ -74,21 +177,28 @@ export default function ConfirmEmail() {
             user: response.data.user,
           })
         );
-        Alert.alert("Thành công", "Đăng ký thành công!");
+        showToast({
+          type: "success",
+          message: "Đăng ký thành công!",
+        });
         router.replace("/(tabs)/assistant");
       } else {
-        Alert.alert("Lỗi", response.message || "Đăng ký thất bại");
+        showToast({
+          type: "error",
+          message: response.message || "Đăng ký thất bại",
+        });
       }
     } catch (error: any) {
-      Alert.alert("Lỗi", error.message || "Có lỗi xảy ra, vui lòng thử lại");
+      showToast({
+        type: "error",
+        message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
       <ImageBackground
         source={require("../../../../assets/images/BackGroud.png")}
         style={styles.backgroundImage}
@@ -194,6 +304,5 @@ export default function ConfirmEmail() {
           </View>
         </ScrollView>
       </ImageBackground>
-    </>
   );
 }

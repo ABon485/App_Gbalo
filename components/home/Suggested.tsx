@@ -16,7 +16,7 @@ import { Heart } from "lucide-react-native";
 import { TourItem, TourListResponse } from "@/types/tour";
 import tourApi from "@/services/tour";
 import { AntDesign } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 
 // Get screen width to calculate item width
 const { width } = Dimensions.get("window");
@@ -43,7 +43,7 @@ const TourListScreen = () => {
 
       // Loop through all pages
       while (currentPage <= totalPages) {
-        const response: TourListResponse = await tourApi.ListTour(); 
+        const response: TourListResponse = await tourApi.ListTour();
         const fetchedTours: TourItem[] = response.data.datas.map(
           (item: any) => ({
             id: item.id.toString(),
@@ -159,26 +159,26 @@ const TourListScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <FlatList
-        data={showAll ? tours : tours.slice(0, 4)}
-        renderItem={renderTourItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContainer}
-        ListFooterComponent={
-          !showAll && tours.length > 4 ? (
-            <TouchableOpacity
-              style={styles.loadMoreButton}
-              onPress={() => setShowAll(true)}
-            >
-              <Text style={styles.loadMoreText}>Xem thêm</Text>
-            </TouchableOpacity>
-          ) : null
-        }
-      />
-    </SafeAreaView>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <FlatList
+          data={showAll ? tours : tours.slice(0, 4)}
+          renderItem={renderTourItem}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.listContainer}
+          ListFooterComponent={
+            !showAll && tours.length > 4 ? (
+              <TouchableOpacity
+                style={styles.loadMoreButton}
+                onPress={() => setShowAll(true)}
+              >
+                <Text style={styles.loadMoreText}>Xem thêm</Text>
+              </TouchableOpacity>
+            ) : null
+          }
+        />
+      </SafeAreaView>
   );
 };
 
