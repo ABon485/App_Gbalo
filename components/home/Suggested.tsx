@@ -89,6 +89,7 @@ const TourListScreen = () => {
       pathname: "/(screens)/[detailID]",
       params: { detailID: id },
     });
+    console.log("Card pressed:", id);
   };
 
   // Render each tour item
