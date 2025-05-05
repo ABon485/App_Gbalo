@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, FlatList, StyleSheet, Dimensions } from 'react-native';
 import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import tourApi from '@/services/tour';
 import { ProvinceType, TourItem } from '@/types/tour';
-import { Heart,SlidersHorizontal  } from 'lucide-react-native';
-
+import { Heart, SlidersHorizontal } from 'lucide-react-native';
 
 const SearchTour = () => {
   const [activeTab, setActiveTab] = useState('Tour');
@@ -132,6 +131,13 @@ const SearchTour = () => {
     );
   };
 
+  const handleTourPress = (id: string) => {
+    router.push({
+      pathname: "/(screens)/[detailID]",
+      params: { detailID: id },
+    });
+  };
+
   const renderProvinceItem = ({ item }: { item: ProvinceType }) => (
     <View style={styles.itemContainer}>
       <Image
@@ -148,7 +154,7 @@ const SearchTour = () => {
   );
 
   const renderTourItem = ({ item }: { item: TourItem }) => (
-    <TouchableOpacity style={styles.ContainerItem}>
+    <TouchableOpacity style={styles.ContainerItem} onPress={() => handleTourPress(item.id)}>
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: item.featuredImageUrl }}
@@ -241,7 +247,7 @@ const SearchTour = () => {
             </View>
             {isSearchResult && (
               <TouchableOpacity style={styles.filterButtonIcon}>
-                <SlidersHorizontal  size={20} color="#888" />
+                <SlidersHorizontal size={20} color="#888" />
               </TouchableOpacity>
             )}
           </View>
