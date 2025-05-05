@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,14 +8,55 @@ import {
   ScrollView,
   ImageBackground,
   StatusBar,
-  StyleSheet,
+  FlatList,
+  Modal,
 } from "react-native";
 import styles from "@/styles/auth/register/registerPhone";
-import { Stack, useRouter } from "expo-router";
+import {useRouter } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
+import { useToast } from "@/context/ToastContext";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 export default function Register() {
   const router = useRouter();
+  const { showToast } = useToast();
+
+  const countryPhoneCodes = [
+    { name: "Việt Nam", code: "+84" },
+    { name: "Hoa Kỳ", code: "+1" },
+    { name: "Anh", code: "+44" },
+    { name: "Pháp", code: "+33" },
+    { name: "Đức", code: "+49" },
+    { name: "Nhật Bản", code: "+81" },
+    { name: "Hàn Quốc", code: "+82" },
+    { name: "Trung Quốc", code: "+86" },
+    { name: "Thái Lan", code: "+66" },
+    { name: "Singapore", code: "+65" },
+    { name: "Úc", code: "+61" },
+    { name: "Canada", code: "+1" },
+    { name: "Ấn Độ", code: "+91" },
+    { name: "Malaysia", code: "+60" },
+    { name: "Indonesia", code: "+62" },
+    { name: "Philippines", code: "+63" },
+    { name: "Nga", code: "+7" },
+    { name: "Brazil", code: "+55" },
+    { name: "Mexico", code: "+52" },
+    { name: "Tây Ban Nha", code: "+34" },
+    { name: "Ý", code: "+39" },
+    { name: "Hà Lan", code: "+31" },
+    { name: "Thụy Sĩ", code: "+41" },
+    { name: "Thụy Điển", code: "+46" },
+    { name: "Na Uy", code: "+47" },
+    { name: "Đan Mạch", code: "+45" },
+    { name: "New Zealand", code: "+64" },
+    { name: "Nam Phi", code: "+27" },
+    { name: "Argentina", code: "+54" },
+    { name: "Chile", code: "+56" },
+  ];
+
+  const [selectedCountry, setSelectedCountry] = useState(countryPhoneCodes[0]);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleLogin = () => {
     router.push("/(auths)/(Login)/login");
@@ -26,15 +67,27 @@ export default function Register() {
   };
 
   const verifyPhone = () => {
+    // if (phoneNumber.trim() === "") {
+    //   showToast("Vui lòng nhập số điện thoại!", "error");
+    //   return;
+    // }
     router.push("/(auths)/(register)/registerPhone/veryfyPhone");
   };
 
+  const openModal = () => {
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  const selectCountry = (country: { name: string; code: string }) => {
+    setSelectedCountry(country);
+    closeModal();
+  };
+
   return (
-    <>
-      <Stack.Screen
-        name="/(auths)/(register)/Register"
-        options={{ headerShown: false }}
-      />
       <ImageBackground
         source={require("../../../../assets/images/BackGroud.png")}
         style={styles.backgroundImage}
@@ -54,17 +107,58 @@ export default function Register() {
             <Text style={styles.title}>Đăng ký</Text>
 
             {/* Quốc gia/Khu vực + Số điện thoại */}
-            <View style={styles.countryPhoneContainer}>
-              <View style={styles.countryPhoneHeader}>
+            <TouchableOpacity
+              onPress={openModal}
+              style={styles.countryPhoneHeader}
+            >
+              <View style={styles.countrySelectRow}>
                 <Text style={styles.countryPhoneLabel}>Quốc gia/Khu vực</Text>
-                <Text style={styles.countryPhoneText}>Việt Nam (+84)</Text>
+                <AntDesign
+                  name="down"
+                  size={16}
+                  color="#000"
+                  style={styles.downIcon}
+                />
               </View>
+              <Text style={styles.countryPhoneText}>
+                {selectedCountry.name} ({selectedCountry.code})
+              </Text>
+              <View style={styles.countryPhoneDivider} />
               <TextInput
                 placeholder="Số điện thoại"
                 keyboardType="phone-pad"
                 style={styles.input}
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
               />
-            </View>
+            </TouchableOpacity>
+
+            {/* Modal chọn quốc gia */}
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isModalVisible}
+              onRequestClose={closeModal}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <FlatList
+                    data={countryPhoneCodes}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.countryItem}
+                        onPress={() => selectCountry(item)}
+                      >
+                        <Text style={styles.countryItemText}>
+                          {item.name} ({item.code})
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
+              </View>
+            </Modal>
 
             {/* Mô tả xác nhận */}
             <Text style={styles.privacyText}>
@@ -121,7 +215,5 @@ export default function Register() {
           </View>
         </ScrollView>
       </ImageBackground>
-    </>
   );
 }
-

@@ -42,11 +42,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   countryPhoneHeader: {
+    backgroundColor: "#fff",
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
+    borderRadius: 30,
+    marginBottom: 8,
+    borderWidth: 1,
     borderColor: "#ddd",
+  },
+  countrySelectRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between", 
+  },
+  downIcon: {
+    marginLeft: 8,
   },
   countryPhoneLabel: {
     fontFamily: "Inter-ExtraBold",
@@ -58,13 +68,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "black",
   },
+  countryPhoneDivider: {
+    height: 1,
+    backgroundColor: "#ddd",
+    marginHorizontal: 1,
+  },
+  
   input: {
     fontFamily: "Inter-Medium",
-    height: 43,
     borderColor: "#ddd",
-    paddingHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 16,
   },
   privacyText: {
     fontFamily: "Inter-Medium",
@@ -120,6 +132,30 @@ const styles = StyleSheet.create({
     fontFamily: "Inter-Medium",
     color: "#1e90ff",
     textDecorationLine: "underline",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)", // Nền đen mờ
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    width: "85%",
+    maxHeight: "70%",
+    borderRadius: 10,
+    paddingVertical: 20,
+    paddingHorizontal: 15,
+  },
+  countryItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  countryItemText: {
+    fontSize: 16,
+    color: "#333",
   },
 });
 export default styles;

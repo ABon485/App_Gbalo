@@ -4,7 +4,8 @@ import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 import tourApi from '@/services/tour';
 import { ProvinceType, TourItem } from '@/types/tour';
-import { Heart } from 'lucide-react-native';
+import { Heart,SlidersHorizontal  } from 'lucide-react-native';
+
 
 const SearchTour = () => {
   const [activeTab, setActiveTab] = useState('Tour');
@@ -17,7 +18,7 @@ const SearchTour = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSearchResult, setIsSearchResult] = useState(false);
   const [showAll, setShowAll] = useState<boolean>(false);
-  // Fetch provinces and all tours once on mount
+
   useEffect(() => {
     const fetchProvincesAndTours = async () => {
       try {
@@ -43,7 +44,7 @@ const SearchTour = () => {
         }));
 
         setAllTours(fetchedTours);
-        setTours(fetchedTours); // Load all tours initially
+        setTours(fetchedTours);
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to fetch data');
@@ -55,7 +56,6 @@ const SearchTour = () => {
     fetchProvincesAndTours();
   }, []);
 
-  // Local filtering function
   const searchTours = (provinceId: string, keyword: string) => {
     try {
       setLoading(true);
@@ -87,12 +87,10 @@ const SearchTour = () => {
     }
   };
 
-  // Watch for changes in searchQuery or selectedProvinceId to filter immediately
   useEffect(() => {
     searchTours(selectedProvinceId, searchQuery);
   }, [selectedProvinceId, searchQuery, isSearchResult]);
 
-  // Handle search submission
   const handleSearch = () => {
     if (!searchQuery.trim()) {
       setError('Vui lòng nhập từ khóa tìm kiếm');
@@ -102,7 +100,6 @@ const SearchTour = () => {
     searchTours(selectedProvinceId, searchQuery);
   };
 
-  // Handle province click
   const handleProvinceClick = (provinceName: string) => {
     const normalize = (str: string) =>
       str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -112,14 +109,13 @@ const SearchTour = () => {
     );
     if (matchedProvince) {
       setSelectedProvinceId(matchedProvince.id);
-      setSearchQuery(''); // Clear keyword to prioritize province
+      setSearchQuery('');
     } else {
       setError('Không tìm thấy tỉnh');
       setTours([]);
     }
   };
 
-  // Handle back button
   const handleBack = () => {
     setIsSearchResult(false);
     setSearchQuery('');
@@ -136,7 +132,6 @@ const SearchTour = () => {
     );
   };
 
-  // Render province item
   const renderProvinceItem = ({ item }: { item: ProvinceType }) => (
     <View style={styles.itemContainer}>
       <Image
@@ -152,7 +147,6 @@ const SearchTour = () => {
     </View>
   );
 
-  // Render tour item
   const renderTourItem = ({ item }: { item: TourItem }) => (
     <TouchableOpacity style={styles.ContainerItem}>
       <View style={styles.imageContainer}>
@@ -163,7 +157,7 @@ const SearchTour = () => {
           onError={() => {
             setTours(
               tours.map((tour) =>
-                tour.id === item.id ? { ...tour, featuredImageUrl: "" } : tour
+                tour.id === item.id ? { ...tour, featuredImageUrl: '' } : tour
               )
             );
           }}
@@ -195,7 +189,6 @@ const SearchTour = () => {
     </TouchableOpacity>
   );
 
-  // Handle tab press
   const handleTabPress = (tabName: string) => {
     setActiveTab(tabName);
   };
@@ -204,7 +197,6 @@ const SearchTour = () => {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        {/* Header Tabs */}
         {!isSearchResult && (
           <View style={styles.header}>
             <TouchableOpacity onPress={() => handleTabPress('Tour')}>
@@ -227,7 +219,6 @@ const SearchTour = () => {
         )}
 
         <View style={isSearchResult ? styles.searchResultContainer : styles.containerBorder}>
-          {/* Search Bar with Back Button */}
           <View style={styles.searchWrapper}>
             {isSearchResult && (
               <TouchableOpacity onPress={handleBack} style={styles.backButton}>
@@ -248,9 +239,13 @@ const SearchTour = () => {
                 <AntDesign name="search1" size={18} color="white" />
               </TouchableOpacity>
             </View>
+            {isSearchResult && (
+              <TouchableOpacity style={styles.filterButtonIcon}>
+                <SlidersHorizontal  size={20} color="#888" />
+              </TouchableOpacity>
+            )}
           </View>
 
-          {/* Initial Interface */}
           {!isSearchResult && (
             <>
               <Text style={styles.searchname}>Bạn sẽ đi đâu ?</Text>
@@ -293,7 +288,6 @@ const SearchTour = () => {
             </>
           )}
 
-          {/* Search Results Interface */}
           {isSearchResult && (
             <>
               {loading ? (
@@ -301,23 +295,28 @@ const SearchTour = () => {
               ) : error ? (
                 <Text style={styles.errorText}>{error}</Text>
               ) : tours.length > 0 ? (
-                <FlatList
-                        data={showAll ? tours : tours.slice(0, 4)}
-                        renderItem={renderTourItem}
-                        keyExtractor={(item) => item.id}
-                        numColumns={2}
-                        contentContainerStyle={styles.listContainer}
-                        ListFooterComponent={
-                          !showAll && tours.length > 6 ? (
-                            <TouchableOpacity
-                              style={styles.loadMoreButton}
-                              onPress={() => setShowAll(true)}
-                            >
-                              <Text style={styles.loadMoreText}>Xem thêm</Text>
-                            </TouchableOpacity>
-                          ) : null
-                        }
-                      />
+                <>
+                  <Text style={styles.resultSummary}>
+                    Có {tours.length} kết quả tour {searchQuery}
+                  </Text>
+                  <FlatList
+                    data={showAll ? tours : tours.slice(0, 4)}
+                    renderItem={renderTourItem}
+                    keyExtractor={(item) => item.id}
+                    numColumns={2}
+                    contentContainerStyle={styles.listContainer}
+                    ListFooterComponent={
+                      !showAll && tours.length > 6 ? (
+                        <TouchableOpacity
+                          style={styles.loadMoreButton}
+                          onPress={() => setShowAll(true)}
+                        >
+                          <Text style={styles.loadMoreText}>Xem thêm</Text>
+                        </TouchableOpacity>
+                      ) : null
+                    }
+                  />
+                </>
               ) : (
                 <Text style={styles.infoText}>Không tìm thấy tour phù hợp.</Text>
               )}
@@ -325,7 +324,6 @@ const SearchTour = () => {
           )}
         </View>
 
-        {/* Search Button */}
         {!isSearchResult && (
           <TouchableOpacity style={styles.submitButton} onPress={handleSearch}>
             <Text style={styles.submitButtonText}>TÌM KIẾM</Text>
@@ -336,9 +334,7 @@ const SearchTour = () => {
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: 'white',
@@ -353,7 +349,6 @@ const styles = StyleSheet.create({
     height: 550,
   },
   searchResultContainer: {
-    padding: 15,
     flex: 1,
     marginTop: 25,
   },
@@ -412,6 +407,10 @@ const styles = StyleSheet.create({
     borderRadius: 255,
     padding: 9,
   },
+  filterButtonIcon: {
+    marginLeft: 10,
+    padding: 9,
+  },
   sectionname: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
@@ -438,9 +437,6 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
   },
-  tourList: {
-    flex: 1,
-  },
   itemContainer: {
     flexDirection: 'row',
     backgroundColor: '#fff',
@@ -465,33 +461,6 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   itemDescription: {
-    fontSize: 10,
-    color: '#666',
-    fontFamily: 'Inter-Medium',
-  },
-  tourItemContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
-    elevation: 1,
-  },
-  tourImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-  tourTextContainer: {
-    flex: 1,
-  },
-  tourName: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#000',
-  },
-  tourPrice: {
     fontSize: 10,
     color: '#666',
     fontFamily: 'Inter-Medium',
@@ -530,7 +499,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   ContainerItem: {
-    width: (Dimensions.get("window").width - 40) / 2, // Calculate widthItem dynamically
+    width: (Dimensions.get('window').width - 40) / 2,
     margin: 5,
     marginBottom: 15,
   },
@@ -581,16 +550,20 @@ const styles = StyleSheet.create({
   },
   loadMoreButton: {
     paddingVertical: 10,
-    paddingHorizontal: 20,
     borderRadius: 8,
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   loadMoreText: {
-    color: "#FF9500",
+    color: '#FF9500',
     fontSize: 14,
-    fontFamily: "Inter-Medium",
+    fontFamily: 'Inter-Medium',
   },
-
+  resultSummary: {
+    fontSize: 12,
+    color: '#000',
+    marginVertical: 10,
+    fontFamily: 'Inter-Medium',
+  },
 });
 
 export default SearchTour;

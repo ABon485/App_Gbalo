@@ -5,12 +5,11 @@ export default StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 999, // full rounded
     alignItems: "center",
-    paddingTop: 10,
-    paddingBottom:10,
-    height:43,
+    height: 48,
+    justifyContent: "center",
   },
   text: {
     fontSize: 16,
-    fontFamily:"Inter-Black"
+    fontFamily: "Inter-Black",
   },
 });
