@@ -62,6 +62,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     borderRadius: 8,
   },
+  disabledButton: {
+    backgroundColor: "#cccccc", 
+    color: "#666666", 
+  },
+
+  activeButton: {
+    backgroundColor: "#f97316", 
+    color: "white", 
+  },
   resendButton: {
     height: 43,
     borderWidth: 1,
