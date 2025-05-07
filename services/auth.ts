@@ -1,13 +1,24 @@
 import api from "@/config/api";
-import { LoginEmailType, LoginByPhone, LoginType,RegisterType, Registercode } from "@/types/user";
+import { LoginEmailType, LoginByPhone, LoginType,RegisterByEmail, RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail, RegistercodeByPhone} from "@/types/user";
 
 const authApi = {
   login: (formData: LoginType) => api.post("/login", formData),
   loginEmail: (formData: LoginEmailType) => api.post("/LoginByEmail", formData),
   loginPhone: (formData: LoginByPhone) => api.post("/LoginByPhone", formData),
-  register: (formData: RegisterType) => api.post("Accounts/Resgiter", formData),
-  registercode: (formData: Registercode) => api.post("/Accounts/SendResgiterCode", formData),
-  resgiterConfirmByCode: (formData: RegisterType) => api.post("/Accounts/ResgiterByCode", formData),
+
+  // register: (formData: RegisterTypeEmail) => api.post("Accounts/Resgiter", formData),
+
+  registerEmail: (formData: RegisterByEmail) => api.post("/Accounts/SendResgiterCode", formData),
+
+  registerPhone: (formData: RegisterByPhone) => api.post("/Accounts/SendResgiterCode", formData),
+
+  registerVeryfyByEmail: (formData: RegistercodeByEmail) => api.post("/Accounts/VerifyResgiterCode", formData),
+
+  registerVeryfyByPhone: (formData: RegistercodeByPhone) => api.post("/Accounts/VerifyResgiterCode", formData),
+
+  registerConfirmByEmail: (formData: RegisterTypeEmail) => api.post("/Accounts/ResgiterByCode", formData),
+
+  registerConfirmByPhone: (formData: RegisterTypeEmail) => api.post("/Accounts/ResgiterByCode", formData),
 
 };
 
