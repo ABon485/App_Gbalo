@@ -16,7 +16,7 @@ export type LoginByPhone = {
 export type RegisterTypeEmail = {
   token: string;
   code?: string;
-  userName: string;
+  fullName: string;
   email: string;
   password: string;
   confirmPassword: string;  
@@ -32,7 +32,7 @@ export type RegistercodeByEmail = {
 export type RegisterTypePhone = {
   token: string;
   code?: string;
-  userName: string;
+  fullName: string;
   phone: string;
   password: string;
   confirmPassword: string;  
@@ -44,4 +44,24 @@ export type RegisterByPhone = {
 export type RegistercodeByPhone = {
   token: string;
   code: string;
+};
+
+export type ProfileResponse = {
+  data?: {
+    id: string;
+    userName: string;
+    fullName: string;
+    email: string;
+    avatar: string;
+    createDate: string;
+    roles: [];
+    permissions: [];
+    phone: string;
+    language: string;
+    address: string;
+    nationality: string;
+    dateOfBirth: Date;
+  };
+  status?: string;
+  message?: string;
 };

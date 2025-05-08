@@ -21,7 +21,7 @@ import { useToast } from "@/context/ToastContext";
 export default function ConfirmEmail() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [userName, setUserName] = useState("");
+  const [fullName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -41,7 +41,7 @@ export default function ConfirmEmail() {
   };
 
   const handleRegister = async () => {
-    if (!userName || !password || !confirmPassword) {
+    if (!fullName || !password || !confirmPassword) {
       showToast({
         type: "error",
         message: "Vui lòng nhập đầy đủ thông tin",
@@ -72,31 +72,42 @@ export default function ConfirmEmail() {
 
       const formData = {
         token,
-        userName,
+        fullName,
         email,
         password,
         confirmPassword,
-        code: otpCodeFromParams, 
+        code: otpCodeFromParams,
       };
-      console.log("first", formData); 
+      console.log("Data trả về là: ", formData);
       const response: ApiResponse = await api.post(
         "/Accounts/ResgiterByCode",
         formData
       );
-      console.log("Response:", response); // Log the response for debugging
+      console.log("Response:", response); 
 
       if (response.success) {
+        const authToken = response.data?.data?.token;
+
+        if (!authToken) {
+          showToast({
+            type: "error",
+            message: "Không lấy được token từ server.",
+          });
+          setLoading(false);
+          return;
+        }
+
+        await AsyncStorage.setItem("token", authToken);
         await AsyncStorage.setItem(
           "data",
-          JSON.stringify({
-            token: response.data.token,
-            user: response.data.user,
-          })
+          JSON.stringify({ token: authToken, email: email, fullName: fullName })
         );
+
         showToast({
           type: "success",
           message: "Đăng ký thành công!",
         });
+
         router.replace("/(tabs)/assistant");
       } else {
         showToast({
@@ -138,7 +149,7 @@ export default function ConfirmEmail() {
           <TextInput
             style={styles.input}
             placeholder="Nhập tên của bạn"
-            value={userName}
+            value={fullName}
             onChangeText={(text) => setUserName(text)}
           />
 
