@@ -108,7 +108,7 @@ export default function ProfileScreen() {
   };
 
   const handleUpdateProfile = () => {
-    router.push("/(tabs)/homepage");
+    router.push("/(screens)/profile/profile");
   };
 
   const menuItems = [
