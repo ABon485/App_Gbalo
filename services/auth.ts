@@ -1,10 +1,13 @@
+
 import api from "@/config/api";
-import { LoginEmailType, LoginByPhone, LoginType,RegisterByEmail, RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail, RegistercodeByPhone, ProfileResponse} from "@/types/user";
+import { LoginEmailType, LoginByPhone,VerifyCodeLogin,SendCodeLogin, LoginType,RegisterByEmail, RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail, RegistercodeByPhone, ProfileResponse} from "@/types/user";
 
 const authApi = {
   login: (formData: LoginType) => api.post("/login", formData),
   loginEmail: (formData: LoginEmailType) => api.post("/LoginByEmail", formData),
-  loginPhone: (formData: LoginByPhone) => api.post("/LoginByPhone", formData),
+    loginPhone: (formData: LoginByPhone) => api.post("/LoginByPhone", formData),
+    loginSendCode: (formData: SendCodeLogin) => api.post("/senLoginCode", formData),
+    loginByCode: (formData: VerifyCodeLogin) => api.post("/loginByCode", formData),
 
   // register: (formData: RegisterTypeEmail) => api.post("Accounts/Resgiter", formData),
 

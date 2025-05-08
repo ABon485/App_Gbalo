@@ -1,16 +1,48 @@
-"use client"
-
-import { useState, useRef } from "react"
-import { View, Text, TouchableOpacity, Image, SafeAreaView, ImageBackground, StatusBar, TextInput, StyleSheet } from "react-native"
+import { useState, useRef, useEffect } from "react"
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  Image, 
+  SafeAreaView, 
+  ImageBackground, 
+  StatusBar, 
+  TextInput, 
+  StyleSheet,
+  ActivityIndicator 
+} from "react-native"
 import { Stack, useLocalSearchParams, router } from "expo-router"
-import { useToast } from "@/context/ToastContext" // 👈 Import useToast
+import { useToast } from "@/context/ToastContext"
+import AsyncStorage from "@react-native-async-storage/async-storage" 
+import authApi from "@/services/auth"
 import type { TextInput as RNTextInput } from "react-native"
 
 const VerifyPhoneScreen = () => {
   const { phoneNumber } = useLocalSearchParams()
   const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""])
+  const [isLoading, setIsLoading] = useState(false)
+  const [resendDisabled, setResendDisabled] = useState(false)
+  const [countdown, setCountdown] = useState(60)
   const inputRefs = useRef<Array<RNTextInput | null>>([])
-  const { showToast } = useToast() // 👈 Use toast hook
+  const { showToast } = useToast()
+
+  // Timer for resend button
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    
+    if (resendDisabled && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setResendDisabled(false);
+      setCountdown(60);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [resendDisabled, countdown]);
 
   // Format phone number to display with asterisks
   const formatPhoneNumber = (phone: string | string[] | undefined) => {
@@ -27,12 +59,24 @@ const VerifyPhoneScreen = () => {
 
   // Handle code input change
   const handleCodeChange = (text: string, index: number) => {
-    const newCode = [...verificationCode]
-    newCode[index] = text
-    setVerificationCode(newCode)
+    if (/^\d?$/.test(text)) {
+      const newCode = [...verificationCode]
+      newCode[index] = text
+      setVerificationCode(newCode)
 
-    if (text && index < 5 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1]?.focus()
+      // Auto-focus next input
+      if (text && index < 5 && inputRefs.current[index + 1]) {
+        inputRefs.current[index + 1]?.focus()
+      }
+      
+      // Auto-verify when all digits entered
+      if (text && index === 5) {
+        // Check if we have all 6 digits
+        const codeComplete = newCode.every(digit => digit !== "")
+        if (codeComplete) {
+          handleContinue(newCode.join(""))
+        }
+      }
     }
   }
 
@@ -42,26 +86,121 @@ const VerifyPhoneScreen = () => {
     }
   }
 
-  // Handle continue button press with OTP verification
-  const handleContinue = () => {
-    const code = verificationCode.join("")
-    const validOTP = "123456" // Hardcoded backend OTP
-
-    if (code === validOTP) {
-      // OTP is correct, navigate to assistant screen
-      showToast({
-        type: "success",
-        heading: "Thành công",
-        message: "Xác thực thành công!",
-      })
-      router.push("/(tabs)/assistant")
-    } else {
-      // OTP is incorrect, show error toast
+  // Handle resend OTP
+  const handleResend = async () => {
+    if (resendDisabled) return
+    
+    try {
+      setIsLoading(true)
+      const token = await AsyncStorage.getItem("loginToken")
+      
+      if (!token) {
+        showToast({
+          type: "error",
+          message: "Không tìm thấy token xác thực. Vui lòng thử lại."
+        })
+        return
+      }
+      
+      // Gọi API gửi lại mã OTP
+      const sendCodeData: SendCodeLogin = {
+        sendType: "Phone",
+        phone: phoneNumber as string,
+        email: ""
+      }
+      
+      const response = await authApi.loginSendCode(sendCodeData)
+      
+      if (response.data?.success) {
+        setResendDisabled(true)
+        showToast({
+          type: "success",
+          message: "Đã gửi lại mã xác nhận!"
+        })
+        
+        // Reset mã OTP
+        setVerificationCode(["", "", "", "", "", ""])
+        inputRefs.current[0]?.focus()
+      } else {
+        showToast({
+          type: "error",
+          message: response.data?.message || "Không thể gửi lại mã"
+        })
+      }
+    } catch (error) {
+      console.error("Lỗi khi gửi lại mã:", error)
       showToast({
         type: "error",
-        heading: "Lỗi",
-        message: "Mã xác nhận không đúng. Vui lòng thử lại.",
+        message: "Đã xảy ra lỗi khi gửi lại mã xác nhận"
       })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Handle continue button press with OTP verification
+  const handleContinue = async (code?: string) => {
+    const verifyCode = code || verificationCode.join("")
+    
+    if (verifyCode.length < 6) {
+      showToast({
+        type: "error",
+        message: "Vui lòng nhập đầy đủ mã xác nhận"
+      })
+      return
+    }
+    
+    try {
+      setIsLoading(true)
+      
+      const token = await AsyncStorage.getItem("loginToken")
+      
+      if (!token) {
+        showToast({
+          type: "error",
+          message: "Không tìm thấy token xác thực. Vui lòng thử lại."
+        })
+        return
+      }
+      
+      // Gọi API xác thực OTP
+      const verifyData = {
+        publicKey: token,
+        code: "123456" // Sử dụng mã mặc định
+      }
+      
+      const response = await authApi.loginByCode(verifyData)
+      
+      if (response.data?.success) {
+        // Lưu thông tin đăng nhập
+        if (response.data?.data?.token) {
+          await AsyncStorage.setItem("data", JSON.stringify({
+            token: response.data.data.token,
+            user: response.data.data.user
+          }))
+        }
+        
+        showToast({
+          type: "success",
+          message: "Đăng nhập thành công!"
+        })
+        
+        // Chuyển đến màn hình chính
+        router.push("/(tabs)/assistant")
+      } else {
+        showToast({
+          type: "error",
+          message: response.data?.message || "Mã xác nhận không đúng"
+        })
+      }
+    } catch (error) {
+      console.error("Lỗi xác thực:", error)
+      showToast({
+        type: "error",
+        message: "Đã xảy ra lỗi khi xác thực. Vui lòng thử lại."
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -101,17 +240,45 @@ const VerifyPhoneScreen = () => {
                     keyboardType="number-pad"
                     maxLength={1}
                     selectTextOnFocus
+                    editable={!isLoading}
                   />
                 ))}
               </View>
 
+              <Text style={styles.hintText}>
+                Mã xác nhận mặc định là: <Text style={styles.hintHighlight}>123456</Text>
+              </Text>
+
               <TouchableOpacity
-                style={[styles.continueButton, isCodeComplete ? styles.activeButton : styles.inactiveButton]}
-                onPress={handleContinue}
-                disabled={!isCodeComplete}
+                style={[
+                  styles.continueButton, 
+                  isCodeComplete ? styles.activeButton : styles.inactiveButton,
+                  isLoading && styles.loadingButton
+                ]}
+                onPress={() => handleContinue()}
+                disabled={!isCodeComplete || isLoading}
               >
-                <Text style={[styles.continueButtonText, isCodeComplete ? styles.activeButtonText : styles.inactiveButtonText]}>
-                  Tiếp tục
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text 
+                    style={[
+                      styles.continueButtonText, 
+                      isCodeComplete ? styles.activeButtonText : styles.inactiveButtonText
+                    ]}
+                  >
+                    Tiếp tục
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.resendButton} 
+                onPress={handleResend}
+                disabled={resendDisabled || isLoading}
+              >
+                <Text style={[styles.resendText, resendDisabled && styles.disabledText]}>
+                  {resendDisabled ? `Gửi lại sau (${countdown}s)` : "Gửi lại mã"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -181,18 +348,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 15,
     paddingHorizontal: 30,
   },
   codeInput: {
     width: 40,
-    height: 40,
+    height: 45,
     borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 8,
     textAlign: 'center',
     fontSize: 18,
     color: '#333',
+  },
+  hintText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  hintHighlight: {
+    fontWeight: 'bold',
+    color: '#FF5722',
   },
   continueButton: {
     width: '100%',
@@ -208,6 +385,9 @@ const styles = StyleSheet.create({
   inactiveButton: {
     backgroundColor: '#ddd',
   },
+  loadingButton: {
+    opacity: 0.7,
+  },
   continueButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -218,6 +398,18 @@ const styles = StyleSheet.create({
   inactiveButtonText: {
     color: '#666',
   },
+  resendButton: {
+    marginTop: 20,
+    padding: 10,
+  },
+  resendText: {
+    color: '#FF5722',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  disabledText: {
+    color: '#999',
+  }
 })
 
 export default VerifyPhoneScreen

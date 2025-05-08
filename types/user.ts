@@ -8,11 +8,7 @@ export type LoginEmailType = {
   password: string;
   rememberMe: boolean;
 };
-export type LoginByPhone = {
-  phone: string;
-  password: string;
-  rememberMe: boolean;
-};
+
 export type RegisterTypeEmail = {
   token: string;
   code?: string;
@@ -65,3 +61,21 @@ export type ProfileResponse = {
   status?: string;
   message?: string;
 };
+
+export type LoginByPhone = {
+  phone: string;
+  password: string;
+  rememberMe: boolean;
+};
+
+export type SendCodeLogin = {
+  sendType: "Email" | "Phone";
+  phone: string;
+  email: string;
+}
+// Xác thực mã (dùng publicKey và code)
+export type VerifyCodeLogin = {
+  publicKey: string;
+  code: string;
+}
+
