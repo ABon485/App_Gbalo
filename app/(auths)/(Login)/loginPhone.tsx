@@ -11,14 +11,13 @@ import {
   StatusBar,
   FlatList,
   Modal,
-  Alert,
 } from "react-native"
 import styles from "@/styles/auth/loginPhone"
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import AntDesign from "@expo/vector-icons/AntDesign"
 import { Stack, router } from "expo-router"
 import authApi from "@/services/auth"
-import { ApiResponse } from "@/types/api"
+import { SendCodeLogin } from "@/types/user"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useToast } from "@/context/ToastContext"
 
@@ -27,32 +26,32 @@ const countryPhoneCodes = [
   { name: "Hoa Kỳ", code: "+1" },
   { name: "Anh", code: "+44" },
   { name: "Pháp", code: "+33" },
-    { name: "Đức", code: "+49" },
-    { name: "Nhật Bản", code: "+81" },
-    { name: "Hàn Quốc", code: "+82" },
-    { name: "Trung Quốc", code: "+86" },
-    { name: "Thái Lan", code: "+66" },
-    { name: "Singapore", code: "+65" },
-    { name: "Úc", code: "+61" },
-    { name: "Canada", code: "+1" },
-    { name: "Ấn Độ", code: "+91" },
-    { name: "Malaysia", code: "+60" },
-    { name: "Indonesia", code: "+62" },
-    { name: "Philippines", code: "+63" },
-    { name: "Nga", code: "+7" },
-    { name: "Brazil", code: "+55" },
-    { name: "Mexico", code: "+52" },
-    { name: "Tây Ban Nha", code: "+34" },
-    { name: "Ý", code: "+39" },
-    { name: "Hà Lan", code: "+31" },
-    { name: "Thụy Sĩ", code: "+41" },
-    { name: "Thụy Điển", code: "+46" },
-    { name: "Na Uy", code: "+47" },
-    { name: "Đan Mạch", code: "+45" },
-    { name: "New Zealand", code: "+64" },
-    { name: "Nam Phi", code: "+27" },
-    { name: "Argentina", code: "+54" },
-    { name: "Chile", code: "+56" },
+  { name: "Đức", code: "+49" },
+  { name: "Nhật Bản", code: "+81" },
+  { name: "Hàn Quốc", code: "+82" },
+  { name: "Trung Quốc", code: "+86" },
+  { name: "Thái Lan", code: "+66" },
+  { name: "Singapore", code: "+65" },
+  { name: "Úc", code: "+61" },
+  { name: "Canada", code: "+1" },
+  { name: "Ấn Độ", code: "+91" },
+  { name: "Malaysia", code: "+60" },
+  { name: "Indonesia", code: "+62" },
+  { name: "Philippines", code: "+63" },
+  { name: "Nga", code: "+7" },
+  { name: "Brazil", code: "+55" },
+  { name: "Mexico", code: "+52" },
+  { name: "Tây Ban Nha", code: "+34" },
+  { name: "Ý", code: "+39" },
+  { name: "Hà Lan", code: "+31" },
+  { name: "Thụy Sĩ", code: "+41" },
+  { name: "Thụy Điển", code: "+46" },
+  { name: "Na Uy", code: "+47" },
+  { name: "Đan Mạch", code: "+45" },
+  { name: "New Zealand", code: "+64" },
+  { name: "Nam Phi", code: "+27" },
+  { name: "Argentina", code: "+54" },
+  { name: "Chile", code: "+56" },
 ]
 
 const LoginScreen = () => {
@@ -63,44 +62,56 @@ const LoginScreen = () => {
   const { showToast } = useToast()
 
   const handleContinue = async () => {
-    const phoneRegex = /^\+?[0-9]{7,15}$/
-    const fullPhoneNumber = `${selectedCountry.code}${phoneNumber}`
+    // Chuẩn hóa số điện thoại: chỉ giữ số, loại bỏ 0 đầu nếu có
+    const normalizedPhone = phoneNumber.replace(/\D/g, "").replace(/^0+/, "")
+    const fullPhoneNumber = `${selectedCountry.code}${normalizedPhone}`
 
-    if (!phoneNumber) {
-      showToast({ type: "error", message: "Vui lòng nhập số điện thoại." })
+    // Kiểm tra trường số điện thoại bắt buộc
+    if (!phoneNumber.trim()) {
+      showToast({ type: "error", message: "Please enter your phone number." })
       return
     }
 
-    if (!phoneRegex.test(fullPhoneNumber)) {
-      showToast({ type: "error", message: "Số điện thoại không hợp lệ." })
+    // Kiểm tra số điện thoại hợp lệ
+    const phoneRegex = /^\+?[0-9]{7,15}$/
+
+    // Kiểm tra định dạng số điện thoại không hợp lệ (ví dụ: chứa chữ, quá ngắn)
+    if (!phoneRegex.test(fullPhoneNumber) || /\D/.test(normalizedPhone)) {
+      showToast({ type: "error", message: "Invalid phone number." })
+      return
+    }
+
+    // Kiểm tra độ dài số điện thoại cho Việt Nam (+84)
+    if (selectedCountry.code === "+84" && normalizedPhone.length !== 9) {
+      showToast({
+        type: "error",
+        message: "Số điện thoại Việt Nam phải có 9 chữ số (không tính mã quốc gia).",
+      })
       return
     }
 
     setIsLoading(true)
     try {
-      // Kiểm tra xem số điện thoại đã được đăng ký chưa
-      // (Giả định: gọi API để kiểm tra số điện thoại)
-      
-      // Tạo dữ liệu đăng nhập
-      const loginData = {
-        phone: fullPhoneNumber,
-        password: "", 
-        rememberMe: true,
+      const sendCodePayload: SendCodeLogin = {
+        sendType: "phone",
+        phone: phoneNumber,
+        email: "",
       }
 
-      // Gọi API đăng nhập
-      const response = await authApi.loginPhone(loginData)
-      
-      if (response.data?.success) {
-        // Nếu đăng nhập thành công, lưu publicKey (token) và chuyển đến trang xác thực
-        await AsyncStorage.setItem("loginToken", response.data?.data?.publicKey || "")
-        
-        showToast({ 
-          type: "success", 
-          message: "Mã xác nhận đã được gửi đến số điện thoại của bạn" 
+      console.log("Sending phone number to API:", fullPhoneNumber)
+      const response = await authApi.loginSendCode(sendCodePayload)
+      console.log("API response:", response)
+
+      // Check if the response indicates success
+      if (response.data?.success || response.data?.status === "Success") {
+        const publicKey = response.data.data?.publicKey || ""
+        await AsyncStorage.setItem("loginToken", publicKey)
+
+        showToast({
+          type: "success",
+          message: "Mã xác nhận đã được gửi. Trong môi trường phát triển, sử dụng mã OTP: 123456",
         })
-        
-        // Chuyển đến trang xác thực
+
         router.push({
           pathname: "/(auths)/(Login)/verify-phone",
           params: {
@@ -108,21 +119,42 @@ const LoginScreen = () => {
           },
         })
       } else {
-        // Nếu số điện thoại chưa đăng ký, hiển thị thông báo
-        showToast({ 
-          type: "error", 
-          message: response.data?.message || "Số điện thoại chưa được đăng ký." 
+        // Handle error response
+        const errorMsg =
+          response.data?.errors?.account?.[0] ||
+          response.data?.message ||
+          "Không thể gửi mã xác minh. Vui lòng thử lại."
+
+        showToast({
+          type: "error",
+          message: errorMsg,
         })
-        
-        // Có thể chuyển đến trang đăng ký
-        // router.push("/(auths)/(register)/registerPhone/RegisterPhone")
+
+        // Redirect to registration if account doesn't exist
+        if (errorMsg.includes("Tài khoản không tồn tại")) {
+          setTimeout(() => {
+            router.push("/(auths)/(register)/registerPhone/RegisterPhone")
+          }, 2000)
+        }
       }
-    } catch (error) {
-      console.error("Lỗi đăng nhập:", error)
-      showToast({ 
-        type: "error", 
-        message: "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại." 
+    } catch (error: any) {
+      console.error("Lỗi gửi mã xác minh:", error.response?.data || error)
+      const errorMessage =
+        error.response?.data?.errors?.account?.[0] ||
+        error.response?.data?.message ||
+        "Đã xảy ra lỗi khi gửi mã xác minh. Vui lòng thử lại."
+
+      showToast({
+        type: "error",
+        message: errorMessage,
       })
+
+      // Redirect to registration if account doesn't exist
+      if (errorMessage.includes("Tài khoản không tồn tại")) {
+        setTimeout(() => {
+          router.push("/(auths)/(register)/registerPhone/RegisterPhone")
+        }, 2000)
+      }
     } finally {
       setIsLoading(false)
     }

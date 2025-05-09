@@ -6,8 +6,8 @@ const authApi = {
   login: (formData: LoginType) => api.post("/login", formData),
   loginEmail: (formData: LoginEmailType) => api.post("/LoginByEmail", formData),
     loginPhone: (formData: LoginByPhone) => api.post("/LoginByPhone", formData),
-    loginSendCode: (formData: SendCodeLogin) => api.post("/senLoginCode", formData),
-    loginByCode: (formData: VerifyCodeLogin) => api.post("/loginByCode", formData),
+    loginSendCode: (formData: SendCodeLogin) => api.post("/SendLoginCode", formData),
+    loginByCode: (formData: VerifyCodeLogin) => api.post("/LoginByCode", formData),
 
   // register: (formData: RegisterTypeEmail) => api.post("Accounts/Resgiter", formData),
 
