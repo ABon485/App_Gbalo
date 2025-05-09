@@ -12,18 +12,22 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
 import api from "@/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import { useToast } from "@/context/ToastContext";
 import { ProfileResponse } from "@/types/user";
 import UserNameModal from "@/components/profile/userName";
 import EmailModal from "@/components/profile/Email";
 import PhoneModal from "@/components/profile/phoneNumber";
 import AddressModal from "@/components/profile/address";
 import LinkedAccountModal from "@/components/profile/linkedAccount";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import * as mime from "mime";
 
 const ProfileUpdateScreen = () => {
   const [profile, setProfile] = useState<ProfileResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
-  // Modal states
   const [showUserNameModal, setShowUserNameModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPhoneModal, setShowPhoneModal] = useState(false);
@@ -48,14 +52,93 @@ const ProfileUpdateScreen = () => {
       setProfile(response.data.data);
     } catch (error) {
       console.error("Lỗi khi lấy thông tin:", error);
+      showToast({ message: "Không thể tải dữ liệu.", type: "error" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      showToast({ message: "Cần cấp quyền truy cập thư viện ảnh.", type: "error" });
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+     
+
+    if (!result.canceled && result.assets[0].uri) {
+      await uploadImage(result.assets[0].uri);
+    }
+  };
+
+  const uploadImage = async (uri: string) => {
+    try {
+      const data = await AsyncStorage.getItem("data");
+      if (!data) throw new Error("Không tìm thấy dữ liệu người dùng");
+
+      const parsedData = JSON.parse(data);
+      const token = parsedData?.token;
+      if (!token) throw new Error("Token không tồn tại");
+
+      const formData = new FormData();
+      formData.append("avatar", {
+        uri,
+        name: "avatar.jpg",
+        type: "image/jpeg/png/jpg",
+      } as any);
+
+      const response = await api.post("/Accounts/ChangeProfile", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const newAvatarUrl = response.data.data.avatar;
+      setProfile((prev) => prev ? { ...prev, avatar: newAvatarUrl } : null);
+      showToast({ message: "Cập nhật ảnh đại diện thành công", type: "success" });
+    } catch (error) {
+      if ((error as any).response?.status === 401) {
+        showToast({ message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", type: "error" });
+      } else if ((error as any).response?.status === 400) {
+        showToast({
+          message: (error as any).response?.data?.message || "Ảnh không hợp lệ.",
+          type: "error",
+        });
+      } else {
+        showToast({ message: "Cập nhật ảnh đại diện thất bại. Vui lòng thử lại.", type: "error" });
+      }
     }
   };
 
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  const handleEmailUpdated = (newEmail: string) => {
+    if (profile) {
+      setProfile({ ...profile, email: newEmail });
+    }
+  };
+
+  const handlePhoneUpdated = (newPhone: string) => {
+    if (profile) {
+      setProfile({ ...profile, phone: newPhone });
+    }
+  };
+
+  const handleNameUpdated = (newName: string) => {
+    if (profile) {
+      setProfile({ ...profile, fullName: newName });
+    }
+  };
 
   if (loading) {
     return (
@@ -75,7 +158,6 @@ const ProfileUpdateScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Icon name="arrow-back" size={24} />
@@ -84,22 +166,22 @@ const ProfileUpdateScreen = () => {
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Avatar */}
       <View style={styles.avatarContainer}>
         <Image
-          source={{ uri: profile.avatar || "https://via.placeholder.com/100" }}
+          source={{ uri: profile.avatar || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThbl47VAQK_3kDo3-L6d84Y2qX-f0TTUlgIQ&s" }}
           style={styles.avatar}
         />
-        <TouchableOpacity style={styles.avatarOverlay}>
-          <Icon name="camera" size={18} color="#fff" />
+        <TouchableOpacity style={styles.avatarOverlay} onPress={pickImage}>
+        <MaterialCommunityIcons name="image-edit-outline" size={24} color="black" />
         </TouchableOpacity>
       </View>
 
-      {/* Họ và tên */}
       <View style={styles.row}>
         <View style={styles.rowLeft}>
           <Text style={styles.label}>Họ và tên:</Text>
-          <Text style={styles.value}>{profile.fullName || "Chưa cung cấp"}</Text>
+          <Text style={styles.value}>
+            {profile.fullName || "Chưa cung cấp"}
+          </Text>
         </View>
         <TouchableOpacity onPress={() => setShowUserNameModal(true)}>
           <Text style={styles.editButton}>Chỉnh sửa</Text>
@@ -107,12 +189,12 @@ const ProfileUpdateScreen = () => {
         <UserNameModal
           visible={showUserNameModal}
           onClose={() => setShowUserNameModal(false)}
-          title="Họ và tên của bạn"
+          title="Họ và tên"
           content={profile.fullName || ""}
+          onUpdateName={handleNameUpdated}
         />
       </View>
 
-      {/* Email */}
       <View style={styles.row}>
         <View style={styles.rowLeft}>
           <Text style={styles.label}>Địa chỉ email:</Text>
@@ -126,10 +208,10 @@ const ProfileUpdateScreen = () => {
           onClose={() => setShowEmailModal(false)}
           title="Địa chỉ email"
           content={profile.email || ""}
+          onUpdateEmail={handleEmailUpdated}
         />
       </View>
 
-      {/* Phone */}
       <View style={styles.row}>
         <View style={styles.rowLeft}>
           <Text style={styles.label}>Số điện thoại:</Text>
@@ -143,17 +225,17 @@ const ProfileUpdateScreen = () => {
           onClose={() => setShowPhoneModal(false)}
           title="Số điện thoại"
           content={profile.phone || ""}
+          onUpdatePhone={handlePhoneUpdated}
         />
       </View>
 
-      {/* Địa chỉ */}
       <View style={styles.row}>
         <View style={styles.rowLeft}>
           <Text style={styles.label}>Địa chỉ:</Text>
           <Text style={styles.value}>{profile.address || "Chưa cung cấp"}</Text>
         </View>
         <TouchableOpacity onPress={() => setShowAddressModal(true)}>
-          <Text style={styles.editButton}>Chỉnh sửa</Text>
+          <Text style={styles.editButton}>Thêm</Text>
         </TouchableOpacity>
         <AddressModal
           visible={showAddressModal}
@@ -163,21 +245,22 @@ const ProfileUpdateScreen = () => {
         />
       </View>
 
-      {/* Liên kết tài khoản */}
       <View style={styles.row}>
         <View style={styles.rowLeft}>
-          <Text style={styles.label}>Liên kết tài khoản:</Text>
-          <Text style={styles.value}>{profile.linkedAccounts || "Chưa cung cấp"}</Text>
+          <Text style={styles.label}>Liên kết tài khoản (Google, Facebook, Apple ID)</Text>
+          {/* <Text style={styles.value}>
+            {profile.linkedAccounts || "Chưa cung cấp"}
+          </Text> */}
         </View>
         <TouchableOpacity onPress={() => setShowLinkedModal(true)}>
-          <Text style={styles.editButton}>Chỉnh sửa</Text>
+          <Text style={styles.editButton}>Thêm</Text>
         </TouchableOpacity>
-        <LinkedAccountModal
+        {/* <LinkedAccountModal
           visible={showLinkedModal}
           onClose={() => setShowLinkedModal(false)}
           title="Liên kết tài khoản"
           content={profile.linkedAccounts || ""}
-        />
+        /> */}
       </View>
     </ScrollView>
   );
@@ -214,7 +297,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: "30%",
-    backgroundColor: "#000",
+    backgroundColor: "#fff",
     padding: 6,
     borderRadius: 20,
   },

@@ -47,7 +47,31 @@ const AddressModal = ({ visible, onClose }: Props) => {
               style={styles.input}
               value={address}
               onChangeText={setAddress}
-              placeholder="Nhập địa chỉ"
+              placeholder="Quốc gia/Khu vực"
+            />
+            <TextInput
+              style={styles.input}
+              value={address}
+              onChangeText={setAddress}
+              placeholder="Địa chỉ đường phố"
+            />
+            <TextInput
+              style={styles.input}
+              value={address}
+              onChangeText={setAddress}
+              placeholder="Thành phố"
+            />
+            <TextInput
+              style={styles.input}
+              value={address}
+              onChangeText={setAddress}
+              placeholder="Tỉnh/Quận/Khu vực"
+            />
+            <TextInput
+              style={styles.input}
+              value={address}
+              onChangeText={setAddress}
+              placeholder="Căn hộ/Phòng"
             />
           </View>
 
@@ -68,22 +92,26 @@ export default AddressModal;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.3)",
   },
   container: {
-    width: "90%",
+    width: "100%",
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     padding: 20,
-    elevation: 5,
+    paddingBottom: 50,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ccc",
+    paddingBottom: 10,
   },
   title: {
     fontWeight: "bold",
@@ -108,6 +136,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     fontSize: 14,
+    marginBottom: 10,
   },
   saveButton: {
     marginTop: 20,

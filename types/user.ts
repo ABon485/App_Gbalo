@@ -28,6 +28,7 @@ export type RegisterByEmail = {
 export type RegistercodeByEmail = {
   token: string;
   code: string;
+  type: number;
 };
 export type RegisterTypePhone = {
   token: string;
@@ -64,4 +65,20 @@ export type ProfileResponse = {
   };
   status?: string;
   message?: string;
+};
+
+export type UpdateEmail = {
+  email: string;
+};
+
+export type UpdatePhone = {
+  phone: string;
+};
+export type UpdateProfile = {
+  fullName: string;
+  avatar: string;
+  address: string;
+  nationality: string;
+  dateOfBirth: Date;
+  language: string;
 };

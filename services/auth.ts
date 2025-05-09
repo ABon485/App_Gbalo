@@ -1,5 +1,10 @@
 import api from "@/config/api";
-import { LoginEmailType, LoginByPhone, LoginType,RegisterByEmail, RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail, RegistercodeByPhone, ProfileResponse} from "@/types/user";
+import {
+  LoginEmailType, LoginByPhone, LoginType, RegisterByEmail,
+  RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail,
+  RegistercodeByPhone, ProfileResponse, UpdateEmail, UpdatePhone,
+  UpdateProfile
+} from "@/types/user";
 
 const authApi = {
   login: (formData: LoginType) => api.post("/login", formData),
@@ -22,7 +27,11 @@ const authApi = {
 
   UserProfile: (formData: ProfileResponse) => api.get("/Accounts/Profile", formData),
 
+  updateEmail: (formData: UpdateEmail) => api.post("/Accounts/ChangeEmail", formData),
 
+  updatePhone: (formData: UpdatePhone) => api.post("/Accounts/ChangePhone", formData),
+
+  updatefullName: (formData: UpdateProfile) => api.post("/Accounts/ChangeProfile", formData),
 };
 
 export default authApi;
