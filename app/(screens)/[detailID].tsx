@@ -19,6 +19,7 @@ import tourApi from "@/services/tour";
 import { useFocusEffect } from "@react-navigation/native";
 import RenderHtml from "react-native-render-html";
 import { useWindowDimensions } from "react-native";
+import Order from "@/components/booking/order";
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
@@ -34,6 +35,7 @@ export default function Detail() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showExtraUserModal, setShowExtraUserModal] = useState(false);
   const tourId = Number(params?.detailID);
+  const [showOrderModal, setShowOrderModal] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -70,136 +72,151 @@ export default function Detail() {
   };
 
   const toggleFavorite = () => setIsFavorite(!isFavorite);
-  const handleBookTour = () => console.log("Đặt tour:", tour.id);
+
+  const handleBookTour = () => {
+    setShowOrderModal(true);
+  };
 
   return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" />
-        <FlatList
-          data={[tour]}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.container}>
-              {/* Header */}
-              <View style={styles.header}>
-                <TouchableOpacity
-                  style={styles.backButton}
-                  onPress={() => router.back()}
-                >
-                  <Ionicons name="arrow-back" size={18} color="#000000" />
-                </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" />
+      <FlatList
+        data={[tour]}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <Ionicons name="arrow-back" size={18} color="#000000" />
+              </TouchableOpacity>
 
-                <TouchableOpacity style={styles.iconCartButton}>
-                  <Ionicons name="cart-outline" size={24} color="#000000" />
-                </TouchableOpacity>
+              <TouchableOpacity style={styles.iconCartButton}>
+                <Ionicons name="cart-outline" size={24} color="#000000" />
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.favoriteButton}
-                  onPress={toggleFavorite}
-                >
-                  <Ionicons
-                    name={isFavorite ? "heart" : "heart-outline"}
-                    size={24}
-                    color={isFavorite ? "#ff5c5c" : "#000000"}
-                  />
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.favoriteButton}
+                onPress={toggleFavorite}
+              >
+                <Ionicons
+                  name={isFavorite ? "heart" : "heart-outline"}
+                  size={24}
+                  color={isFavorite ? "#ff5c5c" : "#000000"}
+                />
+              </TouchableOpacity>
 
-                <TouchableOpacity style={styles.iconShareButton}>
-                  <FontAwesome5 name="share-square" size={20} color="#000000" />
-                </TouchableOpacity>
+              <TouchableOpacity style={styles.iconShareButton}>
+                <FontAwesome5 name="share-square" size={20} color="#000000" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Image */}
+            <Image
+              source={require("@/assets/images/home/Property1.png")}
+              style={styles.image}
+              resizeMode="cover"
+            />
+
+            {/* Content */}
+            <View style={styles.content}>
+              <Text style={styles.title}>{item.name}</Text>
+              <Text style={styles.subTitle}>{item.subName}</Text>
+
+              <View style={styles.ratingContainer}>
+                <Ionicons name="star" size={16} color="#F24E1E" />
+                <Text style={styles.rating}>
+                  4.5+ Đánh giá • 34K khách đã đặt • Khởi hành tại Đà Nẵng
+                </Text>
               </View>
 
-              {/* Image */}
-              <Image
-                source={require("@/assets/images/home/Property1.png")}
-                style={styles.image}
-                resizeMode="cover"
+              <View style={styles.tagsContainer}>
+                {item.tourExtraServices.map((service) => (
+                  <Text key={service.id} style={styles.tag}>
+                    {service.name}
+                  </Text>
+                ))}
+              </View>
+
+              {/* Giới thiệu về tour */}
+              <Text style={styles.sectionTitle}>Giới thiệu về tour</Text>
+              {/* Giới thiệu rút gọn */}
+              <RenderHtml
+                contentWidth={width}
+                source={{ html: truncateHTML(item.description, 150) }}
               />
 
-              {/* Content */}
-              <View style={styles.content}>
-                <Text style={styles.title}>{item.name}</Text>
-                <Text style={styles.subTitle}>{item.subName}</Text>
+              <TouchableOpacity
+                style={styles.showMoreButton}
+                onPress={() => setShowIntroModal(true)}
+              >
+                <Text style={styles.showMoreText}>Xem thêm</Text>
+              </TouchableOpacity>
 
-                <View style={styles.ratingContainer}>
-                  <Ionicons name="star" size={16} color="#F24E1E" />
-                  <Text style={styles.rating}>
-                    4.5+ Đánh giá • 34K khách đã đặt • Khởi hành tại Đà Nẵng
-                  </Text>
-                </View>
+              <TourDetailModal
+                visible={showIntroModal}
+                onClose={() => setShowIntroModal(false)}
+                title="Giới thiệu về tour"
+                content={item.description}
+              />
 
-                <View style={styles.tagsContainer}>
-                  {item.tourExtraServices.map((service) => (
-                    <Text key={service.id} style={styles.tag}>
-                      {service.name}
-                    </Text>
-                  ))}
-                </View>
+              <Text style={styles.sectionTitle}>Trải nghiệm bao gồm</Text>
 
-                {/* Giới thiệu về tour */}
-                <Text style={styles.sectionTitle}>Giới thiệu về tour</Text>
-                {/* Giới thiệu rút gọn */}
-                <RenderHtml
-                  contentWidth={width}
-                  source={{ html: truncateHTML(item.description, 150) }}
-                />
+              {/* Render dạng HTML nếu cần */}
+              <RenderHtml
+                contentWidth={width}
+                source={{ html: item.included }}
+              />
 
-                <TouchableOpacity
-                  style={styles.showMoreButton}
-                  onPress={() => setShowIntroModal(true)}
-                >
-                  <Text style={styles.showMoreText}>Xem thêm</Text>
-                </TouchableOpacity>
+              {/* Lịch trình chi tiết */}
+              <SchechuleModal
+                visible={showScheduleModal}
+                onClose={() => setShowScheduleModal(false)}
+                content={item.schedule}
+                title="Lịch trình chi tiết"
+              />
 
-                <TourDetailModal
-                  visible={showIntroModal}
-                  onClose={() => setShowIntroModal(false)}
-                  title="Giới thiệu về tour"
-                  content={item.description}
-                />
-
-                <Text style={styles.sectionTitle}>Trải nghiệm bao gồm</Text>
-
-                {/* Render dạng HTML nếu cần */}
-                <RenderHtml
-                  contentWidth={width}
-                  source={{ html: item.included }}
-                />
-
-                {/* Lịch trình chi tiết */}
-                <SchechuleModal
-                  visible={showScheduleModal}
-                  onClose={() => setShowScheduleModal(false)}
-                  content={item.schedule}
-                  title="Lịch trình chi tiết"
-                />
-
-                <ExtraUserModal
-                  visible={showExtraUserModal}
-                  onClose={() => setShowExtraUserModal(false)}
-                  content={item.policies}
-                  title="Yêu cầu đối với khách hàng"
-                />
-              </View>
+              <ExtraUserModal
+                visible={showExtraUserModal}
+                onClose={() => setShowExtraUserModal(false)}
+                content={item.policies}
+                title="Yêu cầu đối với khách hàng"
+              />
             </View>
-          )}
-        />
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <View>
-            <Text style={styles.price}>
-              Từ{" "}
-              <Text style={styles.priceHighlight}>
-                {formatPrice(tour.fromPrice)}
-              </Text>
-              /người
-            </Text>
           </View>
-          <TouchableOpacity style={styles.button} onPress={handleBookTour}>
-            <Text style={styles.buttonText}>Đặt ngay</Text>
-          </TouchableOpacity>
+        )}
+      />
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <View>
+          <Text style={styles.price}>
+            Từ{" "}
+            <Text style={styles.priceHighlight}>
+              {formatPrice(tour.fromPrice)}
+            </Text>
+            /người
+          </Text>
         </View>
-      </SafeAreaView>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setShowOrderModal(true)}
+        >
+          <Text style={styles.buttonText}>Đặt ngay</Text>
+        </TouchableOpacity>
+
+        {showOrderModal && (
+          <Order
+            visible={showOrderModal}
+            onClose={() => setShowOrderModal(false)}
+            title="Đơn hàng"
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
+
 }
