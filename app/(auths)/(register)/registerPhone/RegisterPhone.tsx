@@ -18,6 +18,8 @@ import { useToast } from "@/context/ToastContext";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/config/api";
+import { ApiResponse } from "@/types/api";
+import { RegistercodeByPhone } from "@/types/user";
 
 export default function Register() {
   const router = useRouter();
@@ -86,14 +88,31 @@ export default function Register() {
     try {
       setLoading(true);
 
-      const response = await api.post("/Accounts/SendResgiterCode", {
-        Phone: phoneNumber,
-      });
+      const token = await AsyncStorage.getItem("registerToken");
 
-      const token = response.data?.data?.token;
+      if (!token) {
+        showToast({ type: "error", message: "Không tìm thấy token xác minh" });
+        return;
+      }
 
-      if (token) {
-        await AsyncStorage.setItem("registerToken", token);
+      const response = await api.post<ApiResponse<RegistercodeByPhone>>(
+        "/Accounts/SendResgiterCode",
+        {
+          phone: phoneNumber,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Response data:", response.data);
+
+      const receivedToken = response.data?.data?.token;
+
+      if (receivedToken) {
+        await AsyncStorage.setItem("registerToken", receivedToken);
 
         showToast({
           type: "success",

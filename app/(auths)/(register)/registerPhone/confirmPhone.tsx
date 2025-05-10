@@ -21,7 +21,7 @@ import api from "@/config/api";
 export default function Confirm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [userName, setUserName] = useState("");
+  const [fullName, setUserName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,7 +37,7 @@ export default function Confirm() {
   }, [phoneFromParams]);
 
   const handleRegister = async () => {
-    if (!userName || !password || !confirmPassword) {
+    if (!fullName || !password || !confirmPassword) {
       showToast({
         type: "error",
         message: "Vui lòng nhập đầy đủ thông tin",
@@ -62,39 +62,56 @@ export default function Confirm() {
           type: "error",
           message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
         });
+        setLoading(false);
         return;
       }
 
+      // Format lại số điện thoại nếu cần (ví dụ bỏ +84 => 0)
       const formattedPhone = phone.replace(/^\+\d{1,3}/, "0");
-      console.log("formattedPhone", formattedPhone);
+
       const formData = {
         token,
-        userName,
+        fullName,
         phone: formattedPhone,
         password,
         confirmPassword,
         code: otpCodeFromParams,
       };
+      console.log("formData:", formData);
 
-      console.log("first", formData);
       const response: ApiResponse = await api.post(
         "/Accounts/ResgiterByCode",
         formData
       );
-      console.log("trả về", response);
+      console.log("Response trả về là:", JSON.stringify(response, null, 2));
 
       if (response.success) {
+        const authToken = response.data?.data?.token;
+
+        if (!authToken) {
+          showToast({
+            type: "error",
+            message: "Không lấy được token từ server.",
+          });
+          setLoading(false);
+          return;
+        }
+
+        await AsyncStorage.setItem("token", authToken);
         await AsyncStorage.setItem(
           "data",
           JSON.stringify({
-            token: response.data.token,
-            user: response.data.user,
+            token: authToken,
+            phone: phone,
+            fullName: fullName,
           })
         );
+
         showToast({
           type: "success",
           message: "Đăng ký thành công!",
         });
+
         router.replace("/(tabs)/assistant");
       } else {
         showToast({
@@ -103,15 +120,24 @@ export default function Confirm() {
         });
       }
     } catch (error: any) {
-      console.log(
-        "Full error:",
-        JSON.stringify(error?.response?.data, null, 2)
-      );
+      if (error?.response) {
+        console.log(
+          "Lỗi từ server:",
+          JSON.stringify(error.response.data, null, 2)
+        );
+      } else if (error?.request) {
+        console.log("Không nhận được phản hồi từ server:", error.request);
+      } else {
+        console.log("Lỗi khác:", error.message);
+      }
+
       showToast({
         type: "error",
         message:
           error?.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -138,7 +164,7 @@ export default function Confirm() {
           <TextInput
             style={styles.input}
             placeholder="Nhập tên của bạn"
-            value={userName}
+            value={fullName}
             onChangeText={(text) => setUserName(text)}
           />
 

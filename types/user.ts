@@ -1,30 +1,38 @@
-  export type LoginType = {
-    account: string;
-    password: string;
-    rememberMe: boolean;
-  };
-  export type LoginEmailType = {
-    email: string;
-    password: string;
-    rememberMe: boolean;
-  };
-
-  export type RegisterTypeEmail = {
-    token: string;
-    code?: string;
-    fullName: string;
-    email: string;
-    password: string;
-    confirmPassword: string;  
-  };
-  export type RegisterByEmail = {
-    token: string;
-    email: string;
-  };
-  export type RegistercodeByEmail = {
-    token: string;
-    code: string;
-  };
+export type LoginType = {
+  account: string;
+  password: string;
+  rememberMe: boolean;
+};
+export type LoginEmailType = {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+};
+export type RegisterTypeEmail = {
+  token: string;
+  code?: string;
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;  
+};
+export type RegisterByEmail = {
+  token: string;
+  email: string;
+};
+export type RegistercodeByEmail = {
+  token: string;
+  code: string;
+  type: number;
+};
+export type RegisterByPhone = {
+  token: string;
+  phone: string;
+};
+export type RegistercodeByPhone = {
+  token: string;
+  code: string;
+};
   export type RegisterTypePhone = {
     token: string;
     code?: string;
@@ -33,15 +41,6 @@
     password: string;
     confirmPassword: string;  
   };
-  export type RegisterByPhone = {
-    token: string;
-    phone: string;
-  };
-  export type RegistercodeByPhone = {
-    token: string;
-    code: string;
-  };
-
   export type ProfileResponse = {
     data?: {
       id: string;
@@ -60,7 +59,22 @@
     };
     status?: string;
     message?: string;
-  };
+};
+  
+  export type UpdateEmail = {
+    email: string;
+};
+  export type UpdatePhone = {
+    phone: string;
+};
+export type UpdateProfile = {
+  fullName: string;
+  avatar: string;
+  language: string;
+  address: string;
+  nationality: string;
+  dateOfBirth: Date;
+}
 
   export type LoginByPhone = {
     phone: string;

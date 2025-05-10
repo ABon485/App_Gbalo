@@ -47,7 +47,7 @@ export default function VerifyPhone() {
       showToast({ type: "error", message: "Vui lòng nhập đầy đủ mã xác nhận" });
       return;
     }
-    
+
     if (code !== "123456") {
       showToast({ type: "error", message: "Mã xác nhận không đúng!" });
       return;
@@ -68,14 +68,15 @@ export default function VerifyPhone() {
 
       const response: ApiResponse = await api.post(
         "/Accounts/VerifyResgiterCode",
-        { token, code:"123456" },
+        { token, code: "123456" }
       );
+      console.log("Response data:", response.data);
 
       if (response.success) {
         showToast({ type: "success", message: "Xác minh OTP thành công!" });
         router.push({
           pathname: "/(auths)/(register)/registerPhone/confirmPhone",
-          params: { phone, code:"123456" },
+          params: { phone, code: "123456" },
         });
       } else {
         showToast({ type: "error", message: "Mã xác nhận không đúng!" });
@@ -99,22 +100,34 @@ export default function VerifyPhone() {
         return;
       }
 
-      const response: ApiResponse = await api.post(
-        "/Accounts/VerifyResgiterCode",
+      const response = await api.post(
+        "/Accounts/SendResgiterCode",
         {
-          code: otp.join(""),
-          token,
+          phone, // gửi số điện thoại hiện tại
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      if (response.success) {
-        showToast({ type: "success", message: "Đã gửi lại mã OTP!" });
+      const newToken = response.data?.data?.token;
+
+      if (newToken) {
+        await AsyncStorage.setItem("registerToken", newToken);
+
+        showToast({
+          type: "success",
+          message: "Đã gửi lại mã OTP!",
+        });
+
         setOtp(Array(6).fill(""));
         inputRefs.current[0]?.focus();
       } else {
         showToast({
           type: "error",
-          message: response.message || "Gửi lại OTP thất bại",
+          message: "Không nhận được token mới từ server",
         });
       }
     } catch (error: any) {
