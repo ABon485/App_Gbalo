@@ -24,30 +24,56 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
 import { StyleSheet } from "react-native";
-
+import api from "@/config/api";
+import { ProfileResponse } from "@/types/user";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { showToast } = useToast();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ userName?: string } | null>(null);
+  const [user, setUser] = useState<ProfileResponse["data"] | null>(null);
   const [loadingLogout, setLoadingLogout] = useState(false);
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
+    const fetchProfile = async () => {
       try {
         const data = await AsyncStorage.getItem("data");
+
         if (data) {
           const parsedData = JSON.parse(data);
-          setUser(parsedData.user); // Lấy thông tin user từ AsyncStorage
-          setIsLoggedIn(true); // Đánh dấu trạng thái đăng nhập
+          const token = parsedData.token;
+
+          if (!token) {
+            console.warn("Không tìm thấy token trong AsyncStorage");
+            return;
+          }
+
+          const response = await api.get("/Accounts/Profile", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          console.log("API Response:", JSON.stringify(response.data, null, 2));
+
+          if (response?.data?.data) {
+            setUser({
+              ...response.data.data,
+              fullName: parsedData.fullName,
+            });
+            setIsLoggedIn(true);
+          } else {
+            console.warn("Không có dữ liệu user từ API");
+          }
         }
       } catch (error) {
-        console.error("Lỗi khi kiểm tra trạng thái đăng nhập:", error);
+        console.error("Lỗi khi lấy hồ sơ:", error);
       }
     };
-    checkLoginStatus();
+
+    fetchProfile();
   }, []);
 
   const handleLogin = () => {
@@ -83,7 +109,7 @@ export default function ProfileScreen() {
   };
 
   const handleUpdateProfile = () => {
-    router.push("/(tabs)/homepage");
+    router.push("/(screens)/profile/profile");
   };
 
   const menuItems = [
@@ -132,7 +158,7 @@ export default function ProfileScreen() {
   ];
 
   const renderUserAvatar = () => {
-    const firstLetter = user?.userName?.charAt(0).toUpperCase() || "T";
+    const firstLetter = user?.fullName?.charAt(0).toUpperCase() || "T";
     return (
       <View style={styles.avatarContainer}>
         <Text style={styles.avatarText}>{firstLetter}</Text>
@@ -151,20 +177,33 @@ export default function ProfileScreen() {
             <View>
               <View style={styles.userInfo}>
                 <Image
-                  source={require("@/assets/images/icon.png")}
+                  source={{
+                    uri:
+                      user?.avatar ||
+                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThbl47VAQK_3kDo3-L6d84Y2qX-f0TTUlgIQ&s",
+                  }}
                   style={styles.userAvatar}
                 />
                 <View style={styles.userDetails}>
                   <Text style={styles.userName}>
-                    {user?.userName ?? "Khách hàng"}
+                    {user?.fullName ?? "Khách hàng"}
                   </Text>
-                  <TouchableOpacity onPress={handleUpdateProfile}>
+
+                  <TouchableOpacity
+                    onPress={handleUpdateProfile}
+                    style={{ flexDirection: "row", alignItems: "center" , backgroundColor:"#E4EFE7"}}
+                  >
                     <Text style={styles.updateProfileText}>
                       Cập nhật thông tin cá nhân
                     </Text>
+                    <AntDesign
+                      name="right"
+                      size={14}
+                      color="#007BFF"
+                      style={{ marginLeft: 10 }}
+                    />
                   </TouchableOpacity>
                 </View>
-                {renderUserAvatar()}
               </View>
 
               <View style={styles.pointsInfo}>
@@ -334,7 +373,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flex: 1,
     justifyContent: "flex-end",
-    marginTop:18
+    marginTop: 18,
   },
   loginButton: {
     backgroundColor: "#FF5722",

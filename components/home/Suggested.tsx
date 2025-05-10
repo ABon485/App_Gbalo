@@ -50,10 +50,11 @@ const TourListScreen = () => {
             name: item.name,
             slug: item.slug,
             featuredImageUrl: item.featuredImageUrl,
-            provinceId: item.provinceId,
+            provinceIds: item.provinceIds,
             vote: item.vote || 0,
             fromPrice: item.fromPrice || 0,
             isFavorite: false,
+           
           })
         );
 
@@ -161,26 +162,26 @@ const TourListScreen = () => {
   }
 
   return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-        <FlatList
-          data={showAll ? tours : tours.slice(0, 4)}
-          renderItem={renderTourItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.listContainer}
-          ListFooterComponent={
-            !showAll && tours.length > 4 ? (
-              <TouchableOpacity
-                style={styles.loadMoreButton}
-                onPress={() => setShowAll(true)}
-              >
-                <Text style={styles.loadMoreText}>Xem thêm</Text>
-              </TouchableOpacity>
-            ) : null
-          }
-        />
-      </SafeAreaView>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <FlatList
+        data={showAll ? tours : tours.slice(0, 4)}
+        renderItem={renderTourItem}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.listContainer}
+        ListFooterComponent={
+          !showAll && tours.length > 6 ? (
+            <TouchableOpacity
+              style={styles.loadMoreButton}
+              onPress={() => setShowAll(true)}
+            >
+              <Text style={styles.loadMoreText}>Xem thêm</Text>
+            </TouchableOpacity>
+          ) : null
+        }
+      />
+    </SafeAreaView>
   );
 };
 
