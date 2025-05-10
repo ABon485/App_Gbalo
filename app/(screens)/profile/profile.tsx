@@ -16,12 +16,11 @@ import * as ImagePicker from "expo-image-picker";
 import { useToast } from "@/context/ToastContext";
 import { ProfileResponse } from "@/types/user";
 import UserNameModal from "@/components/profile/userName";
-import EmailModal from "@/components/profile/Email";
+// import EmailModal from "@/components/profile/Email";
 import PhoneModal from "@/components/profile/phoneNumber";
 import AddressModal from "@/components/profile/address";
 import LinkedAccountModal from "@/components/profile/linkedAccount";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import * as mime from "mime";
 
 const ProfileUpdateScreen = () => {
   const [profile, setProfile] = useState<ProfileResponse["data"] | null>(null);
@@ -68,8 +67,8 @@ const ProfileUpdateScreen = () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
+      aspect: [1, 1], 
+      quality: 0.8,
     });
      
 
@@ -91,13 +90,13 @@ const ProfileUpdateScreen = () => {
       formData.append("avatar", {
         uri,
         name: "avatar.jpg",
-        type: "image/jpeg/png/jpg",
+        type: "image/jpeg",
       } as any);
 
       const response = await api.post("/Accounts/ChangeProfile", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          // "Content-Type": "multipart/form-data",
         },
       });
 
@@ -168,7 +167,7 @@ const ProfileUpdateScreen = () => {
 
       <View style={styles.avatarContainer}>
         <Image
-          source={{ uri: profile.avatar || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThbl47VAQK_3kDo3-L6d84Y2qX-f0TTUlgIQ&s" }}
+          source={{ uri: profile.avatar || "https://files.vbalo.com/HgoApi?id=hgo_fm_testuploadfile&command=view&parameters=Root\images.jpg" }}
           style={styles.avatar}
         />
         <TouchableOpacity style={styles.avatarOverlay} onPress={pickImage}>
@@ -200,7 +199,7 @@ const ProfileUpdateScreen = () => {
           <Text style={styles.label}>Địa chỉ email:</Text>
           <Text style={styles.value}>{profile.email || "Chưa cung cấp"}</Text>
         </View>
-        <TouchableOpacity onPress={() => setShowEmailModal(true)}>
+        {/* <TouchableOpacity onPress={() => setShowEmailModal(true)}>
           <Text style={styles.editButton}>Chỉnh sửa</Text>
         </TouchableOpacity>
         <EmailModal
@@ -209,7 +208,7 @@ const ProfileUpdateScreen = () => {
           title="Địa chỉ email"
           content={profile.email || ""}
           onUpdateEmail={handleEmailUpdated}
-        />
+        /> */}
       </View>
 
       <View style={styles.row}>
@@ -218,7 +217,7 @@ const ProfileUpdateScreen = () => {
           <Text style={styles.value}>{profile.phone || "Chưa cung cấp"}</Text>
         </View>
         <TouchableOpacity onPress={() => setShowPhoneModal(true)}>
-          <Text style={styles.editButton}>Chỉnh sửa</Text>
+          <Text style={styles.editButton}>Thêm</Text>
         </TouchableOpacity>
         <PhoneModal
           visible={showPhoneModal}
