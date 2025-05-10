@@ -26,6 +26,7 @@ import { useToast } from "@/context/ToastContext";
 import { StyleSheet } from "react-native";
 import api from "@/config/api";
 import { ProfileResponse } from "@/types/user";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -108,7 +109,7 @@ export default function ProfileScreen() {
   };
 
   const handleUpdateProfile = () => {
-    router.push("/(tabs)/homepage");
+    router.push("/(screens)/profile/profile");
   };
 
   const menuItems = [
@@ -176,7 +177,11 @@ export default function ProfileScreen() {
             <View>
               <View style={styles.userInfo}>
                 <Image
-                  source={{ uri: user?.avatar }}
+                  source={{
+                    uri:
+                      user?.avatar ||
+                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThbl47VAQK_3kDo3-L6d84Y2qX-f0TTUlgIQ&s",
+                  }}
                   style={styles.userAvatar}
                 />
                 <View style={styles.userDetails}>
@@ -184,13 +189,21 @@ export default function ProfileScreen() {
                     {user?.fullName ?? "Khách hàng"}
                   </Text>
 
-                  <TouchableOpacity onPress={handleUpdateProfile}>
+                  <TouchableOpacity
+                    onPress={handleUpdateProfile}
+                    style={{ flexDirection: "row", alignItems: "center" , backgroundColor:"#E4EFE7"}}
+                  >
                     <Text style={styles.updateProfileText}>
                       Cập nhật thông tin cá nhân
                     </Text>
+                    <AntDesign
+                      name="right"
+                      size={14}
+                      color="#007BFF"
+                      style={{ marginLeft: 10 }}
+                    />
                   </TouchableOpacity>
                 </View>
-                {/* {renderUserAvatar()} */}
               </View>
 
               <View style={styles.pointsInfo}>

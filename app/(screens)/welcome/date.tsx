@@ -19,7 +19,7 @@ const DateScreen = () => {
   const [show, setShow] = useState(false);
 
   const onChange = (event: any, selectedDate?: Date) => {
-    setShow(Platform.OS === "ios"); // iOS vẫn giữ picker mở
+    setShow(Platform.OS === "ios"); 
     if (selectedDate) {
       setDate(selectedDate);
     }
@@ -84,6 +84,6 @@ const DateScreen = () => {
       </SafeAreaView>
     </>
   );
-};
+}
 
 export default DateScreen;

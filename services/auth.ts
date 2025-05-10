@@ -1,6 +1,11 @@
 
 import api from "@/config/api";
-import { LoginEmailType, LoginByPhone, VerifyCodeLogin, SendCodeLogin, LoginType, RegisterByEmail, RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail, RegistercodeByPhone, ProfileResponse, VerifyChangePassCodeType, ChangePassByCodeType } from "@/types/user";
+import {
+  LoginEmailType, LoginByPhone, LoginType, VerifyCodeLogin, SendCodeLogin,RegisterByEmail,
+  RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail,RegisterTypePhone,
+  RegistercodeByPhone, ProfileResponse, UpdateEmail, UpdatePhone,ChangePassByCodeType,VerifyChangePassCodeType,
+  UpdateProfile
+} from "@/types/user";
 
 const authApi = {
   login: (formData: LoginType) => api.post("/login", formData),
@@ -25,10 +30,15 @@ const authApi = {
 
   registerConfirmByEmail: (formData: RegisterTypeEmail) => api.post("/Accounts/ResgiterByCode", formData),
 
-  registerConfirmByPhone: (formData: RegisterTypeEmail) => api.post("/Accounts/ResgiterByCode", formData),
+  registerConfirmByPhone: (formData: RegisterTypePhone) => api.post("/Accounts/ResgiterByCode", formData),
 
   UserProfile: (formData: ProfileResponse) => api.get("/Accounts/Profile", formData),
 
+  updateEmail: (formData: UpdateEmail) => api.post("/Accounts/ChangeEmail", formData),
+
+  updatePhone: (formData: UpdatePhone) => api.post("/Accounts/ChangePhone", formData),
+
+  updatefullName: (formData: UpdateProfile) => api.post("/Accounts/ChangeProfile", formData),
 };
 
 export default authApi;
