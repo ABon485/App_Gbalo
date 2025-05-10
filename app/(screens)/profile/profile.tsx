@@ -16,7 +16,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useToast } from "@/context/ToastContext";
 import { ProfileResponse } from "@/types/user";
 import UserNameModal from "@/components/profile/userName";
-// import EmailModal from "@/components/profile/Email";
+import EmailModal from "@/components/profile/Email";
 import PhoneModal from "@/components/profile/phoneNumber";
 import AddressModal from "@/components/profile/address";
 import LinkedAccountModal from "@/components/profile/linkedAccount";
@@ -60,17 +60,19 @@ const ProfileUpdateScreen = () => {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      showToast({ message: "Cần cấp quyền truy cập thư viện ảnh.", type: "error" });
+      showToast({
+        message: "Cần cấp quyền truy cập thư viện ảnh.",
+        type: "error",
+      });
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1], 
+      aspect: [1, 1],
       quality: 0.8,
     });
-     
 
     if (!result.canceled && result.assets[0].uri) {
       await uploadImage(result.assets[0].uri);
@@ -101,18 +103,28 @@ const ProfileUpdateScreen = () => {
       });
 
       const newAvatarUrl = response.data.data.avatar;
-      setProfile((prev) => prev ? { ...prev, avatar: newAvatarUrl } : null);
-      showToast({ message: "Cập nhật ảnh đại diện thành công", type: "success" });
+      setProfile((prev) => (prev ? { ...prev, avatar: newAvatarUrl } : null));
+      showToast({
+        message: "Cập nhật ảnh đại diện thành công",
+        type: "success",
+      });
     } catch (error) {
       if ((error as any).response?.status === 401) {
-        showToast({ message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", type: "error" });
+        showToast({
+          message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
+          type: "error",
+        });
       } else if ((error as any).response?.status === 400) {
         showToast({
-          message: (error as any).response?.data?.message || "Ảnh không hợp lệ.",
+          message:
+            (error as any).response?.data?.message || "Ảnh không hợp lệ.",
           type: "error",
         });
       } else {
-        showToast({ message: "Cập nhật ảnh đại diện thất bại. Vui lòng thử lại.", type: "error" });
+        showToast({
+          message: "Cập nhật ảnh đại diện thất bại. Vui lòng thử lại.",
+          type: "error",
+        });
       }
     }
   };
@@ -167,11 +179,19 @@ const ProfileUpdateScreen = () => {
 
       <View style={styles.avatarContainer}>
         <Image
-          source={{ uri: profile.avatar || "https://files.vbalo.com/HgoApi?id=hgo_fm_testuploadfile&command=view&parameters=Root\images.jpg" }}
+          source={{
+            uri:
+              profile.avatar ||
+              "https://files.vbalo.com/HgoApi?id=hgo_fm_testuploadfile&command=view&parameters=Rootimages.jpg",
+          }}
           style={styles.avatar}
         />
         <TouchableOpacity style={styles.avatarOverlay} onPress={pickImage}>
-        <MaterialCommunityIcons name="image-edit-outline" size={24} color="black" />
+          <MaterialCommunityIcons
+            name="image-edit-outline"
+            size={24}
+            color="black"
+          />
         </TouchableOpacity>
       </View>
 
@@ -199,16 +219,23 @@ const ProfileUpdateScreen = () => {
           <Text style={styles.label}>Địa chỉ email:</Text>
           <Text style={styles.value}>{profile.email || "Chưa cung cấp"}</Text>
         </View>
-        {/* <TouchableOpacity onPress={() => setShowEmailModal(true)}>
-          <Text style={styles.editButton}>Chỉnh sửa</Text>
+        <TouchableOpacity
+          disabled={!!profile.email} 
+          onPress={() => setShowEmailModal(true)}
+          style={profile.email ? { display: "none" } : {}} 
+        >
+          <Text style={[styles.editButton, profile.email && { color: "#999" }]}>
+            {profile.phone ? "Không thể sửa" : "Thêm"}
+          </Text>
         </TouchableOpacity>
+
         <EmailModal
           visible={showEmailModal}
           onClose={() => setShowEmailModal(false)}
           title="Địa chỉ email"
           content={profile.email || ""}
           onUpdateEmail={handleEmailUpdated}
-        /> */}
+        />
       </View>
 
       <View style={styles.row}>
@@ -216,9 +243,16 @@ const ProfileUpdateScreen = () => {
           <Text style={styles.label}>Số điện thoại:</Text>
           <Text style={styles.value}>{profile.phone || "Chưa cung cấp"}</Text>
         </View>
-        <TouchableOpacity onPress={() => setShowPhoneModal(true)}>
-          <Text style={styles.editButton}>Thêm</Text>
+        <TouchableOpacity
+          disabled={!!profile.phone} 
+          onPress={() => setShowPhoneModal(true)}
+          style={profile.phone ? { display: "none" } : {}} 
+        >
+          <Text style={[styles.editButton, profile.phone && { color: "#999" }]}>
+            {profile.email ? "Thêm": "Không thể sửa"}
+          </Text>
         </TouchableOpacity>
+
         <PhoneModal
           visible={showPhoneModal}
           onClose={() => setShowPhoneModal(false)}
@@ -244,23 +278,23 @@ const ProfileUpdateScreen = () => {
         />
       </View>
 
-      <View style={styles.row}>
+      {/* <View style={styles.row}>
         <View style={styles.rowLeft}>
           <Text style={styles.label}>Liên kết tài khoản (Google, Facebook, Apple ID)</Text>
-          {/* <Text style={styles.value}>
+          <Text style={styles.value}>
             {profile.linkedAccounts || "Chưa cung cấp"}
-          </Text> */}
+          </Text>
         </View>
         <TouchableOpacity onPress={() => setShowLinkedModal(true)}>
           <Text style={styles.editButton}>Thêm</Text>
         </TouchableOpacity>
-        {/* <LinkedAccountModal
+        <LinkedAccountModal
           visible={showLinkedModal}
           onClose={() => setShowLinkedModal(false)}
           title="Liên kết tài khoản"
           content={profile.linkedAccounts || ""}
-        /> */}
-      </View>
+        />
+      </View> */}
     </ScrollView>
   );
 };

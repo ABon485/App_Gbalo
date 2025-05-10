@@ -1,7 +1,7 @@
 import api from "@/config/api";
 import {
   LoginEmailType, LoginByPhone, LoginType, RegisterByEmail,
-  RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail,
+  RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail,RegisterTypePhone,
   RegistercodeByPhone, ProfileResponse, UpdateEmail, UpdatePhone,
   UpdateProfile
 } from "@/types/user";
@@ -23,7 +23,7 @@ const authApi = {
 
   registerConfirmByEmail: (formData: RegisterTypeEmail) => api.post("/Accounts/ResgiterByCode", formData),
 
-  registerConfirmByPhone: (formData: RegisterTypeEmail) => api.post("/Accounts/ResgiterByCode", formData),
+  registerConfirmByPhone: (formData: RegisterTypePhone) => api.post("/Accounts/ResgiterByCode", formData),
 
   UserProfile: (formData: ProfileResponse) => api.get("/Accounts/Profile", formData),
 
