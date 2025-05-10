@@ -225,7 +225,7 @@ const ProfileUpdateScreen = () => {
           style={profile.email ? { display: "none" } : {}} 
         >
           <Text style={[styles.editButton, profile.email && { color: "#999" }]}>
-            {profile.phone ? "Không thể sửa" : "Thêm"}
+            {profile.phone ? "Thêm" : "Không thể sửa"}
           </Text>
         </TouchableOpacity>
 

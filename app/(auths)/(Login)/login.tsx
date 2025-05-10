@@ -1,80 +1,115 @@
-    "use client"
+"use client";
 
-    import { useState } from "react"
-    import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, ImageBackground, StatusBar } from "react-native"
-    import styles from "@/styles/auth/loginScreen"
-    import Feather from "react-native-vector-icons/Feather"
-    import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
-    import { Stack, useRouter } from "expo-router" // ✅ Thêm useRouter
+import { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  ImageBackground,
+  StatusBar,
+} from "react-native";
+import styles from "@/styles/auth/loginScreen";
+import Feather from "react-native-vector-icons/Feather";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { Stack, useRouter } from "expo-router";
+import GoogleButton from "@/components/common/customButtonSocial/GoogleButton"; // Custom GoogleButton
+import FacebookButton from "@/components/common/customButtonSocial/FacebookButton"; // Custom FacebookButton
 
-    const LoginScreen = () => {
-      const [loginMethod, setLoginMethod] = useState("email")
-      const router = useRouter() // ✅ Khởi tạo router  
-      const handleLoginPressEmail = () => {
-        router.push('/(auths)/(Login)/loginEmail'); // ✅ Điều hướng đến trang login
-      };
-      const handleLoginPressPhone = () => {
-        router.push('/(auths)/(Login)/loginPhone'); // ✅ Điều hướng đến trang login
-      };
-      const handleRegister = () => {
-        router.replace("/(auths)/(register)/registerPhone/RegisterPhone")
-      }
+const LoginScreen = () => {
+  const [loginMethod, setLoginMethod] = useState("email");
+  const router = useRouter();
 
-      return (
-        <>
-          <Stack.Screen options={{ headerShown: false }} />
-          <ImageBackground source={require("@/assets/images/BackGroud.png")} style={styles.backgroundImage}>
-            <StatusBar translucent backgroundColor="transparent" />
-            <SafeAreaView style={styles.container}>
-              <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <Image source={require("@/assets/images/imagLogo.png")} style={styles.logo} resizeMode="contain" />
+  const handleFacebookLogin = () => {
+    // Placeholder for Facebook login logic
+    console.log("Initiating Facebook login");
+    // Implement Facebook Login with expo-auth-session or @react-native-firebase/auth
+  };
 
-                <View style={styles.formContainer}>
-                  <Text style={styles.title}>Đăng nhập</Text>
+  const handleLoginPressEmail = () => {
+    router.push('/(auths)/(Login)/loginEmail');
+  };
 
-                  <View style={styles.inputContainer}>
-                    {/* Email button */}
-                    <TouchableOpacity
-                      style={styles.optionButton}
-                      onPress={handleLoginPressEmail} // ✅ Điều hướng đến loginEmail
-                    >
-                      <MaterialCommunityIcons name="email-outline" size={22} color="#999999" style={styles.optionIcon} />
-                      <Text style={styles.optionText}>Email</Text>
-                    </TouchableOpacity>
+  const handleLoginPressPhone = () => {
+    router.push('/(auths)/(Login)/loginPhone');
+  };
 
-                    {/* Phone button */}
-                    <TouchableOpacity style={styles.optionButton} onPress={handleLoginPressPhone  }>
-                      <Feather name="phone" size={20} color="#999999" style={styles.optionIcon} />
-                      <Text style={styles.optionText}>Số điện thoại</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.dividerContainer}>
-                    <View style={styles.divider} />
-                    <Text style={styles.dividerText}>Hoặc đăng nhập bằng</Text>
-                    <View style={styles.divider} />
-                  </View>
+  const handleRegister = () => {
+    router.replace("/(auths)/(register)/registerPhone/RegisterPhone");
+  };
 
-                  <TouchableOpacity style={styles.socialButton}>
-                    <Image source={require("@/assets/images/Google.png")} className="w-6 h-6"/>
-                    <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
-                  </TouchableOpacity>
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <ImageBackground
+        source={require("@/assets/images/BackGroud.png")}
+        style={styles.backgroundImage}
+      >
+        <StatusBar translucent backgroundColor="transparent" />
+        <SafeAreaView style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <Image
+              source={require("@/assets/images/imagLogo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
 
-                  <TouchableOpacity style={styles.socialButton}>
-                  <Image source={require("@/assets/images/Facebook.png")} className="w-6 h-6"/>
-                    <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
-                  </TouchableOpacity>
-                  <View style={styles.registerContainer}>
-                    <Text style={styles.registerText}>Bạn chưa có tài khoản? </Text>
-                    <TouchableOpacity onPress={handleRegister}>
-                      <Text style={styles.registerLink}>Đăng ký</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </ScrollView>
-            </SafeAreaView>
-          </ImageBackground>
-        </>
-      )
-    }
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>Đăng nhập</Text>
 
-    export default LoginScreen
+              <View style={styles.inputContainer}>
+                {/* Email button */}
+                <TouchableOpacity
+                  style={styles.optionButton}
+                  onPress={handleLoginPressEmail}
+                >
+                  <MaterialCommunityIcons
+                    name="email-outline"
+                    size={22}
+                    color="#999999"
+                    style={styles.optionIcon}
+                  />
+                  <Text style={styles.optionText}>Email</Text>
+                </TouchableOpacity>
+
+                {/* Phone button */}
+                <TouchableOpacity
+                  style={styles.optionButton}
+                  onPress={handleLoginPressPhone}
+                >
+                  <Feather
+                    name="phone"
+                    size={20}
+                    color="#999999"
+                    style={styles.optionIcon}
+                  />
+                  <Text style={styles.optionText}>Số điện thoại</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.dividerContainer}>
+                <View style={styles.divider} />
+                <Text style={styles.dividerText}>Hoặc đăng nhập bằng</Text>
+                <View style={styles.divider} />
+              </View>
+
+              <GoogleButton disabled={false} />
+              <FacebookButton onPress={handleFacebookLogin} />
+
+              <View style={styles.registerContainer}>
+                <Text style={styles.registerText}>Bạn chưa có tài khoản? </Text>
+                <TouchableOpacity onPress={handleRegister}>
+                  <Text style={styles.registerLink}>Đăng ký</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </ImageBackground>
+    </>
+  );
+};
+
+export default LoginScreen;

@@ -72,13 +72,11 @@ export default function Confirm() {
       const formData = {
         token,
         fullName,
-        phone,
+        phone: formattedPhone,
         password,
         confirmPassword,
         code: otpCodeFromParams,
       };
-
-      console.log("registerToken đang dùng:", token);
       console.log("formData:", formData);
 
       const response: ApiResponse = await api.post(

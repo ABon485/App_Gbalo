@@ -1,6 +1,7 @@
+
 import api from "@/config/api";
 import {
-  LoginEmailType, LoginByPhone, LoginType, RegisterByEmail,
+  LoginEmailType, LoginByPhone, LoginType, VerifyCodeLogin, SendCodeLogin,RegisterByEmail,
   RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail,RegisterTypePhone,
   RegistercodeByPhone, ProfileResponse, UpdateEmail, UpdatePhone,
   UpdateProfile
@@ -9,7 +10,9 @@ import {
 const authApi = {
   login: (formData: LoginType) => api.post("/login", formData),
   loginEmail: (formData: LoginEmailType) => api.post("/LoginByEmail", formData),
-  loginPhone: (formData: LoginByPhone) => api.post("/LoginByPhone", formData),
+    loginPhone: (formData: LoginByPhone) => api.post("/LoginByPhone", formData),
+    loginSendCode: (formData: SendCodeLogin) => api.post("/SendLoginCode", formData),
+    loginByCode: (formData: VerifyCodeLogin) => api.post("/LoginByCode", formData),
 
   // register: (formData: RegisterTypeEmail) => api.post("Accounts/Resgiter", formData),
 
