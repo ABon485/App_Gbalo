@@ -174,7 +174,7 @@ export default function ProfileScreen() {
                   source={{
                     uri:
                       user?.avatar ||
-                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThbl47VAQK_3kDo3-L6d84Y2qX-f0TTUlgIQ&s",
+                      "https://t3.ftcdn.net/jpg/11/69/54/34/360_F_1169543439_7AxjAvV0GnwlEo3IIqlCGqiF3UFJfTAe.jpg",
                   }}
                   style={styles.userAvatar}
                 />
