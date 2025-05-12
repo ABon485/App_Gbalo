@@ -155,6 +155,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#007AFF",
     fontFamily: "Inter-Medium",
+    textDecorationLine: 'underline'
   },
   modalOverlay: {
     flex: 1,

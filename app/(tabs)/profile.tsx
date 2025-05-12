@@ -59,9 +59,13 @@ export default function ProfileScreen() {
           console.log("API Response:", JSON.stringify(response.data, null, 2));
 
           if (response?.data?.data) {
+            // Ưu tiên lấy fullName từ API, nếu không có thì lấy từ AsyncStorage
+            const fullNameFromAPI = response.data.data.fullName;
+            const fullName = fullNameFromAPI || parsedData.fullName || "Khách hàng";
+
             setUser({
               ...response.data.data,
-              fullName: parsedData.fullName,
+              fullName, // Gán fullName đã được xác định
             });
             setIsLoggedIn(true);
           } else {
@@ -156,16 +160,6 @@ export default function ProfileScreen() {
       action: () => router.push("/"),
     },
   ];
-
-  const renderUserAvatar = () => {
-    const firstLetter = user?.fullName?.charAt(0).toUpperCase() || "T";
-    return (
-      <View style={styles.avatarContainer}>
-        <Text style={styles.avatarText}>{firstLetter}</Text>
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -191,7 +185,7 @@ export default function ProfileScreen() {
 
                   <TouchableOpacity
                     onPress={handleUpdateProfile}
-                    style={{ flexDirection: "row", alignItems: "center" , backgroundColor:"#E4EFE7"}}
+                    style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#E4EFE7" }}
                   >
                     <Text style={styles.updateProfileText}>
                       Cập nhật thông tin cá nhân
@@ -330,18 +324,7 @@ const styles = StyleSheet.create({
     color: "#007BFF",
     fontFamily: "Inter-Medium",
   },
-  avatarContainer: {
-    backgroundColor: "#9C27B0",
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    color: "white",
-    fontWeight: "bold",
-  },
+
   pointsInfo: {
     flexDirection: "row",
     alignItems: "center",

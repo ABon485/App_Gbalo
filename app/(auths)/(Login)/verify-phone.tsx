@@ -42,12 +42,6 @@ const VerifyPhoneScreen = () => {
       if (text && index < 5 && inputRefs.current[index + 1]) {
         inputRefs.current[index + 1]?.focus();
       }
-      if (text && index === 5) {
-        const codeComplete = newCode.every((digit) => digit !== "");
-        if (codeComplete) {
-          handleContinue(newCode.join(""));
-        }
-      }
     }
   };
 
@@ -97,7 +91,7 @@ const VerifyPhoneScreen = () => {
           message: "Đăng nhập thành công!",
         });
 
-        router.push("/(tabs)/assistant"); // Navigate to personal information screen
+        router.push("/(tabs)/assistant");
       } else {
         showToast({
           type: "error",
@@ -156,7 +150,7 @@ const VerifyPhoneScreen = () => {
               </View>
 
               <Text style={styles.hintText}>
-                Mã xác nhận mặc định là: <Text style={styles.hintHighlight}>558140</Text>
+                Mã xác nhận mặc định là: <Text style={styles.hintHighlight}>123456</Text>
               </Text>
 
               <TouchableOpacity
@@ -239,12 +233,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 16,
+    color:'#FF5722'
   },
   codeInputContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     width: "80%",
     marginVertical: 20,
+    gap:10,
   },
   codeInput: {
     width: 40,
@@ -261,7 +257,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   hintHighlight: {
-    color: "#000",
+    color: "#FF5722",
     fontWeight: "bold",
   },
   continueButton: {
@@ -272,7 +268,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   activeButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#FF5722",
   },
   inactiveButton: {
     backgroundColor: "#ccc",
