@@ -21,6 +21,8 @@ import PhoneModal from "@/components/profile/phoneNumber";
 import AddressModal from "@/components/profile/address";
 import LinkedAccountModal from "@/components/profile/linkedAccount";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import FileUploadWebView from "@/components/WebView_Upload";
+import { Modal } from "react-native";
 
 const ProfileUpdateScreen = () => {
   const [profile, setProfile] = useState<ProfileResponse["data"] | null>(null);
@@ -32,6 +34,7 @@ const ProfileUpdateScreen = () => {
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showLinkedModal, setShowLinkedModal] = useState(false);
+  const [showWebView, setShowWebView] = useState(false);
 
   const fetchProfile = async () => {
     try {
@@ -57,29 +60,8 @@ const ProfileUpdateScreen = () => {
     }
   };
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      showToast({
-        message: "Cần cấp quyền truy cập thư viện ảnh.",
-        type: "error",
-      });
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0].uri) {
-      await uploadImage(result.assets[0].uri);
-    }
-  };
-
-  const uploadImage = async (uri: string) => {
+  const updateAvatarUrl = async (fileUrl: string) => {
+    console.log("🧩 Avatar URL nhận được:", fileUrl);
     try {
       const data = await AsyncStorage.getItem("data");
       if (!data) throw new Error("Không tìm thấy dữ liệu người dùng");
@@ -88,50 +70,35 @@ const ProfileUpdateScreen = () => {
       const token = parsedData?.token;
       if (!token) throw new Error("Token không tồn tại");
 
-      const formData = new FormData();
-      formData.append("avatar", {
-        uri,
-        name: "avatar.jpg",
-        type: "image/jpeg",
-      } as any);
+      const response = await api.post(
+        "/Accounts/ChangeProfile",
+        { avatar: fileUrl },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      const response = await api.post("/Accounts/ChangeProfile", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // "Content-Type": "multipart/form-data",
-        },
-      });
+      console.log(
+        "Response cập nhật avatar:",
+        JSON.stringify(response.data, null, 2)
+      );
 
-      const newAvatarUrl = response.data.data.avatar;
-      setProfile((prev) => (prev ? { ...prev, avatar: newAvatarUrl } : null));
+      // GỌI LẠI API PROFILE ĐỂ LẤY AVATAR MỚI
+      await fetchProfile();
+
       showToast({
         message: "Cập nhật ảnh đại diện thành công",
         type: "success",
       });
     } catch (error) {
-      if ((error as any).response?.status === 401) {
-        showToast({
-          message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
-          type: "error",
-        });
-      } else if ((error as any).response?.status === 400) {
-        showToast({
-          message:
-            (error as any).response?.data?.message || "Ảnh không hợp lệ.",
-          type: "error",
-        });
-      } else {
-        showToast({
-          message: "Cập nhật ảnh đại diện thất bại. Vui lòng thử lại.",
-          type: "error",
-        });
-      }
+      console.error("Lỗi cập nhật avatar:", error);
+      showToast({ message: "Cập nhật ảnh đại diện thất bại", type: "error" });
     }
   };
 
   useEffect(() => {
     fetchProfile();
   }, []);
+  console.log("PROFILE DATA:", JSON.stringify(profile, null, 2));
+
 
   const handleEmailUpdated = (newEmail: string) => {
     if (profile) {
@@ -182,11 +149,14 @@ const ProfileUpdateScreen = () => {
           source={{
             uri:
               profile.avatar ||
-              "https://files.vbalo.com/HgoApi?id=hgo_fm_testuploadfile&command=view&parameters=Rootimages.jpg",
+              "https://t3.ftcdn.net/jpg/11/69/54/34/360_F_1169543439_7AxjAvV0GnwlEo3IIqlCGqiF3UFJfTAe.jpg",
           }}
           style={styles.avatar}
         />
-        <TouchableOpacity style={styles.avatarOverlay} onPress={pickImage}>
+        <TouchableOpacity
+          style={styles.avatarOverlay}
+          onPress={() => setShowWebView(true)}
+        >
           <MaterialCommunityIcons
             name="image-edit-outline"
             size={24}
@@ -220,9 +190,9 @@ const ProfileUpdateScreen = () => {
           <Text style={styles.value}>{profile.email || "Chưa cung cấp"}</Text>
         </View>
         <TouchableOpacity
-          disabled={!!profile.email} 
+          disabled={!!profile.email}
           onPress={() => setShowEmailModal(true)}
-          style={profile.email ? { display: "none" } : {}} 
+          style={profile.email ? { display: "none" } : {}}
         >
           <Text style={[styles.editButton, profile.email && { color: "#999" }]}>
             {profile.phone ? "Thêm" : "Không thể sửa"}
@@ -244,12 +214,12 @@ const ProfileUpdateScreen = () => {
           <Text style={styles.value}>{profile.phone || "Chưa cung cấp"}</Text>
         </View>
         <TouchableOpacity
-          disabled={!!profile.phone} 
+          disabled={!!profile.phone}
           onPress={() => setShowPhoneModal(true)}
-          style={profile.phone ? { display: "none" } : {}} 
+          style={profile.phone ? { display: "none" } : {}}
         >
           <Text style={[styles.editButton, profile.phone && { color: "#999" }]}>
-            {profile.email ? "Thêm": "Không thể sửa"}
+            {profile.email ? "Thêm" : "Không thể sửa"}
           </Text>
         </TouchableOpacity>
 
@@ -295,6 +265,13 @@ const ProfileUpdateScreen = () => {
           content={profile.linkedAccounts || ""}
         />
       </View> */}
+      <Modal visible={showWebView} transparent={false} animationType="slide">
+        <FileUploadWebView
+          token={`User${profile.id}`} 
+          onFileSelected={(fileUrl) => updateAvatarUrl(fileUrl)}
+          onClose={() => setShowWebView(false)}
+        />
+      </Modal>
     </ScrollView>
   );
 };
