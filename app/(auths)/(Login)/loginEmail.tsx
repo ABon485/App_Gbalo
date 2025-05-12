@@ -42,7 +42,6 @@ const LoginEmail = () => {
   };
 
   const handleLogin = async () => {
-    // Kiểm tra email rỗng
     if (!email) {
       showToast({
         type: "error",
@@ -52,7 +51,6 @@ const LoginEmail = () => {
       return;
     }
 
-    // Kiểm tra định dạng email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       showToast({
@@ -63,7 +61,6 @@ const LoginEmail = () => {
       return;
     }
 
-    // Kiểm tra password rỗng
     if (!password) {
       showToast({
         type: "error",
@@ -83,15 +80,30 @@ const LoginEmail = () => {
       };
 
       const response: ApiResponse = await api.post("/LoginByEmail", formData);
+      console.log("API /LoginByEmail response:", response);
 
-      if (response.success) {
-        await AsyncStorage.setItem(
-          "data",
-          JSON.stringify({
-            token: response.data.token,
-            user: response.data.user,
-          })
-        );
+      const isSuccess = response.data?.status === "Success";
+      const token = response.data?.data?.token;
+
+      if (isSuccess && token) {
+        // Fetch user profile to get fullName if not included in response
+        let fullName = response.data?.data?.fullName;
+        if (!fullName) {
+          const profileResponse = await api.get("/Accounts/Profile", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          fullName = profileResponse.data?.data?.fullName || "Khách hàng";
+        }
+
+        // Store token and user data in AsyncStorage
+        const authData = {
+          token,
+          email,
+          fullName,
+        };
+        await AsyncStorage.setItem("data", JSON.stringify(authData));
 
         showToast({
           type: "success",
@@ -101,13 +113,11 @@ const LoginEmail = () => {
 
         router.replace("/(tabs)/assistant");
       } else {
-        // Xử lý lỗi chi tiết từ backend
-        let errorMessage = response.message || "Đăng nhập thất bại";
+        let errorMessage = response.data?.message || "Đăng nhập thất bại";
 
-        // Ví dụ: phân tích message trả về để hiển thị chính xác hơn
-        if (response.message?.toLowerCase().includes("password")) {
+        if (errorMessage.toLowerCase().includes("password")) {
           errorMessage = "Sai mật khẩu";
-        } else if (response.message?.toLowerCase().includes("not found")) {
+        } else if (errorMessage.toLowerCase().includes("not found")) {
           errorMessage = "Tài khoản không tồn tại";
         }
 
@@ -127,7 +137,6 @@ const LoginEmail = () => {
       setLoading(false);
     }
   };
-
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
