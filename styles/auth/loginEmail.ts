@@ -183,7 +183,8 @@ const styles = StyleSheet.create({
   registerLink: {
     fontSize: 13,
     color: "#007AFF",
-    fontFamily:'Inter-Medium'
+    fontFamily:'Inter-Medium',
+    textDecorationLine: 'underline',
   },
   socialIconContainer: {
     width: 24,
