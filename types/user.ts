@@ -23,8 +23,8 @@ export type RegisterByEmail = {
 export type RegistercodeByEmail = {
   token: string;
   code: string;
-  type: number;
 };
+
 export type RegisterByPhone = {
   token: string;
   phone: string;
@@ -88,9 +88,22 @@ export type SendCodeLogin = {
   sendType: "email" | "phone";
   phone: string;
   email: string;
-};
-// Xác thực mã (dùng publicKey và code)
-export type VerifyCodeLogin = {
-  publicKey: string;
+}
+  export type VerifyCodeLogin = {
+    publicKey: string;
+    code: string;
+  }
+export type ChangePassByCodeType = {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+export type VerifyChangePassCodeType = {
+  token: string;
   code: string;
-};
+}
+export type ChangePassCodeType = {
+  type: 'email' | 'phone';
+  phone?: string;
+  email?: string;
+}
