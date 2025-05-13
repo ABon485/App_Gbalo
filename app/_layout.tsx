@@ -76,6 +76,8 @@ function RootLayoutNav() {
           <Stack.Screen name="(auths)/(register)/registerEmail/veryfyEmail" options={{ headerShown: false }} />
           <Stack.Screen name="(screens)/[detailID]" options={{ headerShown: false }} />
           <Stack.Screen name="(screens)/profile/profile" options={{ headerShown: false }} />
+          <Stack.Screen name="(screens)/booking/confirmBooking" options={{ headerShown: false }} />
+          <Stack.Screen name="(screens)/booking/successBooking" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
         {/* <Toast config={toastConfig} /> vẫn giữ để hiển thị Toast */}

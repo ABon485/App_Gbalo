@@ -1,66 +1,61 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
-  Modal,
   TouchableOpacity,
+  Modal,
   StyleSheet,
-  Animated,
-  Easing,
   Dimensions,
 } from "react-native";
-import DatePicker from "react-native-ui-datepicker";
 import dayjs from "dayjs";
-import "dayjs/locale/vi"; // Import Vietnamese locale for dayjs
+import "dayjs/locale/vi";
 
-const { height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
-type Props = {
-  visible: boolean;
-  onClose: () => void;
-  onSave: (date: string) => void;
-  selectedDates?: string[];
+const getDaysInMonth = (year: number, month: number) => {
+  const firstDay = dayjs(`${year}-${month + 1}-01`);
+  const days = [];
+
+  const offset = firstDay.day(); 
+  for (let i = 0; i < offset; i++) {
+    days.push(null); 
+  }
+
+  const totalDays = firstDay.daysInMonth();
+  for (let d = 1; d <= totalDays; d++) {
+    days.push(dayjs(new Date(year, month, d)));
+  }
+
+  return days;
 };
 
-export default function Schedule({
+const CustomDatePicker = ({
   visible,
   onClose,
   onSave,
-  selectedDates = [],
-}: Props) {
-  const slideAnim = useRef(new Animated.Value(height)).current;
-  const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [currentYear, setCurrentYear] = useState(dayjs().year());
-  const [currentMonth, setCurrentMonth] = useState(dayjs().month());
-
-  const selectedDatesArray = selectedDates.map((date) => dayjs(date));
-
-  useEffect(() => {
-    Animated.timing(slideAnim, {
-      toValue: visible ? 0 : height,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-
-    if (visible) {
-      setSelectedDate(dayjs(new Date(currentYear, currentMonth, 1)));
-    }
-  }, [visible, currentMonth, currentYear]);
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onSave: (date: string) => void;
+}) => {
+  const today = dayjs();
+  const [currentMonth, setCurrentMonth] = useState(today.month());
+  const [currentYear, setCurrentYear] = useState(today.year());
+  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
 
   const handleMonthChange = (direction: "prev" | "next") => {
     let newMonth = currentMonth;
     let newYear = currentYear;
 
     if (direction === "prev") {
-      if (currentMonth === 0) {
+      if (newMonth === 0) {
         newMonth = 11;
         newYear -= 1;
       } else {
         newMonth -= 1;
       }
     } else {
-      if (currentMonth === 11) {
+      if (newMonth === 11) {
         newMonth = 0;
         newYear += 1;
       } else {
@@ -70,102 +65,78 @@ export default function Schedule({
 
     setCurrentMonth(newMonth);
     setCurrentYear(newYear);
-    setSelectedDate(dayjs(new Date(newYear, newMonth, selectedDate.date())));
   };
 
-  const handleDateChange = (date: any) => {
-    setSelectedDate(dayjs(date));
-  };
-
-  const isSelectedPreviously = (date: Date) => {
-    return selectedDatesArray.some(
-      (d) => d.format("YYYY-MM-DD") === dayjs(date).format("YYYY-MM-DD")
-    );
-  };
-
-  const customDayStyle = (date: any) => {
-    const formattedDate = dayjs(date);
-    const today = dayjs(); // Real-time current date (May 5, 2025)
-
-    if (formattedDate.isBefore(today, "day")) {
-      return {
-        textStyle: { color: "#bbb" },
-        containerStyle: { backgroundColor: "#f0f0f0" },
-        disabled: true,
-      };
-    }
-
-    if (isSelectedPreviously(date)) {
-      return {
-        textStyle: { color: "#333", fontWeight: "bold" },
-        containerStyle: {
-          backgroundColor: "#E0E0E0",
-          borderRadius: 20,
-        },
-      };
-    }
-
-    if (formattedDate.isSame(selectedDate, "day")) {
-      return {
-        textStyle: { color: "#fff", fontWeight: "bold" },
-        containerStyle: {
-          backgroundColor: "#FF5722",
-          borderRadius: 20,
-        },
-      };
-    }
-
-    return {
-      textStyle: { color: "#333" },
-      containerStyle: { backgroundColor: "transparent" },
-    };
-  };
+  const days = getDaysInMonth(currentYear, currentMonth);
+  const weeks = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
 
   return (
-    <Modal transparent animationType="none" visible={visible}>
+    <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} onPress={onClose} />
-        <Animated.View
-          style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}
-        >
-          // ... import và định nghĩa như bạn có sẵn
-          <DatePicker
-            mode="single"
-            date={selectedDate.toDate()}
-            onChange={(params) => handleDateChange(params.date)}
-            locale="vi"
-            height={300}
-            selectedTextColor="#fff"
-            selectedBackgroundColor="#FF5722"
-            style={styles.datePicker}
-            headerTextStyle={styles.headerText}
-            dayTextStyle={styles.dayText}
-            weekDaysTextStyle={styles.weekDaysTextStyle} // ✅ sửa key đúng tên
-            customDayStyle={customDayStyle}
-            minDate={dayjs().toDate()}
-            // ✅ Custom header đảm bảo style hoạt động
-            header={({ date }: { date: Date | null }) => {
-              if (!date) return null;
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => handleMonthChange("prev")}>
+              <Text style={styles.arrowText}>{"<"}</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.headerText}>
+              Tháng {currentMonth + 1} năm {currentYear}
+            </Text>
+
+            <TouchableOpacity onPress={() => handleMonthChange("next")}>
+              <Text style={styles.arrowText}>{">"}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Week days */}
+          <View style={styles.weekRow}>
+            {weeks.map((d) => (
+              <Text key={d} style={styles.weekText}>
+                {d}
+              </Text>
+            ))}
+          </View>
+
+          {/* Dates */}
+          <View style={styles.daysContainer}>
+            {days.map((d, index) => {
+              if (!d) {
+                return <View key={index} style={styles.emptyDay} />;
+              }
+
+              const isSelected =
+                selectedDate &&
+                selectedDate.format("YYYY-MM-DD") === d.format("YYYY-MM-DD");
+
+              const isPast = d.isBefore(today, "day");
 
               return (
-                <View style={styles.header}>
-                  <TouchableOpacity onPress={() => handleMonthChange("prev")}>
-                    <Text style={styles.arrowText}>{"<"}</Text>
-                  </TouchableOpacity>
-
-                  <Text style={styles.monthTitle}>
-                    {`Tháng ${dayjs(date).month() + 1} năm ${dayjs(
-                      date
-                    ).year()}`}
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.day,
+                    isSelected && styles.selectedDay,
+                    isPast && styles.disabledDay,
+                  ]}
+                  disabled={isPast}
+                  onPress={() => setSelectedDate(d)}
+                >
+                  <Text
+                    style={[
+                      styles.dayText,
+                      isSelected && styles.selectedDayText,
+                      isPast && styles.disabledDayText,
+                    ]}
+                  >
+                    {d.date()}
                   </Text>
-
-                  <TouchableOpacity onPress={() => handleMonthChange("next")}>
-                    <Text style={styles.arrowText}>{">"}</Text>
-                  </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
               );
-            }}
-          />
+            })}
+          </View>
+
+          {/* Actions */}
           <View style={styles.actions}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
               <Text style={styles.cancelText}>Xóa</Text>
@@ -173,83 +144,99 @@ export default function Schedule({
             <TouchableOpacity
               style={styles.saveBtn}
               onPress={() => {
-                onSave(selectedDate.format("YYYY-MM-DD"));
-                onClose();
+                if (selectedDate) {
+                  onSave(selectedDate.format("YYYY-MM-DD"));
+                  onClose();
+                }
               }}
             >
               <Text style={styles.saveText}>Lưu</Text>
             </TouchableOpacity>
           </View>
-        </Animated.View>
+        </View>
       </View>
     </Modal>
   );
-}
+};
+
+const daySize = (width - 32) / 7;
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  sheet: {
+  container: {
     backgroundColor: "#fff",
-    paddingTop: 16,
+    padding: 16,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    paddingBottom: 30,
-    paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginBottom: 12,
     alignItems: "center",
-    marginBottom: 10,
-    paddingVertical: 10,
-    backgroundColor: "#f9f9f9", // ✅ để kiểm tra hiển thị
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  },
-  monthTitle: {
-    textAlign: "center",
-    fontWeight: "bold",
-    fontSize: 16,
-    color: "#333",
-  },
-  arrowText: {
-    fontSize: 24,
-    color: "#333",
-  },
-  weekDaysTextStyle: {
-    fontSize: 12,
-    color: "#333",
-    fontWeight: "bold",
-  },
-  datePicker: {
-    width: "100%",
   },
   headerText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",
   },
+  arrowText: {
+    fontSize: 24,
+    color: "#000",
+  },
+  weekRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  weekText: {
+    width: daySize,
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 12,
+    color: "#555",
+  },
+  daysContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+  },
+  day: {
+    width: daySize,
+    height: daySize,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 4,
+    borderRadius: daySize / 2,
+  },
   dayText: {
     fontSize: 14,
     color: "#333",
   },
-  weekDaysText: {
-    fontSize: 12,
-    color: "#333",
+  selectedDay: {
+    backgroundColor: "#FF5722",
+  },
+  selectedDayText: {
+    color: "#fff",
     fontWeight: "bold",
+  },
+  disabledDay: {
+    backgroundColor: "#f0f0f0",
+  },
+  disabledDayText: {
+    color: "#bbb",
+  },
+  emptyDay: {
+    width: daySize,
+    height: daySize,
+    marginBottom: 4,
   },
   actions: {
     flexDirection: "row",
-    justifyContent: "space-between",
     marginTop: 16,
   },
   cancelBtn: {
@@ -271,11 +258,11 @@ const styles = StyleSheet.create({
   cancelText: {
     color: "#333",
     fontWeight: "bold",
-    fontSize: 16,
   },
   saveText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
   },
 });
+
+export default CustomDatePicker;

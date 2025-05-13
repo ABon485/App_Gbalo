@@ -31,16 +31,16 @@ export const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)", // mờ nền
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "center",
   },
   modalContainer: {
-    width: "90%",
-    maxHeight: "80%",
+    width: "100%",
     backgroundColor: "#fff",
-    borderRadius: 20,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     padding: 20,
-    elevation: 5,
+    paddingBottom: 30,
   },
   modalText: {
     fontSize: 16,
