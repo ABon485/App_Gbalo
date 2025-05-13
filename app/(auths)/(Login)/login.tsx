@@ -15,17 +15,15 @@ import styles from "@/styles/auth/loginScreen";
 import Feather from "react-native-vector-icons/Feather";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { Stack, useRouter } from "expo-router";
-import GoogleButton from "@/components/common/customButtonSocial/GoogleButton"; // Custom GoogleButton
-import FacebookButton from "@/components/common/customButtonSocial/FacebookButton"; // Custom FacebookButton
+import GoogleButton from "@/components/common/customButtonSocial/GoogleButton"; 
+import FacebookButton from "@/components/common/customButtonSocial/FacebookButton"; 
 
 const LoginScreen = () => {
   const [loginMethod, setLoginMethod] = useState("email");
   const router = useRouter();
 
   const handleFacebookLogin = () => {
-    // Placeholder for Facebook login logic
     console.log("Initiating Facebook login");
-    // Implement Facebook Login with expo-auth-session or @react-native-firebase/auth
   };
 
   const handleLoginPressEmail = () => {

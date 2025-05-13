@@ -76,7 +76,6 @@ const VerifyPhoneForgotPasswordScreen = () => {
         return;
       }
 
-      // Gọi API xác minh OTP
       const payload: VerifyChangePassCodeType = {
         token: publicKey,
         code,
@@ -89,7 +88,6 @@ const VerifyPhoneForgotPasswordScreen = () => {
           type: "success",
           message: "Xác thực mã OTP thành công!",
         });
-        // Lưu token mới nếu server trả về
         if (response.data?.data?.token) {
           await AsyncStorage.setItem("forgotPasswordToken", response.data.data.token);
         }
@@ -246,7 +244,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "80%",
     marginVertical: 20,
-    gap:10, 
+    gap: 10,
   },
   codeInput: {
     width: 40,
