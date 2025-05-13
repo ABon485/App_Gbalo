@@ -33,38 +33,18 @@ export default function RegisterEmail() {
   };
 
   const handleContinue = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     if (!email) {
       showToast({ type: "error", message: "Vui lòng nhập email" });
-      return;
-    }
-
-    if (!emailRegex.test(email)) {
-      showToast({ type: "error", message: "Email không hợp lệ" });
       return;
     }
 
     try {
       setLoading(true);
 
-      // Lấy token từ AsyncStorage
-      const token = await AsyncStorage.getItem("registerToken");
-
-      if (!token) {
-        showToast({ type: "error", message: "Không tìm thấy token xác minh" });
-        return;
-      }
-
       const response = await api.post<ApiResponse<RegistercodeByEmail>>(
         "/Accounts/SendResgiterCode",
         {
           email,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Sử dụng token thật trong header
-          },
         }
       );
 

@@ -62,7 +62,7 @@ export default function Detail() {
     );
   }
   const truncateHTML = (html: string, maxLength: number): string => {
-    const plainText = html.replace(/<[^>]*>/g, ""); // bỏ tag HTML
+    const plainText = html.replace(/<[^>]*>/g, ""); 
     const shortText =
       plainText.length > maxLength
         ? plainText.substring(0, maxLength).trim() + "..."
@@ -76,6 +76,10 @@ export default function Detail() {
   const handleBookTour = () => {
     setShowOrderModal(true);
   };
+
+  function setStep(arg0: string): void {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -213,6 +217,12 @@ export default function Detail() {
             visible={showOrderModal}
             onClose={() => setShowOrderModal(false)}
             title="Đơn hàng"
+            fromPrice={tour.fromPrice}
+            onConfirm={() => { 
+              setShowOrderModal(false);
+               router.push("/booking/confirmBooking");
+            }}
+            
           />
         )}
       </View>
