@@ -18,7 +18,7 @@ import {
 import AntDesign from "@expo/vector-icons/AntDesign"
 import { Stack, router } from "expo-router"
 import authApi from "@/services/auth"
-import { SendCodeLogin } from "@/types/user"
+import { ChangePassCodeType } from "@/types/user"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useToast } from "@/context/ToastContext"
 
@@ -90,18 +90,24 @@ const ForgotPasswordScreen = () => {
 
     setIsLoading(true)
     try {
-      const sendCodePayload: SendCodeLogin = {
-        sendType: "phone",
+      const sendCodePayload: ChangePassCodeType = {
+        type: "phone",
         phone: phoneNumber,
-
+        email: undefined,
       }
 
-      const response = await authApi.loginSendCode(sendCodePayload)
+      console.log("Sending phone number to API:", fullPhoneNumber)
+      const response = await authApi.sendChangePassCode(sendCodePayload)
       console.log("API response:", response)
 
+      // Check if the response indicates success
       if (response.data?.success || response.data?.status === "Success") {
-        const publicKey = response.data.data?.publicKey || ""
+        // Log the data object from the response
+        console.log("Response data:", response.data.data)
+
+        const publicKey = response.data.data?.publicKey || response.data.data?.token || ""
         await AsyncStorage.setItem("forgotPasswordToken", publicKey)
+        console.log("Token stored:", publicKey)
 
         showToast({
           type: "success",
@@ -113,10 +119,11 @@ const ForgotPasswordScreen = () => {
           params: { phoneNumber: fullPhoneNumber },
         })
       } else {
+        // Handle error response
         const errorMsg =
           response.data?.errors?.account?.[0] ||
           response.data?.message ||
-          "Số điện thoại chưa được đăng ký."
+          "Không thể gửi mã xác minh. Vui lòng thử lại."
 
         showToast({
           type: "error",
@@ -124,7 +131,7 @@ const ForgotPasswordScreen = () => {
         })
 
         // Redirect to registration if account doesn't exist
-        if (errorMsg.includes("Tài khoản không tồn tại") || errorMsg.includes("Số điện thoại chưa được đăng ký")) {
+        if (errorMsg.includes("Tài khoản không tồn tại")) {
           setTimeout(() => {
             router.push("/(auths)/(register)/registerPhone/RegisterPhone")
           }, 2000)
@@ -135,7 +142,7 @@ const ForgotPasswordScreen = () => {
       const errorMessage =
         error.response?.data?.errors?.account?.[0] ||
         error.response?.data?.message ||
-        "Số điện thoại chưa được đăng ký."
+        "Đã xảy ra lỗi khi gửi mã xác minh. Vui lòng thử lại."
 
       showToast({
         type: "error",
@@ -143,7 +150,7 @@ const ForgotPasswordScreen = () => {
       })
 
       // Redirect to registration if account doesn't exist
-      if (errorMessage.includes("Tài khoản không tồn tại") || errorMessage.includes("Số điện thoại chưa được đăng ký")) {
+      if (errorMessage.includes("Tài khoản không tồn tại")) {
         setTimeout(() => {
           router.push("/(auths)/(register)/registerPhone/RegisterPhone")
         }, 2000)
@@ -177,11 +184,10 @@ const ForgotPasswordScreen = () => {
 
             <View style={styles.formContainer}>
               <Text style={styles.headerText}>Quên mật khẩu</Text>
-
               <View style={styles.inputContainer}>
                 <TouchableOpacity onPress={openModal} style={styles.countryCodeButton}>
                   <Text style={styles.countryCodeText}>{selectedCountry.code}</Text>
-                  <AntDesign name="down" size={16} color="#000" style={styles.downIcon} />
+                  <AntDesign name="down" size={16} color="#000" style={styles.downIcon}/>
                 </TouchableOpacity>
                 <TextInput
                   style={styles.input}
@@ -192,7 +198,6 @@ const ForgotPasswordScreen = () => {
                   placeholderTextColor="#999999"
                 />
               </View>
-
               <Modal
                 animationType="slide"
                 transparent={true}

@@ -1,10 +1,10 @@
 
 import api from "@/config/api";
 import {
-  LoginEmailType, LoginByPhone, LoginType, VerifyCodeLogin, SendCodeLogin,RegisterByEmail,
-  RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail,RegisterTypePhone,
-  RegistercodeByPhone, ProfileResponse, UpdateEmail, UpdatePhone,ChangePassByCodeType,VerifyChangePassCodeType,
-  UpdateProfile
+  LoginEmailType, LoginByPhone, LoginType, VerifyCodeLogin, SendCodeLogin, RegisterByEmail,
+  RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail, RegisterTypePhone,
+  RegistercodeByPhone, ProfileResponse, UpdateEmail, UpdatePhone, ChangePassByCodeType, VerifyChangePassCodeType,
+  UpdateProfile, ChangePassCodeType
 } from "@/types/user";
 
 const authApi = {
@@ -13,7 +13,20 @@ const authApi = {
   loginPhone: (formData: LoginByPhone) => api.post("/LoginByPhone", formData),
   loginSendCode: (formData: SendCodeLogin) => api.post("/SendLoginCode", formData),
   loginByCode: (formData: VerifyCodeLogin) => api.post("/LoginByCode", formData),
-  ChangePassByCode: (formData: ChangePassByCodeType) => api.post("/Accounts/ChangePassByCode", formData),
+  ChangePassByCode: (formData: ChangePassByCodeType) =>
+    api.post("/Accounts/ChangePassByCode", formData, {
+      headers: {
+        "Content-Type": "application/json-patch+json",
+        Accept: "text/plain",
+      },
+    }),
+  sendChangePassCode: (formData: ChangePassCodeType) =>
+    api.post("/Accounts/SendChangePassCode", formData, {
+      headers: {
+        "Content-Type": "application/json-patch+json",
+        Accept: "text/plain",
+      },
+    }),
   VerifyChangePassByCode: (formData: VerifyChangePassCodeType) => api.post("/Accounts/VerifyChangePassCode", formData),
 
 

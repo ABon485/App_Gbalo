@@ -46,11 +46,6 @@ const VerifyPhoneForgotPasswordScreen = () => {
       if (text && index < 5 && inputRefs.current[index + 1]) {
         inputRefs.current[index + 1]?.focus()
       }
-
-      // Kiểm tra nếu đã nhập đủ 6 số
-      if (newOtp.join("").length === 6) {
-        handleContinue(newOtp.join(""))
-      }
     }
   }
 
@@ -60,7 +55,8 @@ const VerifyPhoneForgotPasswordScreen = () => {
     }
   }
 
-  const handleContinue = async (code: string) => {
+  const handleContinue = async () => {
+    const code = otp.join("");
     if (code.length < 6) {
       showToast({
         type: "error",
@@ -71,43 +67,44 @@ const VerifyPhoneForgotPasswordScreen = () => {
 
     try {
       setIsLoading(true);
+      const publicKey = await AsyncStorage.getItem("forgotPasswordToken");
+      if (!publicKey) {
+        showToast({
+          type: "error",
+          message: "Không tìm thấy token xác thực. Vui lòng thử lại.",
+        });
+        return;
+      }
 
-      // Kiểm tra mã OTP mặc định
-      if (code === "123456") {
-        const publicKey = await AsyncStorage.getItem("forgotPasswordToken");
-        if (!publicKey) {
-          showToast({
-            type: "error",
-            message: "Không tìm thấy token xác thực. Vui lòng thử lại.",
-          });
-          return;
-        }
+      // Gọi API xác minh OTP
+      const payload: VerifyChangePassCodeType = {
+        token: publicKey,
+        code,
+      };
+      const response = await authApi.VerifyChangePassByCode(payload);
+      console.log("Verify response:", JSON.stringify(response.data, null, 2));
 
-        // Lưu dữ liệu giả lập vào AsyncStorage
-        await AsyncStorage.setItem(
-          "data",
-          JSON.stringify({
-            token: publicKey, // Sử dụng publicKey như token
-            user: {}, // Dữ liệu người dùng giả lập
-          })
-        );
-
+      if (response.data?.status === "Success") {
         showToast({
           type: "success",
-          message: "Xác thực tài khoản thành công!",
+          message: "Xác thực mã OTP thành công!",
         });
-        router.push("/(auths)/(Login)/forgotPassword/reset-password"); 
+        // Lưu token mới nếu server trả về
+        if (response.data?.data?.token) {
+          await AsyncStorage.setItem("forgotPasswordToken", response.data.data.token);
+        }
+        router.push("/(auths)/(Login)/forgotPassword/reset-password");
       } else {
         showToast({
           type: "error",
-          message: "Mã xác nhận không đúng. Vui lòng nhập mã 123456.",
+          message: response.data?.message || "Mã xác nhận không đúng.",
         });
       }
     } catch (error: any) {
-      console.error("Lỗi xác thực:", error);
+      console.error("Lỗi xác thực:", JSON.stringify(error, null, 2));
       showToast({
         type: "error",
-        message: "Đã xảy ra lỗi. Vui lòng thử lại.",
+        message: error.message || "Xác thực mã OTP thất bại. Vui lòng thử lại.",
       });
     } finally {
       setIsLoading(false);
@@ -168,7 +165,7 @@ const VerifyPhoneForgotPasswordScreen = () => {
                   isOtpComplete ? styles.activeButton : styles.inactiveButton,
                   isLoading && styles.loadingButton,
                 ]}
-                onPress={() => handleContinue(otp.join(""))}
+                onPress={handleContinue}
                 disabled={!isOtpComplete || isLoading}
               >
                 {isLoading ? (
@@ -246,9 +243,10 @@ const styles = StyleSheet.create({
   },
   codeInputContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     width: "80%",
     marginVertical: 20,
+    gap:10, 
   },
   codeInput: {
     width: 40,
@@ -274,7 +272,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 16,
-
   },
   activeButton: {
     backgroundColor: "#FF5722"
