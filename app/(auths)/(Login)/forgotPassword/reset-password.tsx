@@ -44,7 +44,6 @@ const ResetPasswordScreen = () => {
 
     setIsLoading(true);
     try {
-      // Retrieve token
       const tokenFromParams = resetToken;
       const tokenFromStorage = await AsyncStorage.getItem("forgotPasswordToken");
       const token = tokenFromParams || tokenFromStorage;

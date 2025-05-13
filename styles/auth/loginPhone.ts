@@ -181,6 +181,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
+  forgotPasswordContainer: {
+    alignSelf: "center",
+    marginBottom: 10,
+  },
+  forgotPasswordText: { 
+    color: "#007AFF",
+    fontSize: 14,
+    paddingLeft:200,
+    textDecorationLine: 'underline',
+    fontFamily:'Inter-Medium'
+  },
 })
 
 export default styles

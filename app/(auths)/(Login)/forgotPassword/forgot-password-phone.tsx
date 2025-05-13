@@ -63,11 +63,9 @@ const ForgotPasswordScreen = () => {
   const { showToast } = useToast()
 
   const handleSendCode = async () => {
-    // Normalize phone number: remove non-digits and leading zeros
     const normalizedPhone = phoneNumber.replace(/\D/g, "").replace(/^0+/, "")
     const fullPhoneNumber = `${selectedCountry.code}${normalizedPhone}`
 
-    // Validate phone number
     if (!phoneNumber.trim()) {
       showToast({ type: "error", message: "Vui lòng nhập số điện thoại." })
       return
@@ -79,7 +77,6 @@ const ForgotPasswordScreen = () => {
       return
     }
 
-    // Validate Vietnam phone number length
     if (selectedCountry.code === "+84" && normalizedPhone.length !== 9) {
       showToast({
         type: "error",
@@ -95,20 +92,13 @@ const ForgotPasswordScreen = () => {
         phone: phoneNumber,
         email: undefined,
       }
-
-      console.log("Sending phone number to API:", fullPhoneNumber)
       const response = await authApi.sendChangePassCode(sendCodePayload)
-      console.log("API response:", response)
-
-      // Check if the response indicates success
       if (response.data?.success || response.data?.status === "Success") {
-        // Log the data object from the response
         console.log("Response data:", response.data.data)
 
         const publicKey = response.data.data?.publicKey || response.data.data?.token || ""
         await AsyncStorage.setItem("forgotPasswordToken", publicKey)
         console.log("Token stored:", publicKey)
-
         showToast({
           type: "success",
           message: "Mã xác nhận đã được gửi. Trong môi trường phát triển, sử dụng mã OTP: 123456",
@@ -119,7 +109,6 @@ const ForgotPasswordScreen = () => {
           params: { phoneNumber: fullPhoneNumber },
         })
       } else {
-        // Handle error response
         const errorMsg =
           response.data?.errors?.account?.[0] ||
           response.data?.message ||
@@ -130,7 +119,6 @@ const ForgotPasswordScreen = () => {
           message: errorMsg,
         })
 
-        // Redirect to registration if account doesn't exist
         if (errorMsg.includes("Tài khoản không tồn tại")) {
           setTimeout(() => {
             router.push("/(auths)/(register)/registerPhone/RegisterPhone")
