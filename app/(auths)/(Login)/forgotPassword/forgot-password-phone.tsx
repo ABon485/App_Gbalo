@@ -1,23 +1,24 @@
+"use client"
+
 import { useState } from "react"
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   Image,
   SafeAreaView,
   ScrollView,
   ImageBackground,
   StatusBar,
+  TextInput,
   FlatList,
   Modal,
+  StyleSheet
 } from "react-native"
-import styles from "@/styles/auth/loginPhone"
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import AntDesign from "@expo/vector-icons/AntDesign"
 import { Stack, router } from "expo-router"
 import authApi from "@/services/auth"
-import { SendCodeLogin } from "@/types/user"
+import { ChangePassCodeType } from "@/types/user"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useToast } from "@/context/ToastContext"
 
@@ -54,26 +55,25 @@ const countryPhoneCodes = [
   { name: "Chile", code: "+56" },
 ]
 
-const LoginScreen = () => {
+const ForgotPasswordScreen = () => {
   const [phoneNumber, setPhoneNumber] = useState("")
   const [selectedCountry, setSelectedCountry] = useState(countryPhoneCodes[0])
   const [isModalVisible, setModalVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { showToast } = useToast()
 
-  const handleContinue = async () => {
+  const handleSendCode = async () => {
     const normalizedPhone = phoneNumber.replace(/\D/g, "").replace(/^0+/, "")
     const fullPhoneNumber = `${selectedCountry.code}${normalizedPhone}`
 
     if (!phoneNumber.trim()) {
-      showToast({ type: "error", message: "Please enter your phone number." })
+      showToast({ type: "error", message: "Vui lòng nhập số điện thoại." })
       return
     }
 
     const phoneRegex = /^\+?[0-9]{7,15}$/
-
     if (!phoneRegex.test(fullPhoneNumber) || /\D/.test(normalizedPhone)) {
-      showToast({ type: "error", message: "Invalid phone number." })
+      showToast({ type: "error", message: "Số điện thoại không hợp lệ." })
       return
     }
 
@@ -87,30 +87,26 @@ const LoginScreen = () => {
 
     setIsLoading(true)
     try {
-      const sendCodePayload: SendCodeLogin = {
-        sendType: "phone",
+      const sendCodePayload: ChangePassCodeType = {
+        type: "phone",
         phone: phoneNumber,
-        email: "",
+        email: undefined,
       }
-
-      console.log("Sending phone number to API:", fullPhoneNumber)
-      const response = await authApi.loginSendCode(sendCodePayload)
-      console.log("API response:", response)
-
+      const response = await authApi.sendChangePassCode(sendCodePayload)
       if (response.data?.success || response.data?.status === "Success") {
-        const publicKey = response.data.data?.publicKey || ""
-        await AsyncStorage.setItem("loginToken", publicKey)
+        console.log("Response data:", response.data.data)
 
+        const publicKey = response.data.data?.publicKey || response.data.data?.token || ""
+        await AsyncStorage.setItem("forgotPasswordToken", publicKey)
+        console.log("Token stored:", publicKey)
         showToast({
           type: "success",
           message: "Mã xác nhận đã được gửi. Trong môi trường phát triển, sử dụng mã OTP: 123456",
         })
 
         router.push({
-          pathname: "/(auths)/(Login)/verify-phone",
-          params: {
-            phoneNumber: fullPhoneNumber,
-          },
+          pathname: "/(auths)/(Login)/forgotPassword/verify-phone-forgotPassword",
+          params: { phoneNumber: fullPhoneNumber },
         })
       } else {
         const errorMsg =
@@ -141,6 +137,7 @@ const LoginScreen = () => {
         message: errorMessage,
       })
 
+      // Redirect to registration if account doesn't exist
       if (errorMessage.includes("Tài khoản không tồn tại")) {
         setTimeout(() => {
           router.push("/(auths)/(register)/registerPhone/RegisterPhone")
@@ -149,18 +146,6 @@ const LoginScreen = () => {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleForgotPassword = () => {
-    router.push("/(auths)/(Login)/forgotPassword/forgot-password-phone");
-  };
-
-  const handleEmailLogin = () => {
-    router.push("/(auths)/(Login)/loginEmail")
-  }
-
-  const handleRegister = () => {
-    router.push("/(auths)/(register)/registerPhone/RegisterPhone")
   }
 
   const openModal = () => {
@@ -179,29 +164,21 @@ const LoginScreen = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ImageBackground
-        source={require("../../../assets/images/BackGroud.png")}
-        style={styles.backgroundImage}
-      >
+      <ImageBackground source={require("@/assets/images/BackGroud.png")} style={styles.background}>
         <StatusBar translucent backgroundColor="transparent" />
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
           <ScrollView contentContainerStyle={styles.scrollContainer}>
-            <Image
-              source={require("@/assets/images/imagLogo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+            <Image source={require("@/assets/images/imagLogo.png")} style={styles.logo} resizeMode="contain" />
 
             <View style={styles.formContainer}>
-              <Text style={styles.title}>Đăng nhập</Text>
-
-              <View style={styles.phoneInputContainer}>
-                <TouchableOpacity onPress={openModal} style={styles.countryCodeContainer}>
+              <Text style={styles.headerText}>Quên mật khẩu</Text>
+              <View style={styles.inputContainer}>
+                <TouchableOpacity onPress={openModal} style={styles.countryCodeButton}>
                   <Text style={styles.countryCodeText}>{selectedCountry.code}</Text>
-                  <AntDesign name="down" size={16} color="#000" style={styles.downIcon} />
+                  <AntDesign name="down" size={16} color="#000" style={styles.downIcon}/>
                 </TouchableOpacity>
                 <TextInput
-                  style={styles.phoneInput}
+                  style={styles.input}
                   placeholder="Nhập số điện thoại"
                   value={phoneNumber}
                   onChangeText={setPhoneNumber}
@@ -209,7 +186,6 @@ const LoginScreen = () => {
                   placeholderTextColor="#999999"
                 />
               </View>
-
               <Modal
                 animationType="slide"
                 transparent={true}
@@ -237,54 +213,14 @@ const LoginScreen = () => {
               </Modal>
 
               <TouchableOpacity
-                style={[styles.loginButton, isLoading && { opacity: 0.6 }]}
-                onPress={handleContinue}
+                style={[styles.sendCodeButton, isLoading && { opacity: 0.6 }]}
+                onPress={handleSendCode}
                 disabled={isLoading}
               >
-                <Text style={styles.loginButtonText}>
-                  {isLoading ? "Đang xử lý..." : "Tiếp tục"}
+                <Text style={styles.sendCodeButtonText}>
+                  {isLoading ? "Đang xử lý..." : "Gửi mã xác minh"}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.forgotPasswordContainer}
-                onPress={handleForgotPassword}
-              >
-                <Text style={styles.forgotPasswordText}>Quên mật khẩu</Text>
-              </TouchableOpacity>
-
-              <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>Hoặc đăng nhập bằng</Text>
-                <View style={styles.divider} />
-              </View>
-
-              <TouchableOpacity style={styles.socialButton} onPress={handleEmailLogin}>
-                <View style={styles.socialIconContainer}>
-                  <MaterialCommunityIcons name="email-outline" size={20} color="gray" />
-                </View>
-                <Text style={styles.socialButtonText}>Tiếp tục với Email</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.socialButton}>
-                <View style={styles.socialIconContainer}>
-                  <Image source={require("@/assets/images/Google.png")} style={{ width: 24, height: 24 }} />
-                </View>
-                <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.socialButton}>
-                <View style={styles.socialIconContainer}>
-                  <Image source={require("@/assets/images/Facebook.png")} style={{ width: 24, height: 24 }} />
-                </View>
-                <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
-              </TouchableOpacity>
-
-              <View style={styles.registerContainer}>
-                <Text style={styles.registerText}>Bạn chưa có tài khoản? </Text>
-                <TouchableOpacity onPress={handleRegister}>
-                  <Text style={styles.registerLink}>Đăng ký</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           </ScrollView>
         </SafeAreaView>
@@ -293,4 +229,119 @@ const LoginScreen = () => {
   )
 }
 
-export default LoginScreen
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  safeArea: {
+    flex: 1,
+    width: "100%",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    alignItems: "center",
+    width: "100%",
+    paddingTop: 80,
+    paddingBottom: 0,
+    justifyContent: "space-between",
+  },
+  logo: {
+    width: "50%",
+    height: "15%",
+    marginBottom: 20,
+  },
+  formContainer: {
+    width: "100%",
+    height: "75%",
+    backgroundColor: "white",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  headerText: {
+    fontSize: 24,
+    marginBottom: 20,
+    color: "#000",
+    fontFamily: "Inter-Black",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    height: 43,
+    borderColor: "#D1D5DB",
+    borderWidth: 1,
+    borderRadius: 50,
+    marginBottom: 16,
+    paddingLeft: 10,
+    paddingRight: 20,
+  },
+  countryCodeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 10,
+  },
+  countryCodeText: {
+    fontSize: 16,
+    color: "#4B5563",
+  },
+  downIcon: {
+    marginLeft: 5,
+  },
+  input: {
+    flex: 1,
+    height: "100%",
+    fontSize: 16,
+    paddingLeft: 10,
+    color: "#4B5563",
+    fontFamily: "Inter-Medium",
+  },
+  sendCodeButton: {
+    width: "100%",
+    height: 43,
+    backgroundColor: "#FF5722",
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  sendCodeButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "Inter-Medium",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    width: "80%",
+    maxHeight: "80%",
+    padding: 20,
+  },
+  countryItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#D1D5DB",
+  },
+  countryItemText: {
+    fontSize: 16,
+    color: "#4B5563",
+    fontFamily: "Inter-Medium",
+  },
+})
+
+export default ForgotPasswordScreen

@@ -19,7 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/config/api";
 import { LoginEmailType } from "@/types/user";
 import { ApiResponse } from "@/types/api";
-import { useToast } from "@/context/ToastContext"; // 👈 import useToast
+import { useToast } from "@/context/ToastContext"; 
 
 const LoginEmail = () => {
   const [email, setEmail] = useState("");
@@ -27,14 +27,14 @@ const LoginEmail = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { showToast } = useToast(); // 👈 sử dụng useToast
+  const { showToast } = useToast(); 
 
   const handlePhoneLogin = () => {
     router.push("/(auths)/(Login)/loginPhone");
   };
 
   const handleForgotPassword = () => {
-    router.push("/(auths)/(Login)/forgotPassword/forgot-password");
+    router.push("/(auths)/(Login)/forgotPassword/forgot-password-email");
   };
 
   const handleRegister = () => {
@@ -86,7 +86,6 @@ const LoginEmail = () => {
       const token = response.data?.data?.token;
 
       if (isSuccess && token) {
-        // Fetch user profile to get fullName if not included in response
         let fullName = response.data?.data?.fullName;
         if (!fullName) {
           const profileResponse = await api.get("/Accounts/Profile", {
@@ -97,7 +96,6 @@ const LoginEmail = () => {
           fullName = profileResponse.data?.data?.fullName || "Khách hàng";
         }
 
-        // Store token and user data in AsyncStorage
         const authData = {
           token,
           email,
