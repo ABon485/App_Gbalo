@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  SafeAreaView,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
@@ -81,7 +82,6 @@ const ProfileUpdateScreen = () => {
         JSON.stringify(response.data, null, 2)
       );
 
-      // GỌI LẠI API PROFILE ĐỂ LẤY AVATAR MỚI
       await fetchProfile();
 
       showToast({
@@ -98,7 +98,6 @@ const ProfileUpdateScreen = () => {
     fetchProfile();
   }, []);
   console.log("PROFILE DATA:", JSON.stringify(profile, null, 2));
-
 
   const handleEmailUpdated = (newEmail: string) => {
     if (profile) {
@@ -248,29 +247,21 @@ const ProfileUpdateScreen = () => {
         />
       </View>
 
-      {/* <View style={styles.row}>
-        <View style={styles.rowLeft}>
-          <Text style={styles.label}>Liên kết tài khoản (Google, Facebook, Apple ID)</Text>
-          <Text style={styles.value}>
-            {profile.linkedAccounts || "Chưa cung cấp"}
-          </Text>
-        </View>
-        <TouchableOpacity onPress={() => setShowLinkedModal(true)}>
-          <Text style={styles.editButton}>Thêm</Text>
-        </TouchableOpacity>
-        <LinkedAccountModal
-          visible={showLinkedModal}
-          onClose={() => setShowLinkedModal(false)}
-          title="Liên kết tài khoản"
-          content={profile.linkedAccounts || ""}
-        />
-      </View> */}
-      <Modal visible={showWebView} transparent={false} animationType="slide">
-        <FileUploadWebView
-          token={`User${profile.id}`} 
-          onFileSelected={(fileUrl) => updateAvatarUrl(fileUrl)}
-          onClose={() => setShowWebView(false)}
-        />
+      <Modal
+        visible={showWebView}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowWebView(false)}
+        statusBarTranslucent={true}
+        presentationStyle="fullScreen"
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <FileUploadWebView
+            token={`User${profile.id}`}
+            onFileSelected={(fileUrl) => updateAvatarUrl(fileUrl)}
+            onClose={() => setShowWebView(false)}
+          />
+        </SafeAreaView>
       </Modal>
     </ScrollView>
   );
@@ -339,6 +330,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
   },
 });
 
