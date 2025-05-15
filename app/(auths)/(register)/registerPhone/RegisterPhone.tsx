@@ -88,26 +88,12 @@ export default function Register() {
     try {
       setLoading(true);
 
-      const token = await AsyncStorage.getItem("registerToken");
-
-      if (!token) {
-        showToast({ type: "error", message: "Không tìm thấy token xác minh" });
-        return;
-      }
-
       const response = await api.post<ApiResponse<RegistercodeByPhone>>(
         "/Accounts/SendResgiterCode",
         {
           phone: phoneNumber,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
-
-      console.log("Response data:", response.data);
 
       const receivedToken = response.data?.data?.token;
 
