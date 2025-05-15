@@ -10,28 +10,24 @@ import { Alert } from "react-native";
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Define prop types
 interface GoogleButtonProps {
-  onPress?: () => void; // Made onPress optional
+  onPress?: () => void;
   disabled: boolean;
 }
 
-// Use React.FC with typed props
 const GoogleButton: React.FC<GoogleButtonProps> = ({ onPress, disabled }) => {
   const router = useRouter();
-  const [request, setRequest] = useState<any>(null);
-  const [response, setResponse] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Google Auth Configuration
-  const webClientId = '883445305791-6a7t1nufbd8hfdd2qotm5ad15ckf76qe.apps.googleusercontent.com';
-  const iosClientId = '883445305791-m898a0vmmputamcf7teadkkrva3ppqq5.apps.googleusercontent.com';
-  const androidClientId = '883445305791-8t8iqd2mhl8h1t7i82308h126upiuc82.apps.googleusercontent.com';
+  const webClientId = "883445305791-6a7t1nufbd8hfdd2qotm5ad15ckf76qe.apps.googleusercontent.com";
+  const iosClientId = "883445305791-m898a0vmmputamcf7teadkkrva3ppqq5.apps.googleusercontent.com";
+  const androidClientId = "883445305791-8t8iqd2mhl8h1t7i82308h126upiuc82.apps.googleusercontent.com";
 
-  // Use Expo Auth Proxy for redirect URI
   const redirectUri = makeRedirectUri({
-    preferLocalhost: false,
+    scheme: "com.tantren.app.gbalo",
+    native: "exp://192.168.68.112:8081",
   });
-  console.log("Redirect URI used:", redirectUri); // Debug: Log redirect URI
+  console.log("Redirect URI:", redirectUri);
 
   const [authRequest, authResponse, promptAsync] = Google.useAuthRequest({
     webClientId,
@@ -41,54 +37,49 @@ const GoogleButton: React.FC<GoogleButtonProps> = ({ onPress, disabled }) => {
   });
 
   useEffect(() => {
-    setRequest(authRequest);
-    setResponse(authResponse);
-  }, [authRequest, authResponse]);
+    if (!authResponse) return;
 
-  // Handle Google Auth response
-  useEffect(() => {
-    console.log("Google Auth Response:", JSON.stringify(response, null, 2));
-    if (response?.type === "success") {
-      const { authentication } = response;
-      const token = authentication?.accessToken;
-      console.log("Access token received:", token);
-
+    if (authResponse.type === "success") {
+      const token = authResponse.authentication?.accessToken;
       if (token) {
-        console.log("Navigating to /(tabs)/assistant");
         router.replace("/(tabs)/assistant");
       } else {
-        Alert.alert("Error", "No token received. Please try again.");
+        Alert.alert("Lỗi", "Không nhận được token. Vui lòng thử lại.");
       }
-    } else if (response?.type === "error") {
-      Alert.alert("Error", "Google login failed. Please try again.");
-      console.log("Error details:", response);
-    } else if (response?.type === "dismiss") {
-      Alert.alert("Cancelled", "Login was cancelled.");
+    } else if (authResponse.type === "error") {
+      Alert.alert("Lỗi", "Đăng nhập Google thất bại. Vui lòng thử lại.");
+    } else if (authResponse.type === "dismiss") {
+      Alert.alert("Hủy", "Đăng nhập bị hủy.");
     }
-  }, [response]);
+  }, [authResponse]);
 
   const handleGoogleLogin = async () => {
-    if (!request) {
-      Alert.alert("Error", "System not ready. Please try again later.");
+    if (!authRequest) {
+      Alert.alert("Lỗi", "Hệ thống chưa sẵn sàng. Vui lòng thử lại sau.");
       return;
     }
-
     try {
-      await promptAsync();
+      setIsLoading(true);
+      const result = await promptAsync();
+      console.log("Kết quả đăng nhập:", JSON.stringify(result, null, 2));
     } catch (error) {
-      Alert.alert("Error", "An error occurred during Google login.");
-      console.log("Login error:", error);
+      Alert.alert("Lỗi", "Đã xảy ra lỗi khi đăng nhập Google.");
+      console.log("Lỗi đăng nhập:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <TouchableOpacity
-      style={[styles.socialButton, disabled && styles.disabledButton]}
-      onPress={onPress || handleGoogleLogin} // Use provided onPress or default to handleGoogleLogin
-      disabled={disabled}
+      style={[styles.socialButton, (disabled || isLoading) && styles.disabledButton]}
+      onPress={onPress || handleGoogleLogin}
+      disabled={disabled || isLoading}
     >
       <Image source={require("@/assets/images/Google.png")} className="w-6 h-6" />
-      <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
+      <Text style={styles.socialButtonText}>
+        {isLoading ? "Đang đăng nhập..." : "Tiếp tục với Google"}
+      </Text>
     </TouchableOpacity>
   );
 };
@@ -112,11 +103,11 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     paddingRight: 23,
-    fontFamily: 'Inter-Medium'
+    fontFamily: "Inter-Medium",
   },
   disabledButton: {
     opacity: 0.5,
-  }
+  },
 });
 
 export default GoogleButton;
