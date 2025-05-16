@@ -1,7 +1,7 @@
 export type ProvinceType = {
   id: string;
   name: string;
-  image?: string[];
+  image?: string;
   description?: string;
 };
 
