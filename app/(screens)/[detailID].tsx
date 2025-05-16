@@ -20,6 +20,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import RenderHtml from "react-native-render-html";
 import { useWindowDimensions } from "react-native";
 import Order from "@/components/booking/order";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
@@ -32,6 +33,7 @@ export default function Detail() {
   const [tour, setTour] = useState<TourDetail | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(false);
+  const [user, setUser] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showExtraUserModal, setShowExtraUserModal] = useState(false);
   const tourId = Number(params?.detailID);
@@ -50,19 +52,24 @@ export default function Detail() {
         }
       };
 
+      const fetchUserInfo = async () => {
+        try {
+          const userData = await AsyncStorage.getItem("data");
+          const userInfo = userData ? JSON.parse(userData) : null;
+          console.log("User Info:", userInfo); // Debug
+          setUser(userInfo);
+        } catch (error) {
+          console.error("Lỗi khi lấy thông tin người dùng:", error);
+        }
+      };
+
       fetchTourDetail();
+      fetchUserInfo();
     }, [tourId])
   );
 
-  if (!tour) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Đang tải thông tin tour...</Text>
-      </View>
-    );
-  }
   const truncateHTML = (html: string, maxLength: number): string => {
-    const plainText = html.replace(/<[^>]*>/g, ""); 
+    const plainText = html.replace(/<[^>]*>/g, "");
     const shortText =
       plainText.length > maxLength
         ? plainText.substring(0, maxLength).trim() + "..."
@@ -73,12 +80,27 @@ export default function Detail() {
 
   const toggleFavorite = () => setIsFavorite(!isFavorite);
 
-  const handleBookTour = () => {
-    setShowOrderModal(true);
+  const handleBookTour = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("data");
+      const userInfo = userData ? JSON.parse(userData) : null;
+      if (!userInfo) {
+        router.push("/(auths)/(Login)/login");
+        return;
+      }
+      setShowOrderModal(true);
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra thông tin người dùng:", error);
+      router.push("/(auths)/(Login)/login");
+    }
   };
 
-  function setStep(arg0: string): void {
-    throw new Error("Function not implemented.");
+  if (!tour) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Đang tải thông tin tour...</Text>
+      </View>
+    );
   }
 
   return (
@@ -147,7 +169,6 @@ export default function Detail() {
 
               {/* Giới thiệu về tour */}
               <Text style={styles.sectionTitle}>Giới thiệu về tour</Text>
-              {/* Giới thiệu rút gọn */}
               <RenderHtml
                 contentWidth={width}
                 source={{ html: truncateHTML(item.description, 150) }}
@@ -168,14 +189,11 @@ export default function Detail() {
               />
 
               <Text style={styles.sectionTitle}>Trải nghiệm bao gồm</Text>
-
-              {/* Render dạng HTML nếu cần */}
               <RenderHtml
                 contentWidth={width}
                 source={{ html: item.included }}
               />
 
-              {/* Lịch trình chi tiết */}
               <SchechuleModal
                 visible={showScheduleModal}
                 onClose={() => setShowScheduleModal(false)}
@@ -205,10 +223,7 @@ export default function Detail() {
             /người
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => setShowOrderModal(true)}
-        >
+        <TouchableOpacity style={styles.button} onPress={handleBookTour}>
           <Text style={styles.buttonText}>Đặt ngay</Text>
         </TouchableOpacity>
 
@@ -218,15 +233,14 @@ export default function Detail() {
             onClose={() => setShowOrderModal(false)}
             title="Đơn hàng"
             fromPrice={tour.fromPrice}
-            onConfirm={() => { 
+            tourId={tour.id}
+            user={user}
+            onConfirm={() => {
               setShowOrderModal(false);
-               router.push("/booking/confirmBooking");
             }}
-            
           />
         )}
       </View>
     </SafeAreaView>
   );
-
 }

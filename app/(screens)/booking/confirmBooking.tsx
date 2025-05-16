@@ -1,17 +1,12 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import styles from "@/styles/booking/confirmBooking";
 import Schedule from "@/components/booking/schedule";
 import ClientOption from "@/components/booking/clientOption";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import tourApi from "@/services/tour";
+import { TourDetail } from "@/types/tour";
 
 export default function ConfirmBooking() {
   const [isThaiGuide, setIsThaiGuide] = useState(false);
@@ -21,6 +16,38 @@ export default function ConfirmBooking() {
   const [selectedGuests, setSelectedGuests] = useState("");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
+  const [tour, setTour] = useState<TourDetail | null>(null);
+
+  const params = useLocalSearchParams();
+  const tourId = Number(params.tourId);
+  const initialDate = params.selectedDate as string;
+  const initialGuests = params.selectedGuests as string;
+  let user = null;
+  try {
+    user = params.user ? JSON.parse(params.user as string) : null;
+  } catch (error) {
+    console.error("Lỗi khi parse user:", error);
+  }
+
+  useEffect(() => {
+    const fetchTourDetail = async () => {
+      try {
+        const detail = await tourApi.TourDetail(tourId);
+        setTour(detail);
+      } catch (error) {
+        console.error("Lỗi khi lấy chi tiết tour:", error);
+      }
+    };
+
+    if (tourId) {
+      fetchTourDetail();
+    }
+  }, [tourId]);
+
+  useEffect(() => {
+    if (initialDate) setSelectedDate(initialDate);
+    if (initialGuests) setSelectedGuests(initialGuests);
+  }, [initialDate, initialGuests]);
 
   const handleSaveDate = (date: string) => {
     setSelectedDate(date);
@@ -45,6 +72,22 @@ export default function ConfirmBooking() {
     </TouchableOpacity>
   );
 
+  const handlePayment = () => {
+    if (!user) {
+      router.push("/(auths)/(Login)/login");
+      return;
+    }
+    router.push("/booking/successBooking");
+  };
+
+  if (!tour) {
+    return (
+      <View style={styles.container}>
+        <Text>Đang tải thông tin tour...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
@@ -66,15 +109,12 @@ export default function ConfirmBooking() {
             style={styles.tourImage}
           />
           <View style={styles.tourInfo}>
-            <Text style={styles.tourTitle}>
-              Tour sớm đến đồi BaNaHill/Cầu vàng
-            </Text>
-            <Text style={styles.tourDesc}>
-              Tour sớm Bà Nà Hills/Cầu Vàng – săn mây, tận hưởng không khí trong
-              lành
-            </Text>
+            <Text style={styles.tourTitle}>{tour.name}</Text>
+            <Text style={styles.tourDesc}>{tour.subName}</Text>
             <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
-            <Text style={styles.price}>Từ 1,234,567₫/Người</Text>
+            <Text style={styles.price}>
+              Từ {tour.fromPrice.toLocaleString("vi-VN")}₫/Người
+            </Text>
           </View>
         </View>
 
@@ -90,19 +130,19 @@ export default function ConfirmBooking() {
           <View style={styles.scheduleRow}>
             <View style={styles.labelValuePair}>
               <Text style={styles.label}>Ngày:</Text>
-              <Text style={styles.value}>01/04/2025</Text>
+              <Text style={styles.value}>{selectedDate || "Chưa chọn"}</Text>
             </View>
             <TouchableOpacity onPress={() => setShowScheduleModal(true)}>
-              <Text style={styles.link}>Chỉnh sửa {selectedDate}</Text>
+              <Text style={styles.link}>Chỉnh sửa</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.scheduleRow}>
             <View style={styles.labelValuePair}>
               <Text style={styles.label}>Khách:</Text>
-              <Text style={styles.value}>4 khách</Text>
+              <Text style={styles.value}>{selectedGuests || "Chưa chọn"}</Text>
             </View>
             <TouchableOpacity onPress={() => setShowClientModal(true)}>
-              <Text style={styles.link}>Chỉnh sửa {selectedGuests}</Text>
+              <Text style={styles.link}>Chỉnh sửa</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -115,10 +155,14 @@ export default function ConfirmBooking() {
               <Text style={styles.link}>Chỉnh sửa</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.contactText}>Họ tên: Nguyen Chi Thanh</Text>
-          <Text style={styles.contactText}>Số điện thoại: 0359998691</Text>
           <Text style={styles.contactText}>
-            Email: thanhchi170923@gmail.com
+            Họ tên: {user.fullName || "Chưa cung cấp"}
+          </Text>
+          <Text style={styles.contactText}>
+            Số điện thoại: {user.phone || "Chưa cung cấp"}
+          </Text>
+          <Text style={styles.contactText}>
+            Email: {user.email || "Chưa cung cấp"}
           </Text>
         </View>
 
@@ -175,8 +219,10 @@ export default function ConfirmBooking() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.priceHighlight}>đ 4.964.000</Text>
-          <TouchableOpacity style={styles.button} onPress={() => router.push("/booking/successBooking")}>
+          <Text style={styles.priceHighlight}>
+            đ {tour.fromPrice.toLocaleString("vi-VN")}
+          </Text>
+          <TouchableOpacity style={styles.button} onPress={handlePayment}>
             <Text style={styles.buttonText}>Thanh toán</Text>
           </TouchableOpacity>
         </View>
