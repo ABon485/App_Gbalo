@@ -62,7 +62,7 @@ const ProfileUpdateScreen = () => {
   };
 
   const updateAvatarUrl = async (fileUrl: string) => {
-    console.log("🧩 Avatar URL nhận được:", fileUrl);
+    console.log("Avatar URL nhận được:", fileUrl);
     try {
       const data = await AsyncStorage.getItem("data");
       if (!data) throw new Error("Không tìm thấy dữ liệu người dùng");
@@ -83,6 +83,10 @@ const ProfileUpdateScreen = () => {
       );
 
       await fetchProfile();
+      console.log(
+        "Dữ liệu sau khi fetch lại:",
+        JSON.stringify(response.data.data, null, 2)
+      );
 
       showToast({
         message: "Cập nhật ảnh đại diện thành công",
