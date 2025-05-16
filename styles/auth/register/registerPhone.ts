@@ -1,6 +1,5 @@
 import { StyleSheet, Dimensions } from "react-native";
-
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   backgroundImage: {
@@ -8,24 +7,22 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  scrollViewContent: {
-    flexGrow: 1,
-  },
-  logoContainer: {
+  topHalf: {
+    height: height * 0.35,
+    marginTop: 10,
     alignItems: "center",
-    marginBottom: "auto",
-    marginTop: 13,
+    justifyContent: "center",
   },
-  formContainer: {
+  bottomHalf: {
+    height: height * 0.75,
     backgroundColor: "white",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    paddingVertical: 30,
+    paddingVertical: 20,
     paddingHorizontal: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  },
+  scrollViewContent: {
+    paddingBottom: 40,
   },
   title: {
     fontFamily: "Mulish-ExtraBold",
@@ -33,13 +30,6 @@ const styles = StyleSheet.create({
     color: "black",
     textAlign: "center",
     margin: 10,
-  },
-  countryPhoneContainer: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 20,
-    overflow: "hidden",
-    marginBottom: 16,
   },
   countryPhoneHeader: {
     backgroundColor: "#fff",
@@ -53,7 +43,7 @@ const styles = StyleSheet.create({
   countrySelectRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", 
+    justifyContent: "space-between",
   },
   downIcon: {
     marginLeft: 8,
@@ -71,12 +61,12 @@ const styles = StyleSheet.create({
   countryPhoneDivider: {
     height: 1,
     backgroundColor: "#ddd",
-    marginHorizontal: 1,
+    marginVertical: 6,
   },
-  
   input: {
     fontFamily: "Inter-Medium",
     borderColor: "#ddd",
+    paddingVertical: 6,
   },
   privacyText: {
     fontFamily: "Inter-Medium",
@@ -123,7 +113,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 16,
+    marginBottom: 15,
   },
   loginLinkText: {
     fontFamily: "Inter-Medium",
@@ -135,7 +125,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)", // Nền đen mờ
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -158,4 +148,5 @@ const styles = StyleSheet.create({
     color: "#333",
   },
 });
+
 export default styles;

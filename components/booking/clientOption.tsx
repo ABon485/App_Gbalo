@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import tourApi from "@/services/tour";
+import { guestType } from "@/types/tour"; // Import guestType
+import styles from "@/styles/booking/clientOption";
 
 type Props = {
   visible: boolean;
@@ -7,15 +10,114 @@ type Props = {
   onSave: (client: string) => void;
 };
 
+type GuestCount = {
+  id: number;
+  guestType: string;
+  age: string;
+  count: number;
+};
+
 export default function ClientModal({ visible, onClose, onSave }: Props) {
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(1);
+  const [guestTypes, setGuestTypes] = useState<GuestCount[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch guest types từ API khi modal mở
+  useEffect(() => {
+    if (visible) {
+      const fetchGuestTypes = async () => {
+        setLoading(true);
+        try {
+          const response: guestType = await tourApi.GuestType();
+          // Khởi tạo state với số.setdefault: true
+          // Đặt giá trị mặc định cho số lượng: ví dụ, 2 người lớn, 0 trẻ em, 1 em bé
+          const initialCounts: GuestCount[] = response.data.map((item) => ({
+            id: item.id,
+            guestType: item.guestType,
+            age: item.age,
+            count:
+              item.guestType === "Người lớn"
+                ? 1
+                : item.guestType === "Em bé"
+                ? 0
+                : 0,
+          }));
+          setGuestTypes(initialCounts);
+          setError(null);
+        } catch (err) {
+          setError("Không thể tải danh sách loại khách");
+          console.error("Error fetching guest types:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchGuestTypes();
+    }
+  }, [visible]);
+
+  // Cập nhật số lượng cho guest type cụ thể
+  const updateCount = (id: number, delta: number) => {
+    setGuestTypes((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              count: Math.max(
+                item.guestType === "Người lớn" ? 1 : 0,
+                item.count + delta
+              ),
+            }
+          : item
+      )
+    );
+  };
 
   const handleSave = () => {
-    onSave(`${adults} người lớn, ${children} trẻ em, ${infants} em bé`);
+    // Tạo chuỗi kết quả, ví dụ: "2 Người lớn, 1 Trẻ em, 1 Em bé"
+    const result = guestTypes
+      .filter((item) => item.count > 0)
+      .map((item) => `${item.count} ${item.guestType}`)
+      .join(", ");
+    onSave(result || "1 Người lớn"); // Đảm bảo ít nhất 1 người lớn nếu không chọn gì
     onClose();
   };
+
+  if (loading) {
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={visible}
+        onRequestClose={onClose}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.container}>
+            <Text style={styles.label}>Đang tải...</Text>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
+  if (error) {
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={visible}
+        onRequestClose={onClose}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.container}>
+            <Text style={styles.label}>{error}</Text>
+            <TouchableOpacity style={styles.deleteButton} onPress={onClose}>
+              <Text style={styles.deleteText}>Đóng</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -26,28 +128,18 @@ export default function ClientModal({ visible, onClose, onSave }: Props) {
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Counter
-            label="Người lớn"
-            description="Từ 13 tuổi trở lên"
-            value={adults}
-            onIncrease={() => setAdults(adults + 1)}
-            onDecrease={() => setAdults(Math.max(1, adults - 1))}
-          />
-          <Counter
-            label="Trẻ em"
-            description="Từ 2 - 12 tuổi"
-            value={children}
-            onIncrease={() => setChildren(children + 1)}
-            onDecrease={() => setChildren(Math.max(0, children - 1))}
-          />
-          <Counter
-            label="Em bé"
-            description="Dưới 2 tuổi"
-            value={infants}
-            onIncrease={() => setInfants(infants + 1)}
-            onDecrease={() => setInfants(Math.max(0, infants - 1))}
-          />
-
+          {guestTypes.map((guest) => (
+            <Counter
+              key={guest.id}
+              label={guest.guestType}
+              description={
+                guestTypes.find((item) => item.id === guest.id)?.age || ""
+              }
+              value={guest.count}
+              onIncrease={() => updateCount(guest.id, 1)}
+              onDecrease={() => updateCount(guest.id, -1)}
+            />
+          ))}
           <View style={styles.footer}>
             <TouchableOpacity style={styles.deleteButton} onPress={onClose}>
               <Text style={styles.deleteText}>Xóa</Text>
@@ -62,7 +154,7 @@ export default function ClientModal({ visible, onClose, onSave }: Props) {
   );
 }
 
-// Counter Component
+// Counter Component (giữ nguyên)
 function Counter({
   label,
   description,
@@ -94,81 +186,3 @@ function Counter({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  container: {
-    padding: 16,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-  },
-  counterContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 12,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  description: {
-    fontSize: 12,
-    color: "#888",
-  },
-  counterControls: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  button: {
-    width: 32,
-    height: 32,
-    borderWidth: 1,
-    borderColor: "#333",
-    borderRadius: 4,
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 8,
-  },
-  buttonText: {
-    fontSize: 18,
-    color: "#333",
-  },
-  value: {
-    fontSize: 16,
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 24,
-  },
-  deleteButton: {
-    flex: 1,
-    marginRight: 8,
-    paddingVertical: 12,
-    backgroundColor: "#E0E0E0",
-    borderRadius: 24,
-    alignItems: "center",
-  },
-  deleteText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  saveButton: {
-    flex: 1,
-    marginLeft: 8,
-    paddingVertical: 12,
-    backgroundColor: "#FF5722",
-    borderRadius: 24,
-    alignItems: "center",
-  },
-  saveText: {
-    fontSize: 16,
-    color: "#fff",
-  },
-});
