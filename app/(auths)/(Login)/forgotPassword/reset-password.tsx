@@ -36,7 +36,7 @@ const ResetPasswordScreen = () => {
   const isValid = isMinLength && isSpecialChar && isPasswordMatch;
 
   const handleResetAndLogin = async () => {
-    if (isLoading) return; 
+    if (isLoading) return;
     if (!isValid) {
       showToast({ type: "error", message: "Vui lòng kiểm tra lại mật khẩu." });
       return;
@@ -123,24 +123,7 @@ const ResetPasswordScreen = () => {
                 </TouchableOpacity>
               </View>
 
-              {/* Confirm Password Input Field */}
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Xác nhận mật khẩu"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showConfirmPassword}
-                  placeholderTextColor="#999999"
-                />
-                <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                  <MaterialIcons
-                    name={showConfirmPassword ? "visibility" : "visibility-off"}
-                    size={20}
-                    color="#999999"
-                  />
-                </TouchableOpacity>
-              </View>
+
 
               {/* Password Requirements */}
               <View style={styles.requirementsContainer}>
@@ -160,13 +143,31 @@ const ResetPasswordScreen = () => {
                   />
                   <Text style={styles.requirementText}>Bao gồm số và ký tự đặc biệt</Text>
                 </View>
-                <View style={styles.requirement}>
+                {/* <View style={styles.requirement}>
                   <MaterialIcons
                     name={isPasswordMatch ? "check-circle" : "cancel"}
                     size={16}
                     color={isPasswordMatch ? "green" : "red"}
                   />
                   <Text style={styles.requirementText}>Mật khẩu khớp</Text>
+                </View> */}
+                {/* Confirm Password Input Field */}
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Xác nhận mật khẩu"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showConfirmPassword}
+                    placeholderTextColor="#999999"
+                  />
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <MaterialIcons
+                      name={showConfirmPassword ? "visibility" : "visibility-off"}
+                      size={20}
+                      color="#999999"
+                    />
+                  </TouchableOpacity>
                 </View>
               </View>
 
