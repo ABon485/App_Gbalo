@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     color: "black",
     textAlign: "center",
   },
-  phoneNumber: {
+  ShowEmail: {
     fontFamily: "Inter-Medium",
     fontSize: 16,
     textAlign: "center",

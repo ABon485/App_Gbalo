@@ -90,3 +90,11 @@ export type TourDetail = {
 export type TourDetailResponse = {
   data: TourDetail;
 };
+
+export type guestType = {
+  data: Array<{
+    id: number;
+    guestType: string;
+    age: string;
+  }>;
+};

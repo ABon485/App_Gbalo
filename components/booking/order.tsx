@@ -1,34 +1,35 @@
 import React, { useState } from "react";
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-} from "react-native";
+import { Modal, View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import Schedule from "../booking/schedule";
 import ClientOption from "../booking/clientOption";
-import ConfirmBooking from "@/app/(screens)/booking/confirmBooking";
 import styles from "@/styles/booking/order";
+import { useRouter } from "expo-router";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   title: string;
   fromPrice: number;
+  tourId: number;
+  user: any;
   onConfirm: () => void;
 };
 
-const OrderTourModal = ({ visible, onClose, title, fromPrice, onConfirm }: Props) => {
+const OrderTourModal = ({
+  visible,
+  onClose,
+  title,
+  fromPrice,
+  tourId,
+  user,
+  onConfirm,
+}: Props) => {
   const [selectedDate, setSelectedDate] = useState("Chọn ngày");
   const [selectedGuests, setSelectedGuests] = useState("1 khách");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
-  const [showOrderModal, setShowOrderModal] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const router = useRouter();
 
   const handleSaveDate = (date: string) => {
     setSelectedDate(date);
@@ -38,6 +39,25 @@ const OrderTourModal = ({ visible, onClose, title, fromPrice, onConfirm }: Props
   const handleSaveClient = (client: string) => {
     setSelectedGuests(client);
     setShowClientModal(false);
+  };
+
+  const handleConfirm = () => {
+    if (!user) {
+      router.push("/(auths)/(Login)/login");
+      onClose();
+      return;
+    }
+
+    onConfirm();
+    router.push({
+      pathname: "/booking/confirmBooking",
+      params: {
+        tourId: tourId.toString(),
+        selectedDate,
+        selectedGuests,
+        user: JSON.stringify(user),
+      },
+    });
   };
 
   return (
@@ -108,11 +128,9 @@ const OrderTourModal = ({ visible, onClose, title, fromPrice, onConfirm }: Props
                 </Text>
                 <TouchableOpacity
                   style={styles.bookButton}
-                  onPress={() => {
-                    onConfirm(); 
-                  }}
+                  onPress={handleConfirm}
                 >
-                    <Text style={styles.bookButtonText}>Đặt ngay</Text>
+                  <Text style={styles.bookButtonText}>Đặt ngay</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -135,4 +153,3 @@ const OrderTourModal = ({ visible, onClose, title, fromPrice, onConfirm }: Props
 };
 
 export default OrderTourModal;
-

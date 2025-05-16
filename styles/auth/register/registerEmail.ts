@@ -1,43 +1,41 @@
 import { StyleSheet, Dimensions } from "react-native";
-
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     width: "100%",
-    minHeight: "100%",
+    height: "100%",
   },
-  scrollViewContent: {
-    flexGrow: 1,
-  },
-  logoContainer: {
-    alignItems: "center",
-    marginBottom: "auto",
+  topHalf: {
+    height: height * 0.35,
     marginTop: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  formContainer: {
+  bottomHalf: {
+    height: height * 0.75,
     backgroundColor: "white",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    paddingVertical: 30,
+    paddingVertical: 20,
     paddingHorizontal: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  },
+  scrollViewContent: {
+    paddingBottom: 40,
   },
   title: {
-    fontFamily: "Inter-Black",
+    fontFamily: "Mulish-ExtraBold",
     fontSize: 30,
     color: "black",
     textAlign: "center",
-    marginBottom: 16,
+    margin: 10,
   },
   inputLabel: {
-    fontFamily: "Inter-Black",
-    fontSize: 16,
+    fontFamily: "Inter-ExtraBold",
+    fontSize: 13,
     color: "black",
+    marginBottom: 6,
   },
   required: {
     color: "red",
@@ -46,11 +44,20 @@ const styles = StyleSheet.create({
     fontFamily: "Inter-Medium",
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    height: 43,
-    marginTop: 8,
+    borderRadius: 30,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     marginBottom: 16,
+  },
+  privacyText: {
+    fontFamily: "Inter-Medium",
+    fontSize: 10,
+    color: "black",
+    marginBottom: 16,
+  },
+  privacyLink: {
+    color: "#1e90ff",
+    textDecorationLine: "underline",
   },
   infoText: {
     fontFamily: "Inter-Medium",
@@ -62,7 +69,7 @@ const styles = StyleSheet.create({
     color: "#1e90ff",
     textDecorationLine: "underline",
   },
-  dividerContainer: {
+  divider: {
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 16,
@@ -91,17 +98,22 @@ const styles = StyleSheet.create({
   socialButtonText: {
     fontFamily: "Inter-Medium",
     fontSize: 13,
-    marginLeft: 16,
+    marginLeft: 60,
   },
   loginLinkContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 16,
+    marginBottom: 15,
+  },
+  loginLinkText: {
+    fontFamily: "Inter-Medium",
   },
   loginLink: {
+    fontFamily: "Inter-Medium",
     color: "#1e90ff",
     textDecorationLine: "underline",
   },
 });
+
 export default styles;

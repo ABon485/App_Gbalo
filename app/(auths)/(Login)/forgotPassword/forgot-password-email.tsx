@@ -19,11 +19,15 @@ import authApi from "@/services/auth"
 import { ChangePassCodeType } from "@/types/user"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useToast } from "@/context/ToastContext"
+import Feather from "react-native-vector-icons/Feather";
 
 const ForgotPasswordEmailScreen = () => {
     const [email, setEmail] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const { showToast } = useToast()
+    const handleForgotEmailLogin = () => {
+        router.push("/(auths)/(Login)/forgotPassword/forgot-password-phone");
+    };
 
     const handleSendCode = async () => {
         // Validate email
@@ -144,6 +148,15 @@ const ForgotPasswordEmailScreen = () => {
                                     {isLoading ? "Đang xử lý..." : "Gửi mã xác minh"}
                                 </Text>
                             </TouchableOpacity>
+                            <TouchableOpacity style={styles.socialButton} onPress={handleForgotEmailLogin}>
+                                <Feather
+                                    name="phone"
+                                    size={20}
+                                    color="#999999"
+                                    style={styles.optionIcon}
+                                />
+                                <Text style={styles.socialButtonText}>Tiếp tục với số điện thoại</Text>
+                            </TouchableOpacity>
                         </View>
                     </ScrollView>
                 </SafeAreaView>
@@ -235,6 +248,26 @@ const styles = StyleSheet.create({
     },
     optionIcon: {
         marginRight: 10,
+    },
+    socialButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
+        height: 43,
+        borderRadius: 25,
+        marginTop: 20,
+        borderWidth: 1,
+        borderColor: "#ddd",
+        paddingHorizontal: 15,
+        justifyContent: "center",
+    },
+    socialButtonText: {
+        fontSize: 13,
+        color: "#333",
+        flex: 1,
+        textAlign: "center",
+        paddingRight: 23,
+        fontFamily: 'Inter-Medium'
     },
 })
 

@@ -10,6 +10,8 @@ import {
   StatusBar,
   FlatList,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import styles from "@/styles/auth/register/registerPhone";
 import { useRouter } from "expo-router";
@@ -25,7 +27,7 @@ export default function Register() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const countryPhoneCodes = [
+   const countryPhoneCodes = [
     { name: "Việt Nam", code: "+84" },
     { name: "Hoa Kỳ", code: "+1" },
     { name: "Anh", code: "+44" },
@@ -63,23 +65,17 @@ export default function Register() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    router.push("/(auths)/(Login)/login");
-  };
-
-  const handleRegisterEmail = () => {
+  const handleLogin = () => router.push("/(auths)/(Login)/login");
+  const handleRegisterEmail = () =>
     router.push("/(auths)/(register)/registerEmail/RegisterEmail");
-  };
 
   const verifyPhone = async () => {
     const phoneRegex = /^\+?[0-9]{7,15}$/;
     const fullPhone = `${selectedCountry.code}${phoneNumber}`;
-
     if (!phoneNumber) {
       showToast({ type: "error", message: "Vui lòng nhập số điện thoại" });
       return;
     }
-
     if (!phoneRegex.test(fullPhone)) {
       showToast({ type: "error", message: "Số điện thoại không hợp lệ" });
       return;
@@ -87,38 +83,17 @@ export default function Register() {
 
     try {
       setLoading(true);
-
-      const token = await AsyncStorage.getItem("registerToken");
-
-      if (!token) {
-        showToast({ type: "error", message: "Không tìm thấy token xác minh" });
-        return;
-      }
-
       const response = await api.post<ApiResponse<RegistercodeByPhone>>(
         "/Accounts/SendResgiterCode",
-        {
-          phone: phoneNumber,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { phone: phoneNumber }
       );
-
-      console.log("Response data:", response.data);
-
       const receivedToken = response.data?.data?.token;
-
       if (receivedToken) {
         await AsyncStorage.setItem("registerToken", receivedToken);
-
         showToast({
           type: "success",
           message: "Mã xác minh đã được gửi tới số điện thoại của bạn",
         });
-
         router.push({
           pathname: "/(auths)/(register)/registerPhone/veryfyPhone",
           params: { phone: fullPhone },
@@ -130,24 +105,14 @@ export default function Register() {
         });
       }
     } catch (error: any) {
-      console.error(
-        "Lỗi đăng ký số điện thoại:",
-        error?.response?.data || error.message
-      );
       showToast({ type: "error", message: "Có lỗi xảy ra, vui lòng thử lại" });
     } finally {
       setLoading(false);
     }
   };
 
-  const openModal = () => {
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setModalVisible(false);
-  };
-
+  const openModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
   const selectCountry = (country: { name: string; code: string }) => {
     setSelectedCountry(country);
     closeModal();
@@ -159,122 +124,145 @@ export default function Register() {
       style={styles.backgroundImage}
     >
       <StatusBar translucent backgroundColor="transparent" />
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={require("../../../../assets/images/imagLogo.png")}
-            resizeMode="contain"
-          />
-        </View>
-
-        <View style={styles.formContainer}>
-          <Text style={styles.title}>Đăng ký</Text>
-
-          <TouchableOpacity
-            onPress={openModal}
-            style={styles.countryPhoneHeader}
-          >
-            <View style={styles.countrySelectRow}>
-              <Text style={styles.countryPhoneLabel}>Quốc gia/Khu vực</Text>
-              <AntDesign
-                name="down"
-                size={16}
-                color="#000"
-                style={styles.downIcon}
-              />
-            </View>
-            <Text style={styles.countryPhoneText}>
-              {selectedCountry.name} ({selectedCountry.code})
-            </Text>
-            <View style={styles.countryPhoneDivider} />
-            <TextInput
-              placeholder="Số điện thoại"
-              keyboardType="phone-pad"
-              style={styles.input}
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+      >
+        <View style={{ flex: 1 }}>
+          <View style={styles.topHalf}>
+            <Image
+              source={require("../../../../assets/images/imagLogo.png")}
+              resizeMode="contain"
+              style={{ width: 180, height: 100 }}
             />
-          </TouchableOpacity>
+          </View>
 
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={isModalVisible}
-            onRequestClose={closeModal}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <FlatList
-                  data={countryPhoneCodes}
-                  keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.countryItem}
-                      onPress={() => selectCountry(item)}
-                    >
-                      <Text style={styles.countryItemText}>
-                        {item.name} ({item.code})
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+          <View style={styles.bottomHalf}>
+            <ScrollView
+              contentContainerStyle={styles.scrollViewContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <Text style={styles.title}>Đăng ký</Text>
+
+              <TouchableOpacity
+                onPress={openModal}
+                style={styles.countryPhoneHeader}
+              >
+                <View style={styles.countrySelectRow}>
+                  <Text style={styles.countryPhoneLabel}>Quốc gia/Khu vực</Text>
+                  <AntDesign
+                    name="down"
+                    size={16}
+                    color="#000"
+                    style={styles.downIcon}
+                  />
+                </View>
+                <Text style={styles.countryPhoneText}>
+                  {selectedCountry.name} ({selectedCountry.code})
+                </Text>
+                <View style={styles.countryPhoneDivider} />
+                <TextInput
+                  placeholder="Số điện thoại"
+                  keyboardType="phone-pad"
+                  style={styles.input}
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
                 />
+              </TouchableOpacity>
+
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={isModalVisible}
+                onRequestClose={closeModal}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.modalContent}>
+                    <FlatList
+                      data={countryPhoneCodes}
+                      keyExtractor={(item, index) => index.toString()}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={styles.countryItem}
+                          onPress={() => selectCountry(item)}
+                        >
+                          <Text style={styles.countryItemText}>
+                            {item.name} ({item.code})
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    />
+                  </View>
+                </View>
+              </Modal>
+
+              <Text style={styles.privacyText}>
+                Bằng cách đăng ký hoặc đăng nhập, bạn đã hiểu và đồng ý với
+                <Text style={styles.privacyLink}>
+                  {" "}
+                  Điều Khoản Sử Dụng Chung{" "}
+                </Text>
+                và
+                <Text style={styles.privacyLink}> Chính sách bảo mật</Text> của
+                Gbalo
+              </Text>
+
+              <CustomButtonRN
+                title="Tiếp tục"
+                onPress={verifyPhone}
+                disabled={loading}
+              />
+
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>Hoặc</Text>
+                <View style={styles.dividerLine} />
               </View>
-            </View>
-          </Modal>
 
-          <Text style={styles.privacyText}>
-            Chúng tôi sẽ gọi điện hoặc nhắn tin cho bạn để xác nhận số điện
-            thoại. Có áp dụng phí dữ liệu và phí tin nhắn tiêu chuẩn.
-            <Text style={styles.privacyLink}>
-              {" "}
-              Chính sách về quyền riêng tư
-            </Text>
-          </Text>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={handleRegisterEmail}
+              >
+                <Image
+                  source={require("../../../../assets/images/social/email.png")}
+                />
+                <Text style={styles.socialButtonText}>Tiếp tục với email</Text>
+              </TouchableOpacity>
 
-          <CustomButtonRN
-            title="Tiếp tục"
-            onPress={verifyPhone}
-            // loading={loading}
-          />
+              <TouchableOpacity style={styles.socialButton}>
+                <Image
+                  source={require("../../../../assets/images/social/Google.png")}
+                />
+                <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
+              </TouchableOpacity>
 
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Hoặc</Text>
-            <View style={styles.dividerLine} />
-          </View>
+              <TouchableOpacity style={styles.socialButton}>
+                <Image
+                  source={require("../../../../assets/images/social/Facebook.png")}
+                />
+                <Text style={styles.socialButtonText}>
+                  Tiếp tục với Facebook
+                </Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={handleRegisterEmail}
-          >
-            <Image
-              source={require("../../../../assets/images/social/email.png")}
-            />
-            <Text style={styles.socialButtonText}>Tiếp tục với email</Text>
-          </TouchableOpacity>
+              <TouchableOpacity style={styles.socialButton}>
+                <Image
+                  source={require("../../../../assets/images/social/Apple.png")}
+                />
+                <Text style={styles.socialButtonText}>Tiếp tục với Apple</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity style={styles.socialButton}>
-            <Image
-              source={require("../../../../assets/images/social/Google.png")}
-            />
-            <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.socialButton}>
-            <Image
-              source={require("../../../../assets/images/social/Facebook.png")}
-            />
-            <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
-          </TouchableOpacity>
-
-          <View style={styles.loginLinkContainer}>
-            <Text style={styles.loginLinkText}>Bạn đã có tài khoản? </Text>
-            <TouchableOpacity onPress={handleLogin}>
-              <Text style={styles.loginLink}>Đăng nhập</Text>
-            </TouchableOpacity>
+              <View style={styles.loginLinkContainer}>
+                <Text style={styles.loginLinkText}>Bạn đã có tài khoản? </Text>
+                <TouchableOpacity onPress={handleLogin}>
+                  <Text style={styles.loginLink}>Đăng nhập</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 }

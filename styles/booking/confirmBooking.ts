@@ -8,6 +8,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 40,
   },
+   errorText: {
+    color: "red",
+    fontSize: 16,
+    textAlign: "center",
+    marginVertical: 10,
+  },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -34,8 +40,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tourImage: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     borderRadius: 8,
   },
   tourInfo: {
