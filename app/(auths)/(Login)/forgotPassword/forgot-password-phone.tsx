@@ -21,6 +21,7 @@ import authApi from "@/services/auth"
 import { ChangePassCodeType } from "@/types/user"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useToast } from "@/context/ToastContext"
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 const countryPhoneCodes = [
   { name: "Việt Nam", code: "+84" },
@@ -160,6 +161,9 @@ const ForgotPasswordScreen = () => {
     setSelectedCountry(country)
     closeModal()
   }
+  const handleForgotPhoneLogin = () => {
+    router.push("/(auths)/(Login)/forgotPassword/forgot-password-email");
+  };
 
   return (
     <>
@@ -175,7 +179,7 @@ const ForgotPasswordScreen = () => {
               <View style={styles.inputContainer}>
                 <TouchableOpacity onPress={openModal} style={styles.countryCodeButton}>
                   <Text style={styles.countryCodeText}>{selectedCountry.code}</Text>
-                  <AntDesign name="down" size={16} color="#000" style={styles.downIcon}/>
+                  <AntDesign name="down" size={16} color="#000" style={styles.downIcon} />
                 </TouchableOpacity>
                 <TextInput
                   style={styles.input}
@@ -220,6 +224,10 @@ const ForgotPasswordScreen = () => {
                 <Text style={styles.sendCodeButtonText}>
                   {isLoading ? "Đang xử lý..." : "Gửi mã xác minh"}
                 </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialButton} onPress={handleForgotPhoneLogin}>
+                <MaterialCommunityIcons name="email-outline" size={20} color="gray" />
+                <Text style={styles.socialButtonText}>Tiếp tục với Email</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -341,6 +349,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#4B5563",
     fontFamily: "Inter-Medium",
+  },
+  socialButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    height: 43,
+    borderRadius: 25,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    paddingHorizontal: 15,
+    justifyContent: "center",
+  },
+  socialButtonText: {
+    fontSize: 13,
+    color: "#333",
+    flex: 1,
+    textAlign: "center",
+    paddingRight: 23,
+    fontFamily: 'Inter-Medium'
   },
 })
 

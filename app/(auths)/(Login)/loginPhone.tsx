@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState } from "react";
 import {
   View,
   Text,
@@ -11,17 +11,26 @@ import {
   StatusBar,
   FlatList,
   Modal,
-} from "react-native"
-import styles from "@/styles/auth/loginPhone"
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
-import AntDesign from "@expo/vector-icons/AntDesign"
-import { Stack, router } from "expo-router"
-import authApi from "@/services/auth"
-import { SendCodeLogin } from "@/types/user"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { useToast } from "@/context/ToastContext"
+} from "react-native";
+import styles from "@/styles/auth/loginPhone";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { Stack, router } from "expo-router";
+import authApi from "@/services/auth";
+import { SendCodeLogin } from "@/types/user";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useToast } from "@/context/ToastContext";
+import GoogleButton from "@/components/common/customButtonSocial/GoogleButton";
+import FacebookButton from "@/components/common/customButtonSocial/FacebookButton";
+import AppleButton from "@/components/common/customButtonSocial/AppleButton";
 
-const countryPhoneCodes = [
+// Define interface for country phone codes
+interface CountryPhoneCode {
+  name: string;
+  code: string;
+}
+
+const countryPhoneCodes: CountryPhoneCode[] = [
   { name: "Việt Nam", code: "+84" },
   { name: "Hoa Kỳ", code: "+1" },
   { name: "Anh", code: "+44" },
@@ -52,129 +61,130 @@ const countryPhoneCodes = [
   { name: "Nam Phi", code: "+27" },
   { name: "Argentina", code: "+54" },
   { name: "Chile", code: "+56" },
-]
+];
 
 const LoginScreen = () => {
-  const [phoneNumber, setPhoneNumber] = useState("")
-  const [selectedCountry, setSelectedCountry] = useState(countryPhoneCodes[0])
-  const [isModalVisible, setModalVisible] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const { showToast } = useToast()
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [selectedCountry, setSelectedCountry] = useState<CountryPhoneCode>(countryPhoneCodes[0]);
+  const [isModalVisible, setModalVisible] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { showToast } = useToast();
 
   const handleContinue = async () => {
-    const normalizedPhone = phoneNumber.replace(/\D/g, "").replace(/^0+/, "")
-    const fullPhoneNumber = `${selectedCountry.code}${normalizedPhone}`
+    const normalizedPhone = phoneNumber.replace(/\D/g, "").replace(/^0+/, "");
+    const fullPhoneNumber = `${selectedCountry.code}${normalizedPhone}`;
 
     if (!phoneNumber.trim()) {
-      showToast({ type: "error", message: "Please enter your phone number." })
-      return
+      showToast({ type: "error", message: "Vui lòng nhập số điện thoại." });
+      return;
     }
 
-    const phoneRegex = /^\+?[0-9]{7,15}$/
-
+    const phoneRegex = /^\+?[0-9]{7,15}$/;
     if (!phoneRegex.test(fullPhoneNumber) || /\D/.test(normalizedPhone)) {
-      showToast({ type: "error", message: "Invalid phone number." })
-      return
+      showToast({ type: "error", message: "Số điện thoại không hợp lệ." });
+      return;
     }
 
     if (selectedCountry.code === "+84" && normalizedPhone.length !== 9) {
       showToast({
         type: "error",
         message: "Số điện thoại Việt Nam phải có 9 chữ số (không tính mã quốc gia).",
-      })
-      return
+      });
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const sendCodePayload: SendCodeLogin = {
         sendType: "phone",
-        phone: phoneNumber,
+        phone: fullPhoneNumber,
         email: "",
-      }
+      };
 
-      console.log("Sending phone number to API:", fullPhoneNumber)
-      const response = await authApi.loginSendCode(sendCodePayload)
-      console.log("API response:", response)
+      const response = await authApi.loginSendCode(sendCodePayload);
 
       if (response.data?.success || response.data?.status === "Success") {
-        const publicKey = response.data.data?.publicKey || ""
-        await AsyncStorage.setItem("loginToken", publicKey)
+        const publicKey = response.data.data?.publicKey || "";
+        await AsyncStorage.setItem("loginToken", publicKey);
 
         showToast({
           type: "success",
           message: "Mã xác nhận đã được gửi. Trong môi trường phát triển, sử dụng mã OTP: 123456",
-        })
+        });
 
         router.push({
           pathname: "/(auths)/(Login)/verify-phone",
-          params: {
-            phoneNumber: fullPhoneNumber,
-          },
-        })
+          params: { phoneNumber: fullPhoneNumber },
+        });
       } else {
         const errorMsg =
           response.data?.errors?.account?.[0] ||
           response.data?.message ||
-          "Không thể gửi mã xác minh. Vui lòng thử lại."
+          "Không thể gửi mã xác minh. Vui lòng thử lại.";
 
-        showToast({
-          type: "error",
-          message: errorMsg,
-        })
+        showToast({ type: "error", message: errorMsg });
 
         if (errorMsg.includes("Tài khoản không tồn tại")) {
           setTimeout(() => {
-            router.push("/(auths)/(register)/registerPhone/RegisterPhone")
-          }, 2000)
+            router.push("/(auths)/(register)/registerPhone/RegisterPhone");
+          }, 2000);
         }
       }
     } catch (error: any) {
-      console.error("Lỗi gửi mã xác minh:", error.response?.data || error)
       const errorMessage =
         error.response?.data?.errors?.account?.[0] ||
         error.response?.data?.message ||
-        "Đã xảy ra lỗi khi gửi mã xác minh. Vui lòng thử lại."
+        "Đã xảy ra lỗi khi gửi mã xác minh. Vui lòng thử lại.";
 
-      showToast({
-        type: "error",
-        message: errorMessage,
-      })
+      showToast({ type: "error", message: errorMessage });
 
       if (errorMessage.includes("Tài khoản không tồn tại")) {
         setTimeout(() => {
-          router.push("/(auths)/(register)/registerPhone/RegisterPhone")
-        }, 2000)
+          router.push("/(auths)/(register)/registerPhone/RegisterPhone");
+        }, 2000);
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleForgotPassword = () => {
     router.push("/(auths)/(Login)/forgotPassword/forgot-password-phone");
   };
 
   const handleEmailLogin = () => {
-    router.push("/(auths)/(Login)/loginEmail")
-  }
+    router.push("/(auths)/(Login)/loginEmail");
+  };
 
   const handleRegister = () => {
-    router.push("/(auths)/(register)/registerPhone/RegisterPhone")
-  }
+    router.push("/(auths)/(register)/registerPhone/RegisterPhone");
+  };
+
+  const handlePasswordLogin = () => {
+    router.push("/(auths)/(Login)/loginByPhone");
+  };
+
 
   const openModal = () => {
-    setModalVisible(true)
-  }
+    setModalVisible(true);
+  };
 
   const closeModal = () => {
-    setModalVisible(false)
-  }
+    setModalVisible(false);
+  };
 
-  const selectCountry = (country: { name: string; code: string }) => {
-    setSelectedCountry(country)
-    closeModal()
-  }
+  const selectCountry = (country: CountryPhoneCode) => {
+    setSelectedCountry(country);
+    closeModal();
+  };
+
+  const handleFacebookLogin = () => {
+    console.log("Initiating Facebook login");
+  };
+
+  const handleLoginPressApple = () => {
+    router.push("/(auths)/(Login)/loginPhone");
+  };
 
   return (
     <>
@@ -182,6 +192,7 @@ const LoginScreen = () => {
       <ImageBackground
         source={require("../../../assets/images/BackGroud.png")}
         style={styles.backgroundImage}
+        resizeMode="cover"
       >
         <StatusBar translucent backgroundColor="transparent" />
         <SafeAreaView style={styles.container}>
@@ -207,12 +218,13 @@ const LoginScreen = () => {
                   onChangeText={setPhoneNumber}
                   keyboardType="phone-pad"
                   placeholderTextColor="#999999"
+                  autoCapitalize="none"
                 />
               </View>
 
               <Modal
                 animationType="slide"
-                transparent={true}
+                transparent
                 visible={isModalVisible}
                 onRequestClose={closeModal}
               >
@@ -220,7 +232,7 @@ const LoginScreen = () => {
                   <View style={styles.modalContent}>
                     <FlatList
                       data={countryPhoneCodes}
-                      keyExtractor={(item, index) => index.toString()}
+                      keyExtractor={(item) => item.code}
                       renderItem={({ item }) => (
                         <TouchableOpacity
                           style={styles.countryItem}
@@ -242,15 +254,18 @@ const LoginScreen = () => {
                 disabled={isLoading}
               >
                 <Text style={styles.loginButtonText}>
-                  {isLoading ? "Đang xử lý..." : "Tiếp tục"}
+                  {isLoading ? "Đang xử lý..." : "gửi mã xác minh"}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.forgotPasswordContainer}
-                onPress={handleForgotPassword}
-              >
-                <Text style={styles.forgotPasswordText}>Quên mật khẩu</Text>
-              </TouchableOpacity>
+
+              <View style={styles.authOptionsContainer}>
+                <TouchableOpacity onPress={handlePasswordLogin}>
+                  <Text style={styles.smsLoginText}>Đăng nhập bằng mật khẩu</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleForgotPassword}>
+                  <Text style={styles.forgotPasswordText}>Quên mật khẩu</Text>
+                </TouchableOpacity>
+              </View>
 
               <View style={styles.dividerContainer}>
                 <View style={styles.divider} />
@@ -264,23 +279,12 @@ const LoginScreen = () => {
                 </View>
                 <Text style={styles.socialButtonText}>Tiếp tục với Email</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity style={styles.socialButton}>
-                <View style={styles.socialIconContainer}>
-                  <Image source={require("@/assets/images/Google.png")} style={{ width: 24, height: 24 }} />
-                </View>
-                <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.socialButton}>
-                <View style={styles.socialIconContainer}>
-                  <Image source={require("@/assets/images/Facebook.png")} style={{ width: 24, height: 24 }} />
-                </View>
-                <Text style={styles.socialButtonText}>Tiếp tục với Facebook</Text>
-              </TouchableOpacity>
+              <GoogleButton disabled={false} />
+              <FacebookButton onPress={handleFacebookLogin} />
+              <AppleButton onPress={handleLoginPressApple} />
 
               <View style={styles.registerContainer}>
-                <Text style={styles.registerText}>Bạn chưa có tài khoản? </Text>
+                <Text style={styles.registerText}>Bạn chưa có tài khoản ư ? </Text>
                 <TouchableOpacity onPress={handleRegister}>
                   <Text style={styles.registerLink}>Đăng ký</Text>
                 </TouchableOpacity>
@@ -290,7 +294,7 @@ const LoginScreen = () => {
         </SafeAreaView>
       </ImageBackground>
     </>
-  )
-}
+  );
+};
 
-export default LoginScreen
+export default LoginScreen;
