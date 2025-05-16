@@ -8,6 +8,7 @@ import {
   ScrollView,
   ImageBackground,
 } from "react-native";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import styles from "@/styles/auth/register/veryfyEmail";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
@@ -24,6 +25,20 @@ export default function VerifyEmail() {
   const inputRefs = useRef<TextInput[]>([]);
   const { showToast } = useToast();
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const hideEmail = (email: string) => {
+    if (!email) return "";
+    const [name, domain] = email.split("@");
+    if (name.length <= 2) {
+      // Nếu tên quá ngắn thì ẩn hết trừ 1 ký tự đầu
+      return name[0] + "***@" + domain;
+    }
+    // Giữ lại 2 ký tự đầu, ẩn phần còn lại
+    const visibleName = name.slice(0, 2);
+    const hiddenPart = "*".repeat(name.length - 2);
+    return `${visibleName}${hiddenPart}@${domain}`;
+  };
 
   useEffect(() => {
     if (!email) {
@@ -39,6 +54,7 @@ export default function VerifyEmail() {
     const isValidOtp =
       otp.join("").length === 6 && otp.every((digit) => /^\d$/.test(digit));
     setIsButtonDisabled(!isValidOtp);
+    if (errorMessage) setErrorMessage(""); // Reset lỗi khi người dùng sửa OTP
   }, [otp]);
 
   const handleOtpChange = (text: string, index: number) => {
@@ -114,7 +130,9 @@ export default function VerifyEmail() {
     }
 
     if (code !== "123456") {
-      showToast({ type: "error", message: "Mã xác nhận không đúng!" });
+      setErrorMessage(
+        "Rất tiếc, chúng tôi không thể xác minh mã. Vui lòng đảm bảo bạn nhập đúng số điện thoại di động và mã."
+      );
       return;
     }
     const token = await AsyncStorage.getItem("registerToken");
@@ -123,7 +141,7 @@ export default function VerifyEmail() {
       setLoading(true);
       const response: ApiResponse = await api.post(
         "/Accounts/VerifyResgiterCode",
-        { token, code:"123456" },
+        { token, code: "123456" }
       );
 
       showToast({ type: "success", message: "Xác minh OTP thành công!" });
@@ -204,7 +222,7 @@ export default function VerifyEmail() {
           <Text style={styles.subtitle}>
             Vui lòng nhập mã xác nhận vừa gửi qua email
           </Text>
-          <Text style={styles.phoneNumber}>{email}</Text>
+          <Text style={styles.ShowEmail}>{hideEmail(email)}</Text>
 
           <View style={styles.otpContainer}>
             {otp.map((digit, index) => (
@@ -217,12 +235,39 @@ export default function VerifyEmail() {
                 maxLength={1}
                 value={digit}
                 onChangeText={(text) => handleOtpChange(text, index)}
-                style={styles.otpInput}
+                style={[
+                  styles.otpInput,
+                  errorMessage
+                    ? { borderColor: "#FF4D4F", borderWidth: 1 }
+                    : {},
+                ]}
                 textContentType="oneTimeCode"
                 autoFocus={index === 0}
               />
             ))}
           </View>
+          {errorMessage ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 10,
+                paddingHorizontal: 4,
+              }}
+            >
+              <AntDesign name="exclamationcircleo" size={16} color="#FF4D4F" />
+              <Text
+                style={{
+                  color: "#FF4D4F",
+                  fontSize: 10,
+                  marginLeft: 6,
+                  flexShrink: 1,
+                }}
+              >
+                {errorMessage}
+              </Text>
+            </View>
+          ) : null}
 
           <CustomButtonRN
             title="Tiếp tục"

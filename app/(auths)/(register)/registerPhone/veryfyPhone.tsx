@@ -15,6 +15,7 @@ import api from "@/config/api";
 import { ApiResponse } from "@/types/api";
 import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AntDesign } from "@expo/vector-icons";
 
 export default function VerifyPhone() {
   const router = useRouter();
@@ -24,10 +25,12 @@ export default function VerifyPhone() {
   const [loading, setLoading] = useState(false);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const { showToast } = useToast();
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const isValid = otp.every((char) => /^\d$/.test(char));
     setIsButtonDisabled(!(isValid && otp.join("").length === 6));
+    if (errorMessage) setErrorMessage("");
   }, [otp]);
 
   const handleOtpChange = (text: string, index: number) => {
@@ -49,7 +52,9 @@ export default function VerifyPhone() {
     }
 
     if (code !== "123456") {
-      showToast({ type: "error", message: "Mã xác nhận không đúng!" });
+      setErrorMessage(
+        "Rất tiếc, chúng tôi không thể xác minh mã. Vui lòng đảm bảo bạn nhập đúng số điện thoại di động và mã."
+      );
       return;
     }
 
@@ -164,15 +169,46 @@ export default function VerifyPhone() {
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={(ref) => ref && (inputRefs.current[index] = ref)}
+                ref={(ref) => {
+                  if (ref) inputRefs.current[index] = ref;
+                }}
                 keyboardType="numeric"
                 maxLength={1}
                 value={digit}
                 onChangeText={(text) => handleOtpChange(text, index)}
-                style={styles.otpInput}
+                style={[
+                  styles.otpInput,
+                  errorMessage
+                    ? { borderColor: "#FF4D4F", borderWidth: 1 }
+                    : {},
+                ]}
+                textContentType="oneTimeCode"
+                autoFocus={index === 0}
               />
             ))}
           </View>
+          {errorMessage ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 10,
+                paddingHorizontal: 4,
+              }}
+            >
+              <AntDesign name="exclamationcircleo" size={16} color="#FF4D4F" />
+              <Text
+                style={{
+                  color: "#FF4D4F",
+                  fontSize: 10,
+                  marginLeft: 6,
+                  flexShrink: 1,
+                }}
+              >
+                {errorMessage}
+              </Text>
+            </View>
+          ) : null}
 
           <CustomButtonRN
             title="Tiếp tục"
