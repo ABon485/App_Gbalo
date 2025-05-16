@@ -8,6 +8,7 @@ import {
   StatusBar,
   SafeAreaView,
   Image,
+  StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import {
@@ -21,9 +22,9 @@ import {
   ChevronRight,
   User,
 } from "lucide-react-native";
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
-import { StyleSheet } from "react-native";
 import api from "@/config/api";
 import { ProfileResponse } from "@/types/user";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -56,16 +57,14 @@ export default function ProfileScreen() {
             },
           });
 
-          console.log("API Response:", JSON.stringify(response.data, null, 2));
-
           if (response?.data?.data) {
-            // Ưu tiên lấy fullName từ API, nếu không có thì lấy từ AsyncStorage
             const fullNameFromAPI = response.data.data.fullName;
-            const fullName = fullNameFromAPI || parsedData.fullName || "Khách hàng";
+            const fullName =
+              fullNameFromAPI || parsedData.fullName || "Khách hàng";
 
             setUser({
               ...response.data.data,
-              fullName, // Gán fullName đã được xác định
+              fullName,
             });
             setIsLoggedIn(true);
           } else {
@@ -160,6 +159,7 @@ export default function ProfileScreen() {
       action: () => router.push("/"),
     },
   ];
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -182,10 +182,13 @@ export default function ProfileScreen() {
                   <Text style={styles.userName}>
                     {user?.fullName ?? "Khách hàng"}
                   </Text>
-
                   <TouchableOpacity
                     onPress={handleUpdateProfile}
-                    style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#E4EFE7" }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#E4EFE7",
+                    }}
                   >
                     <Text style={styles.updateProfileText}>
                       Cập nhật thông tin cá nhân
@@ -200,13 +203,15 @@ export default function ProfileScreen() {
                 </View>
               </View>
 
+              {/* Thành viên khi đã đăng nhập */}
               <View style={styles.pointsInfo}>
                 <Text style={styles.pointsText}>
-                  Đăng ký để trở thành thành viên bạch kim. Cần 120 điểm nữa để
-                  đạt hạng Vàng
+                  Bạn đang là thành viên bạc{"\n"}Cần 120 điểm nữa để đạt hạng
+                  Vàng
                 </Text>
+                <Text></Text>
                 <View style={styles.iconWrapper}>
-                  <FileText size={18} color="#999" />
+                  <FontAwesome6 name="medal" size={24} color="gray" />
                 </View>
               </View>
             </View>
@@ -216,7 +221,6 @@ export default function ProfileScreen() {
                 <View style={styles.defaultAvatar}>
                   <User size={30} color="#999" />
                 </View>
-
                 <View style={styles.loginButtons}>
                   <TouchableOpacity
                     style={styles.loginButton}
@@ -224,7 +228,6 @@ export default function ProfileScreen() {
                   >
                     <Text style={styles.loginButtonText}>Đăng nhập</Text>
                   </TouchableOpacity>
-
                   <TouchableOpacity
                     style={styles.registerButton}
                     onPress={handleRegister}
@@ -234,10 +237,11 @@ export default function ProfileScreen() {
                 </View>
               </View>
 
+              {/* Khi chưa đăng nhập */}
               <View style={styles.pointsInfo}>
                 <Text style={styles.pointsText}>
                   Đăng ký/Đăng nhập để trở thành thành viên và nhận được nhiều
-                  voucher từ Giao
+                  voucher từ Gbalo
                 </Text>
                 <View style={styles.iconWrapper}>
                   <FileText size={18} color="#999" />
@@ -273,6 +277,13 @@ export default function ProfileScreen() {
               <Text style={styles.logoutButtonText}>Đăng xuất</Text>
             </TouchableOpacity>
           )}
+
+          <TouchableOpacity
+            style={[styles.menuItem, styles.DeleteButton]}
+            // onPress={}
+          >
+            <Text style={styles.DeleteAcount}>Xóa tài khoản</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -292,12 +303,12 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginHorizontal: 16,
     padding: 20,
-    marginTop: 40,
+    marginTop: 35,
   },
   profileHeader: {
     fontSize: 24,
     color: "#000",
-    marginBottom: 20,
+    marginBottom: 5,
     fontFamily: "Inter-Medium",
   },
   userInfo: {
@@ -322,9 +333,8 @@ const styles = StyleSheet.create({
   updateProfileText: {
     fontSize: 14,
     color: "#007BFF",
-    fontFamily: "Inter-Medium",
+    fontFamily: "Inter",
   },
-
   pointsInfo: {
     flexDirection: "row",
     alignItems: "center",
@@ -391,7 +401,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 30,
     marginHorizontal: 16,
-    marginTop: 20,
+    marginTop: 16,
     overflow: "hidden",
   },
   menuItem: {
@@ -419,8 +429,20 @@ const styles = StyleSheet.create({
     borderTopColor: "#f0f0f0",
   },
   logoutButtonText: {
-    color: "#FF5722",
     fontSize: 14,
     fontFamily: "Inter-Medium",
+    textDecorationLine: "underline",
+  },
+  DeleteButton: {
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    textAlign: "center",
+    justifyContent: "center",
+  },
+  DeleteAcount: {
+    color: "#FF5722",
+    fontSize: 14,
+    fontFamily: "Inter",
+    textDecorationLine: "underline",
   },
 });
