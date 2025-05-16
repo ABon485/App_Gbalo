@@ -9,67 +9,70 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   container: {
-    flex: 1,
+    flex: 1,  
+    width: "100%",
+    
+
   },
   scrollContainer: {
     flexGrow: 1,
     alignItems: "center",
-    paddingTop: 100,
-    paddingBottom: 20,
+    width: "100%",
+    justifyContent: "space-between", // This will push content to top and bottom
+    
   },
   logo: {
     width: width * 0.5,
     height: height * 0.15,
-    marginBottom: "auto",
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: "Mulish-Black",
+    color: "#000",
+    marginBottom: 20,
   },
   formContainer: {
-    width: "100%",
-    height: "9090%",
+   width: "100%", // Full width
+    height: "80%",
     backgroundColor: "white",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    paddingHorizontal: 24,
+    borderBottomLeftRadius: 0, // Remove bottom radius
+    borderBottomRightRadius: 0, // Remove bottom radius
+    paddingHorizontal: 25,
     paddingTop: 25,
-    paddingBottom: 20,
+    paddingBottom: 20, // Add some padding at the bottom for content
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
     elevation: 5,
-    marginTop: "auto",
+    marginTop: "auto", // Push to bottom
   },
-  title: {
-    fontSize: 30,
-    fontFamily: "Mulish-Black",
-    marginBottom: 25,
-    color: "#000",
-  },
-  phoneInputContainer: {
+  inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    height: 43,
+    height: 50,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 25,
     paddingHorizontal: 15,
     marginBottom: 15,
   },
-  countryCodeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    inputIcon: {
     marginRight: 10,
+    
   },
-  countryCodeText: {
-    fontSize: 16,
-    color: "#333",
-    fontFamily: "Inter-Medium",
-  },
+
   downIcon: {
     marginLeft: 5,
   },
-  phoneInput: {
+  icon: {
+    marginRight: 10,
+  },
+  input: {
     flex: 1,
     height: "100%",
     fontSize: 16,
@@ -78,7 +81,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     width: "100%",
-    height: 43,
+    height: 50,
     backgroundColor: "#FF5722",
     borderRadius: 25,
     justifyContent: "center",
@@ -94,7 +97,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    marginBottom: 10,
+    marginBottom: 15,
   },
   smsLoginText: {
     color: "#007AFF",
@@ -108,21 +111,10 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     fontFamily: "Inter-Medium",
   },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    marginVertical: 15,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#ddd",
-  },
-  dividerText: {
-    paddingHorizontal: 10,
-    color: "#777",
+  orText: {
     fontSize: 14,
+    color: "#777",
+    marginVertical: 15,
     fontFamily: "Inter-Medium",
   },
   socialButton: {
@@ -130,33 +122,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     height: 43,
-    backgroundColor: "white",
     borderRadius: 25,
     marginBottom: 10,
     borderWidth: 1,
     borderColor: "#ddd",
     paddingHorizontal: 15,
-  },
-  socialIconContainer: {
-    width: 24,
-    height: 24,
     justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
   },
   socialButtonText: {
     fontSize: 13,
     color: "#333",
     flex: 1,
     textAlign: "center",
-    paddingRight: 40,
-    fontFamily: "Inter-Medium",
+    paddingRight: 23,
+    fontFamily: 'Inter-Medium'
   },
   registerContainer: {
     flexDirection: "row",
     marginTop: 15,
     alignItems: "center",
-    justifyContent: "center",
   },
   registerText: {
     fontSize: 13,
@@ -169,30 +153,28 @@ const styles = StyleSheet.create({
     fontFamily: "Inter-Medium",
     textDecorationLine: "underline",
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
+  optionButton: {
+    flexDirection: "row",
     alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    width: "85%",
-    maxHeight: "70%",
-    borderRadius: 10,
-    paddingVertical: 20,
+    backgroundColor: "white",
+    borderRadius: 25,
+    marginBottom: 15,
     paddingHorizontal: 15,
+    height: 43,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    width: "100%",
   },
-  countryItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+  optionIcon: {
+    marginRight: 10,
   },
-  countryItemText: {
+  optionText: {
     fontSize: 16,
     color: "#333",
-    fontFamily: "Inter-Medium",
+    flex: 1,
+    textAlign: "center",
+    paddingRight:40,
+    fontFamily:'Inter-Medium'
   },
 });
 

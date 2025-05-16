@@ -18,8 +18,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: "center",
     width: "100%",
-    paddingTop: 50,
-    paddingBottom: 0, // No bottom padding
     justifyContent: "space-between", // This will push content to top and bottom
     
   },
@@ -95,7 +93,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginVertical: 15,
+    marginBottom:10
   },
   divider: {
     flex: 1,

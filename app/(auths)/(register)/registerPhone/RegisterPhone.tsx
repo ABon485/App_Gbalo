@@ -248,7 +248,7 @@ export default function Register() {
 
               <TouchableOpacity style={styles.socialButton}>
                 <Image
-                  source={require("../../../../assets/images/social/Apple.png")}
+                  source={require("../../../../assets/images/social/apple.png")}
                 />
                 <Text style={styles.socialButtonText}>Tiếp tục với Apple</Text>
               </TouchableOpacity>

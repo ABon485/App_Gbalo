@@ -17,11 +17,12 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { Stack, useRouter } from "expo-router";
 import GoogleButton from "@/components/common/customButtonSocial/GoogleButton"; 
 import FacebookButton from "@/components/common/customButtonSocial/FacebookButton"; 
+import AppleButton from "@/components/common/customButtonSocial/AppleButton"; 
+
 
 const LoginScreen = () => {
   const [loginMethod, setLoginMethod] = useState("email");
   const router = useRouter();
-
   const handleFacebookLogin = () => {
     console.log("Initiating Facebook login");
   };
@@ -31,6 +32,10 @@ const LoginScreen = () => {
   };
 
   const handleLoginPressPhone = () => {
+    router.push('/(auths)/(Login)/loginByPhone');
+  };
+
+  const handleLoginPressApple = () => {
     router.push('/(auths)/(Login)/loginPhone');
   };
 
@@ -53,10 +58,8 @@ const LoginScreen = () => {
               style={styles.logo}
               resizeMode="contain"
             />
-
             <View style={styles.formContainer}>
               <Text style={styles.title}>Đăng nhập</Text>
-
               <View style={styles.inputContainer}>
                 {/* Email button */}
                 <TouchableOpacity
@@ -92,12 +95,11 @@ const LoginScreen = () => {
                 <Text style={styles.dividerText}>Hoặc đăng nhập bằng</Text>
                 <View style={styles.divider} />
               </View>
-
               <GoogleButton disabled={false} />
               <FacebookButton onPress={handleFacebookLogin} />
-
+              <AppleButton onPress={handleLoginPressApple}/>
               <View style={styles.registerContainer}>
-                <Text style={styles.registerText}>Bạn chưa có tài khoản? </Text>
+                <Text style={styles.registerText}>Bạn chưa có tài khoản ư ? </Text>
                 <TouchableOpacity onPress={handleRegister}>
                   <Text style={styles.registerLink}>Đăng ký</Text>
                 </TouchableOpacity>

@@ -19,7 +19,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/config/api";
 import { LoginEmailType } from "@/types/user";
 import { ApiResponse } from "@/types/api";
-import { useToast } from "@/context/ToastContext"; 
+import { useToast } from "@/context/ToastContext";
+import GoogleButton from "@/components/common/customButtonSocial/GoogleButton";
+import FacebookButton from "@/components/common/customButtonSocial/FacebookButton";
+import AppleButton from "@/components/common/customButtonSocial/AppleButton";
+
 
 const LoginEmail = () => {
   const [email, setEmail] = useState("");
@@ -27,12 +31,11 @@ const LoginEmail = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { showToast } = useToast(); 
+  const { showToast } = useToast();
 
   const handlePhoneLogin = () => {
-    router.push("/(auths)/(Login)/loginPhone");
+    router.push("/(auths)/(Login)/loginByPhone");
   };
-
   const handleForgotPassword = () => {
     router.push("/(auths)/(Login)/forgotPassword/forgot-password-email");
   };
@@ -40,6 +43,12 @@ const LoginEmail = () => {
   const handleRegister = () => {
     router.push("/(auths)/(register)/registerPhone/RegisterPhone");
   };
+  const handleFacebookLogin = () => {
+    console.log("Initiating Facebook login");
+  };
+  const handleLoginPressApple = () => {
+    router.push('/(auths)/(Login)/loginPhone');
+  }
 
   const handleLogin = async () => {
     if (!email) {
@@ -175,7 +184,7 @@ const LoginEmail = () => {
                 <View style={styles.inputField}>
                   <EvilIcons
                     name="lock"
-                    size={30}
+                    size={32}
                     color="#999999"
                     style={styles.inputIcon}
                   />
@@ -211,7 +220,6 @@ const LoginEmail = () => {
                 <Text style={styles.dividerText}>Hoặc đăng nhập bằng</Text>
                 <View style={styles.divider} />
               </View>
-
               <TouchableOpacity
                 style={styles.socialButton}
                 onPress={handlePhoneLogin}
@@ -223,27 +231,11 @@ const LoginEmail = () => {
                   Tiếp tục với số điện thoại
                 </Text>
               </TouchableOpacity>
-
-              <TouchableOpacity style={styles.socialButton}>
-                <Image
-                  source={require("@/assets/images/Google.png")}
-                  className="w-6 h-6"
-                />
-                <Text style={styles.socialButtonText}>Tiếp tục với Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.socialButton}>
-                <Image
-                  source={require("@/assets/images/Facebook.png")}
-                  className="w-6 h-6"
-                />
-                <Text style={styles.socialButtonText}>
-                  Tiếp tục với Facebook
-                </Text>
-              </TouchableOpacity>
-
+              <GoogleButton disabled={false} />
+              <FacebookButton onPress={handleFacebookLogin} />
+              <AppleButton onPress={handleLoginPressApple} />
               <View style={styles.registerContainer}>
-                <Text style={styles.registerText}>Bạn chưa có tài khoản? </Text>
+                <Text style={styles.registerText}>Bạn chưa có tài khoản ư ? </Text>
                 <TouchableOpacity onPress={handleRegister}>
                   <Text style={styles.registerLink}>Đăng ký</Text>
                 </TouchableOpacity>
