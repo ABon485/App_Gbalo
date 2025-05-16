@@ -1,8 +1,19 @@
 import { apiTour, api } from "@/config/tourApi";
-import { TourListResponse, TourDetail, searchTourType, ProvinceType, PaginationInfo, TourItem } from "@/types/tour";
+import {
+  TourListResponse,
+  TourDetail,
+  searchTourType,
+  ProvinceType,
+  guestType,
+  PaginationInfo,
+  TourItem,
+} from "@/types/tour";
 
 const tourApi = {
-  ListTour: async (page: number = 1, pageSize: number = 20): Promise<TourListResponse> => {
+  ListTour: async (
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<TourListResponse> => {
     try {
       const response = await apiTour.get("/tour/featured", {
         params: { page, pageSize },
@@ -16,7 +27,7 @@ const tourApi = {
   searchTour: async (formData: searchTourType): Promise<TourListResponse> => {
     try {
       const response = await apiTour.post("/tour/search", formData);
-      return response.data; 
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -40,6 +51,19 @@ const tourApi = {
       }
       return data;
     }),
+  GuestType: async (): Promise<guestType> => {
+    try {
+      const response = await apiTour.get(`/tour/guesttype`);
+      const data = response.data.data;
+      if (!Array.isArray(data)) {
+        throw new Error("Guest type response is not an array");
+      }
+      return { data }; // Trả về { data: [{ id, guestType, age }, ...] }
+    } catch (error) {
+      console.error("Error fetching guest types:", error);
+      throw error;
+    }
+  },
 };
 
 export default tourApi;
