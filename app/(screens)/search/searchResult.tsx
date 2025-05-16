@@ -232,9 +232,11 @@ const SearchResult = () => {
                                 <AntDesign name="search1" size={18} color="white" />
                             </TouchableOpacity>
                         </View>
-                        <TouchableOpacity style={styles.filterButtonIcon}>
-                            <SlidersHorizontal size={20} color="#888" />
-                        </TouchableOpacity>
+                        {hasSearched && tours.length > 0 && (
+                            <TouchableOpacity style={styles.filterButtonIcon}>
+                                <SlidersHorizontal size={20} color="#888" />
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     {loading ? (
@@ -301,6 +303,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 20,
+
     },
     backButton: {
         marginRight: 10,

@@ -4,6 +4,7 @@ import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
 import { Stack, router } from 'expo-router';
 import tourApi from '@/services/tour';
 import { ProvinceType } from '@/types/tour';
+import { Ionicons } from '@expo/vector-icons';
 
 const SearchTour = () => {
   const [activeTab, setActiveTab] = useState('Tour');
@@ -64,24 +65,27 @@ const SearchTour = () => {
   };
 
   const renderProvinceItem = ({ item }: { item: ProvinceType }) => (
-  <View style={styles.itemContainer}>
-    <Image
-      source={{ uri: item.image }}
-      style={styles.itemImage}
-    />
-    <View style={styles.itemTextContainer}>
-      <Text style={styles.itemname}>{item.name}</Text>
-      <Text style={styles.itemDescription} numberOfLines={2}>
-        {item.description || 'Khám phá điểm đến tuyệt vời với những trải nghiệm độc đáo.'}
-      </Text>
+    <View style={styles.itemContainer}>
+      <Image
+        source={{ uri: item.image }}
+        style={styles.itemImage}
+      />
+      <View style={styles.itemTextContainer}>
+        <Text style={styles.itemname}>{item.name}</Text>
+        <Text style={styles.itemDescription} numberOfLines={2}>
+          {item.description || 'Khám phá điểm đến tuyệt vời với những trải nghiệm độc đáo.'}
+        </Text>
+      </View>
     </View>
-  </View>
-);
+  );
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={22} color="#000" />
+        </TouchableOpacity>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => handleTabPress('Tour')}>
             <Text style={[styles.tab, activeTab === 'Tour' ? styles.tabActive : null]}>Tour</Text>
@@ -211,7 +215,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     elevation: 2,
     flex: 1,
-    height:43,
+    height: 43,
   },
   searchIcon: {
     marginRight: 10,
@@ -227,7 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff6200',
     borderRadius: 255,
     padding: 9,
-    
+
   },
   sectionname: {
     fontSize: 12,
@@ -310,6 +314,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 10,
   },
+  backButton: {
+  position: 'absolute',
+  top: 52,
+  left: 10,
+  padding: 6,
+},
+
 });
 
 export default SearchTour;
