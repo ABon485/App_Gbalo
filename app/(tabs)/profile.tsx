@@ -22,12 +22,14 @@ import {
   ChevronRight,
   User,
 } from "lucide-react-native";
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
 import api from "@/config/api";
 import { ProfileResponse } from "@/types/user";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import DeleteAccountModal from "@/components/profile/deleteAcount";
+import ConfirmLogoutModal from "@/components/profile/confirmlogout";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -36,6 +38,8 @@ export default function ProfileScreen() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<ProfileResponse["data"] | null>(null);
   const [loadingLogout, setLoadingLogout] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -270,20 +274,42 @@ export default function ProfileScreen() {
           ))}
 
           {isLoggedIn && (
-            <TouchableOpacity
-              style={[styles.menuItem, styles.logoutButton]}
-              onPress={handleLogout}
-            >
-              <Text style={styles.logoutButtonText}>Đăng xuất</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={[styles.menuItem, styles.logoutButton]}
+                onPress={() => setShowLogoutModal(true)}
+              >
+                <Text style={styles.logoutButtonText}>Đăng xuất</Text>
+              </TouchableOpacity>
+
+              <ConfirmLogoutModal
+                visible={showLogoutModal}
+                onCancel={() => setShowLogoutModal(false)}
+                onConfirm={handleLogout}
+              />
+            </>
           )}
 
           <TouchableOpacity
             style={[styles.menuItem, styles.DeleteButton]}
-            // onPress={}
+            onPress={() => setShowDeleteAccountModal(true)}
           >
             <Text style={styles.DeleteAcount}>Xóa tài khoản</Text>
           </TouchableOpacity>
+
+          <DeleteAccountModal
+            visible={showDeleteAccountModal}
+            onClose={() => setShowDeleteAccountModal(false)}
+            onDelete={() => {
+              console.log("Tài khoản bị xóa");
+              setShowDeleteAccountModal(false);
+              showToast({
+                type: "success",
+                heading: "Thành công",
+                message: "Tài khoản đã được xóa!",
+              });
+            }}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
