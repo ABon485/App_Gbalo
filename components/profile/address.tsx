@@ -61,18 +61,6 @@ const AddressModal = ({ visible, onClose }: Props) => {
               onChangeText={setAddress}
               placeholder="Thành phố"
             />
-            <TextInput
-              style={styles.input}
-              value={address}
-              onChangeText={setAddress}
-              placeholder="Tỉnh/Quận/Khu vực"
-            />
-            <TextInput
-              style={styles.input}
-              value={address}
-              onChangeText={setAddress}
-              placeholder="Căn hộ/Phòng"
-            />
           </View>
 
           <TouchableOpacity
