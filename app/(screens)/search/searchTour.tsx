@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet } from 'react
 import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
 import { Stack, router } from 'expo-router';
 import tourApi from '@/services/tour';
-import { ProvinceType } from '@/types/tour';
+import { ProvinceType, TourItem } from '@/types/tour';
 import { Ionicons } from '@expo/vector-icons';
 
 const SearchTour = () => {
@@ -35,22 +35,61 @@ const SearchTour = () => {
     fetchProvinces();
   }, []);
 
-  const handleProvinceClick = (provinceName: string) => {
-    const normalize = (str: string) =>
-      str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const fetchToursByProvince = async (provinceId: string, provinceName: string) => {
+    try {
+      setLoading(true);
+      const responseTours = await tourApi.ListTour(1, 100);
+      const fetchedTours: TourItem[] = responseTours.data.datas
+        .map((item: any) => {
+          let provinceIds = [];
+          if (item.provinceIds && Array.isArray(item.provinceIds)) {
+            provinceIds = item.provinceIds.map((id: any) =>
+              typeof id === 'string' ? parseInt(id, 10) : id
+            );
+          } else if (item.provinceId) {
+            const id = typeof item.provinceId === 'string' ? parseInt(item.provinceId, 10) : item.provinceId;
+            provinceIds = [id];
+          }
 
-    const matchedProvince = province.find((prov) =>
-      normalize(prov.name).includes(normalize(provinceName))
-    );
-    if (matchedProvince) {
-      setSelectedProvinceId(matchedProvince.id);
-      router.push({
-        pathname: '/(screens)/search/searchResult',
-        params: { searchQuery: '', selectedProvinceId: matchedProvince.id },
-      });
-    } else {
-      setError('Không tìm thấy tỉnh');
+          return {
+            id: item.id.toString(),
+            name: item.name,
+            slug: item.slug,
+            featuredImageUrl: item.featuredImageUrl || 'default_image_url',
+            vote: item.vote || 0,
+            fromPrice: item.fromPrice || 0,
+            isFavorite: false,
+            provinceIds,
+          };
+        })
+        .filter((tour: TourItem) =>
+          provinceId === 'all' ? true : tour.provinceIds.includes(parseInt(provinceId, 10))
+        );
+
+      return fetchedTours;
+    } catch (error) {
+      console.error('Lỗi khi lấy danh sách tour:', error);
+      setError('Không tải được danh sách tour');
+      return [];
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleProvinceClick = async (provinceId: string, provinceName: string) => {
+    setSelectedProvinceId(provinceId);
+
+    // Tìm kiếm tour dựa trên provinceId
+    const tours = await fetchToursByProvince(provinceId, provinceName);
+
+    // Chuyển hướng đến SearchResult với tham số cần thiết
+    router.push({
+      pathname: '/(screens)/search/searchResult',
+      params: {
+        searchQuery: provinceName, // Truyền tên tỉnh làm từ khóa tìm kiếm
+        selectedProvinceId: provinceId,
+      },
+    });
   };
 
   const handleTabPress = (tabName: string) => {
@@ -65,7 +104,10 @@ const SearchTour = () => {
   };
 
   const renderProvinceItem = ({ item }: { item: ProvinceType }) => (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={() => handleProvinceClick(item.id, item.name)}
+    >
       <Image
         source={{ uri: item.image }}
         style={styles.itemImage}
@@ -76,7 +118,17 @@ const SearchTour = () => {
           {item.description || 'Khám phá điểm đến tuyệt vời với những trải nghiệm độc đáo.'}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
+  );
+
+  const renderFilterButton = ({ item }: { item: ProvinceType }) => (
+    <TouchableOpacity
+      style={styles.filterButton}
+      onPress={() => handleProvinceClick(item.id, item.name)}
+    >
+      <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
+      <Text style={styles.filterText}>{item.name}</Text>
+    </TouchableOpacity>
   );
 
   return (
@@ -123,27 +175,20 @@ const SearchTour = () => {
           <Text style={styles.searchname}>Bạn sẽ đi đâu ?</Text>
           <Text style={styles.sectionname}>Tìm kiếm gần đây ?</Text>
           <View style={styles.filterContainer}>
-            <TouchableOpacity
-              style={styles.filterButton}
-              onPress={() => handleProvinceClick('Đà Lạt')}
-            >
-              <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
-              <Text style={styles.filterText}>Đà Lạt</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.filterButton}
-              onPress={() => handleProvinceClick('Đà Nẵng')}
-            >
-              <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
-              <Text style={styles.filterText}>Đà Nẵng</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.filterButton}
-              onPress={() => handleProvinceClick('Hội An')}
-            >
-              <AntDesign name="enviromento" size={13} color="#888" style={styles.filterIcon} />
-              <Text style={styles.filterText}>Hội An</Text>
-            </TouchableOpacity>
+            {loading ? (
+              <Text style={styles.loadingText}>Đang tải...</Text>
+            ) : error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : (
+              <FlatList
+                data={province.slice(0, 3)}
+                renderItem={renderFilterButton}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                style={styles.filterList}
+                ItemSeparatorComponent={() => <View style={{ height: 3 }} />}
+              />
+            )}
           </View>
 
           <Text style={styles.sectionname}>Thịnh hành gần nhất</Text>
@@ -231,7 +276,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff6200',
     borderRadius: 255,
     padding: 9,
-
   },
   sectionname: {
     fontSize: 12,
@@ -240,13 +284,19 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   filterContainer: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     marginBottom: 10,
-    gap: 8,
+  },
+  filterList: {
+    flexGrow: 0,
   },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 15,
   },
   filterIcon: {
     marginRight: 5,
@@ -287,21 +337,6 @@ const styles = StyleSheet.create({
     color: '#666',
     fontFamily: 'Inter-Medium',
   },
-  submitButton: {
-    backgroundColor: '#ff6200',
-    borderRadius: 25,
-    paddingVertical: 8,
-    alignItems: 'center',
-    marginVertical: 10,
-    width: 130,
-    marginLeft: 180,
-    height: 43,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-  },
   errorText: {
     fontSize: 12,
     color: '#FF3B30',
@@ -315,12 +350,11 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   backButton: {
-  position: 'absolute',
-  top: 52,
-  left: 10,
-  padding: 6,
-},
-
+    position: 'absolute',
+    top: 52,
+    left: 10,
+    padding: 6,
+  },
 });
 
 export default SearchTour;

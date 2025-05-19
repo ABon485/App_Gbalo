@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, FlatList, StyleSheet, Dimensions } from 'react-native';
 import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
@@ -19,22 +19,56 @@ const SearchResult = () => {
     const [hasSearched, setHasSearched] = useState<boolean>(false);
     const [searchTrigger, setSearchTrigger] = useState<number>(0);
     const [allProvinces, setAllProvinces] = useState<ProvinceType[]>([]);
+    const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
+
+    // Fetch tours on component mount
+    useEffect(() => {
+        if (isFirstLoad) {
+            fetchTours();
+            setIsFirstLoad(false);
+        }
+    }, [isFirstLoad]);
 
     const fetchTours = async () => {
         try {
             setLoading(true);
             const responseTours = await tourApi.ListTour(1, 100);
-            const fetchedTours: TourItem[] = responseTours.data.datas.map((item: any) => ({
-                id: item.id.toString(),
-                name: item.name,
-                slug: item.slug,
-                featuredImageUrl: item.featuredImageUrl || 'default_image_url',
-                vote: item.vote || 0,
-                fromPrice: item.fromPrice || 0,
-                isFavorite: false,
-                provinceIds: item.provinceIds || [],
-            }));
+            console.log("API Tours response:", responseTours.data.datas.length);
+            
+            // Map tour data and ensure provinceIds is always processed correctly
+            const fetchedTours: TourItem[] = responseTours.data.datas.map((item: any) => {
+                // Handle different possible formats of provinceIds
+                let provinceIds = [];
+                
+                if (item.provinceIds && Array.isArray(item.provinceIds)) {
+                    // Convert all provinceIds to numbers to ensure consistency
+                    provinceIds = item.provinceIds.map((id: any) => 
+                        typeof id === 'string' ? parseInt(id, 10) : id
+                    );
+                } else if (item.provinceId) {
+                    // If there's a single provinceId field instead
+                    const id = typeof item.provinceId === 'string' ? 
+                        parseInt(item.provinceId, 10) : item.provinceId;
+                    provinceIds = [id];
+                }
+                
+                return {
+                    id: item.id.toString(),
+                    name: item.name,
+                    slug: item.slug,
+                    featuredImageUrl: item.featuredImageUrl || 'default_image_url',
+                    vote: item.vote || 0,
+                    fromPrice: item.fromPrice || 0,
+                    isFavorite: false,
+                    provinceIds: provinceIds,
+                };
+            });
 
+            // Debug the first tour for structure verification
+            if (fetchedTours.length > 0) {
+                console.log("Tour example:", fetchedTours[0]);
+            }
+            
             setAllTours(fetchedTours);
             return fetchedTours;
         } catch (error) {
@@ -51,6 +85,7 @@ const SearchResult = () => {
             // Nếu đã có danh sách tỉnh, không cần gọi API lại
             if (!allProvinces.length) {
                 const provinces = await tourApi.getProvince();
+                console.log("Fetched provinces:", provinces.length);
                 setAllProvinces(provinces); // Lưu danh sách tỉnh vào state
             }
 
@@ -61,6 +96,7 @@ const SearchResult = () => {
                 normalizeText(province.name).includes(normalizeText(keyword))
             );
 
+            console.log(`Found ${filteredProvinces.length} province suggestions for "${keyword}"`);
             setSuggestions(filteredProvinces);
         } catch (error) {
             console.error('Lỗi khi lấy danh sách tỉnh:', error);
@@ -74,28 +110,70 @@ const SearchResult = () => {
             setError(null);
             setHasSearched(true);
 
+            console.log(`Searching for tours: provinceId=${provinceId}, keyword=${keyword}`);
+            
             let toursToFilter = allTours;
             if (!allTours.length) {
+                console.log("No tours loaded yet, fetching tours first...");
                 toursToFilter = await fetchTours();
             }
 
-            const provinceIdNum = parseInt(provinceId);
+            console.log(`Total tours to filter: ${toursToFilter.length}`);
+
+            // Convert provinceId to number for comparison
+            const provinceIdNum = provinceId !== 'all' ? parseInt(provinceId, 10) : null;
+            
             const normalizeText = (text: string) =>
                 text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-
+            
+            const normalizedKeyword = normalizeText(keyword);
+            
+            // More flexible tour filtering
             const filteredTours = toursToFilter.filter((tour) => {
-                const matchProvince = provinceId === 'all' || tour.provinceIds.includes(provinceIdNum);
-                const matchKeyword = normalizeText(tour.name).includes(normalizeText(keyword));
+                // Check if tour has the province we're looking for
+                let matchProvince = false;
+                
+                if (provinceId === 'all') {
+                    matchProvince = true;
+                } else if (tour.provinceIds && Array.isArray(tour.provinceIds)) {
+                    // Try multiple ways to match province
+                    matchProvince = tour.provinceIds.some(id => {
+                        const numId = typeof id === 'string' ? parseInt(id, 10) : id;
+                        return numId === provinceIdNum;
+                    });
+                }
+                
+                // Check if tour name contains the keyword
+                const matchKeyword = normalizeText(tour.name).includes(normalizedKeyword);
+                
+                // For debugging only
+                if (matchProvince && matchKeyword) {
+                    console.log(`Found matching tour: ${tour.name}`);
+                }
+                
                 return matchProvince && matchKeyword;
             });
 
-            if (!toursToFilter.length) {
-                setError('Danh sách tour trống');
-                setTours([]);
-                return;
-            }
+            console.log(`Found ${filteredTours.length} matching tours`);
 
-            setTours(filteredTours);
+            if (filteredTours.length === 0) {
+                // If no exact matches, try a fallback to search by keyword only
+                console.log("No matches with province filter, trying keyword-only search");
+                const keywordOnlyTours = toursToFilter.filter(tour => 
+                    normalizeText(tour.name).includes(normalizedKeyword)
+                );
+                
+                if (keywordOnlyTours.length > 0) {
+                    console.log(`Found ${keywordOnlyTours.length} tours by keyword only`);
+                    setTours(keywordOnlyTours);
+                    return;
+                }
+                
+                setError(`Không tìm thấy tour nào cho "${keyword}"`);
+                setTours([]);
+            } else {
+                setTours(filteredTours);
+            }
         } catch (error: any) {
             console.error('Lỗi khi tìm kiếm tour:', error);
             setError(error.message || 'Không tải được danh sách tour');
@@ -133,16 +211,20 @@ const SearchResult = () => {
     };
 
     const handleSuggestionPress = (province: ProvinceType) => {
+        console.log(`Selected province: ${province.name} (ID: ${province.id})`);
+        
+        // Update states
         setSearchQuery(province.name);
-        setSelectedProvinceId(province.id.toString()); // Đảm bảo provinceId là chuỗi
-        setSuggestions([]); // Ẩn danh sách gợi ý
+        setSelectedProvinceId(province.id.toString());
+        setSuggestions([]);
         setHasSearched(true);
-        // Gọi trực tiếp searchTours thay vì chỉ dựa vào searchTrigger
+        
+        // Force a fresh search with the selected province
         searchTours(province.id.toString(), province.name);
     };
 
     // Xử lý tìm kiếm khi searchTrigger thay đổi
-    React.useEffect(() => {
+    useEffect(() => {
         if (hasSearched && searchQuery.trim()) {
             searchTours(selectedProvinceId, searchQuery);
         }
@@ -249,7 +331,7 @@ const SearchResult = () => {
                                 Có {tours.length} kết quả tour {searchQuery}
                             </Text>
                             <FlatList
-                                data={showAll ? tours : tours.slice(0, 4)}
+                                data={showAll ? tours : tours.slice(0, 6)}
                                 renderItem={renderTourItem}
                                 keyExtractor={(item) => item.id}
                                 numColumns={2}
@@ -272,7 +354,7 @@ const SearchResult = () => {
                                 <FlatList
                                     data={suggestions}
                                     renderItem={renderSuggestionItem}
-                                    keyExtractor={(item) => item.id}
+                                    keyExtractor={(item) => item.id.toString()}
                                     style={styles.suggestionList}
                                 />
                             )}
@@ -307,6 +389,8 @@ const styles = StyleSheet.create({
     },
     backButton: {
         marginRight: 10,
+        marginTop:20,
+        
     },
     searchContainer: {
         flexDirection: 'row',
@@ -316,6 +400,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         elevation: 2,
         flex: 1,
+        marginTop:20,
     },
     searchIcon: {
         marginRight: 10,
@@ -335,6 +420,7 @@ const styles = StyleSheet.create({
     filterButtonIcon: {
         marginLeft: 10,
         padding: 9,
+        marginTop:20
     },
     errorText: {
         fontSize: 12,
