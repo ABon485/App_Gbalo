@@ -45,7 +45,7 @@ export default function Detail() {
         try {
           const detail = await tourApi.TourDetail(tourId);
           setTour(detail);
-          console.log("Tour Detail:", detail);
+          console.log("Tour Detail:", JSON.stringify(detail, null, 2));
           console.log("Tour Detail:", tourId);
         } catch (error) {
           console.error("Lỗi API:", error);
@@ -194,6 +194,18 @@ export default function Detail() {
                 source={{ html: item.included }}
               />
 
+               <ExtraUserModal
+                visible={showScheduleModal}
+                onClose={() => setShowScheduleModal(false)}
+                content={item.included}
+                title="Lịch trình chi tiết"
+              />
+
+              <Text style={styles.sectionTitle}>Lịch trình chi tiết</Text>
+              <RenderHtml
+                contentWidth={width}
+                source={{ html: item.schedule }}
+              />
               <SchechuleModal
                 visible={showScheduleModal}
                 onClose={() => setShowScheduleModal(false)}
@@ -201,6 +213,11 @@ export default function Detail() {
                 title="Lịch trình chi tiết"
               />
 
+              <Text style={styles.sectionTitle}>Những yêu cầu đối với khách</Text>
+              <RenderHtml
+                contentWidth={width}
+                source={{ html: item.policies }}
+              />
               <ExtraUserModal
                 visible={showExtraUserModal}
                 onClose={() => setShowExtraUserModal(false)}
