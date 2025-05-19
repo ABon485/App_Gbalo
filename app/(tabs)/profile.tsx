@@ -44,22 +44,65 @@ export default function ProfileScreen() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        // Log bước lấy dữ liệu từ AsyncStorage
+        console.log("Fetching data from AsyncStorage with key: 'data'");
         const data = await AsyncStorage.getItem("data");
 
-        if (data) {
-          const parsedData = JSON.parse(data);
-          const token = parsedData.token;
+        if (!data) {
+          console.warn("No data found in AsyncStorage for key: 'data'");
+          return;
+        }
 
-          if (!token) {
-            console.warn("Không tìm thấy token trong AsyncStorage");
-            return;
-          }
+        // Parse dữ liệu
+        const parsedData = JSON.parse(data);
+        console.log("Parsed AsyncStorage data:", parsedData);
 
+        const token = parsedData.token;
+        console.log("Token profile:", token);
+        if (!token) {
+          console.warn("No token found in parsed AsyncStorage data");
+          return;
+        }
+
+        // Biến để bật/tắt chế độ hardcode
+        const IS_HARDCODE_MODE = true;
+
+        if (IS_HARDCODE_MODE) {
+          // Giả lập dữ liệu hồ sơ từ AsyncStorage
+          const fullName = parsedData.fullName || "Khách hàng";
+          const email = parsedData.email || "Không có email";
+
+          setUser({
+            id: parsedData.id || "",
+            userName: parsedData.userName || "",
+            fullName,
+            email,
+            avatar: parsedData.avatar || "",
+            createDate: parsedData.createDate || "",
+            roles: parsedData.roles || [],
+            permissions: parsedData.permissions || [],
+            phone: parsedData.phone || "",
+            language: parsedData.language || "",
+            address: parsedData.address || "",
+            nationality: parsedData.nationality || "",
+            dateOfBirth: parsedData.dateOfBirth
+              ? new Date(parsedData.dateOfBirth)
+              : new Date(),
+          });
+          setIsLoggedIn(true);
+          console.log("Hardcode mode: Set user data:", { fullName, email });
+          console.log("Set isLoggedIn to true");
+        } else {
+          // Gọi API thật khi server sẵn sàng
+          console.log("Fetching profile from API with token:", token);
           const response = await api.get("/Accounts/Profile", {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
+
+          console.log("API response:", response);
+          console.log("API response data:", response.data);
 
           if (response?.data?.data) {
             const fullNameFromAPI = response.data.data.fullName;
@@ -71,12 +114,47 @@ export default function ProfileScreen() {
               fullName,
             });
             setIsLoggedIn(true);
+            console.log("Set user data from API:", {
+              ...response.data.data,
+              fullName,
+            });
+            console.log("Set isLoggedIn to true");
           } else {
-            console.warn("Không có dữ liệu user từ API");
+            console.warn("No user data in API response");
           }
         }
-      } catch (error) {
-        console.error("Lỗi khi lấy hồ sơ:", error);
+      } catch (error: any) {
+        const data = await AsyncStorage.getItem("data");
+        if (data) {
+          const parsedData = JSON.parse(data);
+          const fullName = parsedData.fullName || "Khách hàng";
+          const email = parsedData.email || "Không có email";
+
+          setUser({
+            id: parsedData.id || "",
+            userName: parsedData.userName || "",
+            fullName,
+            email,
+            avatar: parsedData.avatar || "",
+            createDate: parsedData.createDate || "",
+            roles: parsedData.roles || [],
+            permissions: parsedData.permissions || [],
+            phone: parsedData.phone || "",
+            language: parsedData.language || "",
+            address: parsedData.address || "",
+            nationality: parsedData.nationality || "",
+            dateOfBirth: parsedData.dateOfBirth
+              ? new Date(parsedData.dateOfBirth)
+              : new Date(),
+          });
+          setIsLoggedIn(true);
+          console.log("Fallback: Set user data from AsyncStorage:", {
+            fullName,
+            email,
+          });
+        } else {
+          console.warn("Fallback failed: No data in AsyncStorage");
+        }
       }
     };
 
@@ -116,7 +194,27 @@ export default function ProfileScreen() {
   };
 
   const handleUpdateProfile = () => {
-    router.push("/(screens)/profile/profile");
+    if (user) {
+      router.push({
+        pathname: "/(screens)/profile/profile",
+        params: {
+          id: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          avatar: user.avatar,
+          address: user.address,
+          userName: user.userName,
+          createDate: user.createDate,
+          language: user.language,
+          nationality: user.nationality,
+          dateOfBirth: user.dateOfBirth.toISOString(), // Chuyển Date thành chuỗi
+        },
+      });
+    } else {
+      console.warn("Không có dữ liệu người dùng để truyền");
+      router.push("/(screens)/profile/profile");
+    }
   };
 
   const menuItems = [

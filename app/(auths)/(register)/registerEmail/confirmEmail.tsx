@@ -70,15 +70,14 @@ export default function ConfirmEmail() {
         return;
       }
 
-      const formData = {
+      const formData: RegisterTypeEmail = {
         token,
         fullName,
-        email,
         password,
         confirmPassword,
-        code: otpCodeFromParams,
       };
       console.log("Data trả về là: ", formData);
+
       const response: ApiResponse = await api.post(
         "/Accounts/ResgiterByCode",
         formData
@@ -121,6 +120,7 @@ export default function ConfirmEmail() {
         message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
       });
       console.log("first", error.message);
+      console.log("second", error);
     } finally {
       setLoading(false);
     }

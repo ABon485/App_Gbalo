@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -13,19 +14,18 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
 import api from "@/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as ImagePicker from "expo-image-picker";
 import { useToast } from "@/context/ToastContext";
 import { ProfileResponse } from "@/types/user";
 import UserNameModal from "@/components/profile/userName";
 import EmailModal from "@/components/profile/Email";
 import PhoneModal from "@/components/profile/phoneNumber";
 import AddressModal from "@/components/profile/address";
-import LinkedAccountModal from "@/components/profile/linkedAccount";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import FileUploadWebView from "@/components/WebView_Upload";
 import { Modal } from "react-native";
 
 const ProfileUpdateScreen = () => {
+  const params = useLocalSearchParams(); // Lấy query parameters
   const [profile, setProfile] = useState<ProfileResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
@@ -34,16 +34,40 @@ const ProfileUpdateScreen = () => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
-  const [showLinkedModal, setShowLinkedModal] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
 
   const fetchProfile = async () => {
     try {
+      // Kiểm tra nếu có dữ liệu từ query params
+      if (params.id) {
+        setProfile({
+          id: params.id as string,
+          fullName: params.fullName as string,
+          email: params.email as string,
+          phone: params.phone as string,
+          avatar: params.avatar as string,
+          address: params.address as string,
+          userName: params.userName as string,
+          createDate: params.createDate as string,
+          roles: [], // Không truyền roles qua params, để rỗng
+          permissions: [], // Không truyền permissions qua params, để rỗng
+          language: params.language as string,
+          nationality: params.nationality as string,
+          dateOfBirth: params.dateOfBirth
+            ? new Date(params.dateOfBirth as string)
+            : new Date(),
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Nếu không có params, gọi API để lấy dữ liệu
       const data = await AsyncStorage.getItem("data");
       if (!data) throw new Error("Không tìm thấy dữ liệu người dùng");
 
       const parsedData = JSON.parse(data);
       const token = parsedData?.token;
+      console.log("Token:", token);
       if (!token) throw new Error("Token không tồn tại");
 
       const response = await api.get("/Accounts/Profile", {
@@ -77,17 +101,7 @@ const ProfileUpdateScreen = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log(
-        "Response cập nhật avatar:",
-        JSON.stringify(response.data, null, 2)
-      );
-
       await fetchProfile();
-      console.log(
-        "Dữ liệu sau khi fetch lại:",
-        JSON.stringify(response.data.data, null, 2)
-      );
-
       showToast({
         message: "Cập nhật ảnh đại diện thành công",
         type: "success",
@@ -100,8 +114,7 @@ const ProfileUpdateScreen = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
-  console.log("PROFILE DATA:", JSON.stringify(profile, null, 2));
+  }, [params]);
 
   const handleEmailUpdated = (newEmail: string) => {
     if (profile) {
@@ -201,7 +214,6 @@ const ProfileUpdateScreen = () => {
             {profile.phone ? "Thêm" : "Không thể sửa"}
           </Text>
         </TouchableOpacity>
-
         <EmailModal
           visible={showEmailModal}
           onClose={() => setShowEmailModal(false)}
@@ -225,7 +237,6 @@ const ProfileUpdateScreen = () => {
             {profile.email ? "Thêm" : "Không thể sửa"}
           </Text>
         </TouchableOpacity>
-
         <PhoneModal
           visible={showPhoneModal}
           onClose={() => setShowPhoneModal(false)}
