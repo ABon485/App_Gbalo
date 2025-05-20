@@ -22,6 +22,7 @@ import { useWindowDimensions } from "react-native";
 import Order from "@/components/booking/order";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SimilarTour from "@/app/(screens)/detail/similarTour";
+import Rating from "./rating";
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
@@ -241,6 +242,7 @@ export default function Detail() {
                 contentWidth={width}
                 source={{ html: item.schedule }}
               />
+              
               <SchechuleModal
                 visible={showScheduleModal}
                 onClose={() => setShowScheduleModal(false)}
@@ -262,6 +264,7 @@ export default function Detail() {
                 title="Yêu cầu đối với khách hàng"
               />
             </View>
+            <Rating />
             {/* Add SimilarTour Component */}
             <Text style={styles.sectionTitle}>Các tour tương tự</Text>
             <SimilarTour
@@ -296,7 +299,7 @@ export default function Detail() {
             tourId={tour.id}
             user={user}
             imageUrl={imageUrl}
-            tourName={tour.name} 
+            tourName={tour.name}
             tourSubName={tour.subName}
             onConfirm={() => {
               setShowOrderModal(false);

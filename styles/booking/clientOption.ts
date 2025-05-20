@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 16,
+    color: "#F24E1E",
   },
   footer: {
     flexDirection: "row",
