@@ -1,8 +1,16 @@
-import { View, Text, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Star } from "lucide-react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Dimensions,
+  TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
+} from "react-native";
 import { useEffect, useState } from "react";
-import { ProvinceType } from "@/types/tour"; 
-import tourService from "@/services/tour"; 
+import { ProvinceType } from "@/types/tour";
+import tourService from "@/services/tour";
 
 const { width } = Dimensions.get("window");
 const cardWidth = width * 0.35;
@@ -18,7 +26,9 @@ const DestinationCard = ({ image, name, description }: ProvinceType) => {
   return (
     <TouchableOpacity style={styles.card}>
       <Image
-        source={image ? { uri: image } : require("@/assets/images/home/Property1.png")}
+        source={
+          image ? { uri: image } : require("@/assets/images/home/Property1.png")
+        }
         style={styles.cardImage}
       />
       <View style={styles.cardContent}>
@@ -40,7 +50,7 @@ const DestinationSection = () => {
     const fetchProvinces = async () => {
       try {
         setLoading(true);
-        const data: ProvinceType[] = await tourService.getProvince(); // Call getProvince as a method
+        const data: ProvinceType[] = await tourService.getProvince();
         setProvinces(data);
       } catch (err) {
         setError("Failed to fetch provinces. Please try again later.");
@@ -74,17 +84,22 @@ const DestinationSection = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Điểm đến hấp dẫn</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {provinces.map((item) => (
+      <FlatList
+        data={provinces}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
           <DestinationCard
-            key={item.id}
             id={item.id}
             image={item.image}
             name={item.name}
             description={item.description}
           />
-        ))}
-      </ScrollView>
+        )}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        nestedScrollEnabled={true} // ✅ fix chính
+      />
     </View>
   );
 };
@@ -126,7 +141,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     transform: [{ translateY: -20 }],
-    backgroundColor: "rgba(255, 255, 255, 0.9)", // Fixed syntax error
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     padding: 4,
     borderRadius: 8,
     marginHorizontal: 20,
@@ -141,33 +156,6 @@ const styles = StyleSheet.create({
   distanceText: {
     fontSize: 10,
     color: "#666",
-    fontFamily: "Inter-Medium",
-  },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 2,
-  },
-  starIcon: {
-    marginRight: 4,
-  },
-  ratingText: {
-    fontSize: 8,
-    color: "#666",
-    fontFamily: "Inter-Medium",
-  },
-  promoTag: {
-    position: "absolute",
-    bottom: 8,
-    right: 8,
-    backgroundColor: "#FF5722",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  promoText: {
-    color: "#fff",
-    fontSize: 8,
     fontFamily: "Inter-Medium",
   },
   errorText: {

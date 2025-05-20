@@ -23,7 +23,8 @@ const { width } = Dimensions.get("window");
 const itemWidth = (width - 40) / 2; // 2 items per row with 40px total padding
 
 // Format price with commas
-const formatPrice = (price: number): string => {
+const formatPrice = (price: number | null | undefined): string => {
+  if (price == null) return "0";
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
@@ -52,7 +53,6 @@ const TourListScreen = () => {
             vote: item.vote || 0,
             fromPrice: item.fromPrice || 0,
             isFavorite: false,
-           
           })
         );
 
@@ -128,7 +128,7 @@ const TourListScreen = () => {
           size={15}
           color={item.vote > 0 ? "#FF9500" : "#999999"}
         />
-        <Text style={styles.reviews}>({item.vote})</Text>
+        <Text style={styles.reviews}>{item.vote}</Text>
       </View>
       <Text style={styles.price}>Từ {formatPrice(item.fromPrice)}đ/Người</Text>
     </TouchableOpacity>
@@ -153,29 +153,30 @@ const TourListScreen = () => {
         </TouchableOpacity>
       </SafeAreaView>
     );
-    
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <FlatList
-        data={showAll ? tours : tours.slice(0, 4)}
-        renderItem={renderTourItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContainer}
-        ListFooterComponent={
-          !showAll && tours.length > 6 ? (
-            <TouchableOpacity
-              style={styles.loadMoreButton}
-              onPress={() => setShowAll(true)}
-            >
-              <Text style={styles.loadMoreText}>Xem thêm</Text>
-            </TouchableOpacity>
-          ) : null
-        }
-      />
+  data={showAll ? tours : tours.slice(0, 4)}
+  renderItem={renderTourItem}
+  keyExtractor={(item) => item.id}
+  numColumns={2}
+  contentContainerStyle={styles.listContainer}
+  columnWrapperStyle={styles.columnWrapper} // ✅ Thêm dòng này
+  ListFooterComponent={
+    !showAll && tours.length > 6 ? (
+      <TouchableOpacity
+        style={styles.loadMoreButton}
+        onPress={() => setShowAll(true)}
+      >
+        <Text style={styles.loadMoreText}>Xem thêm</Text>
+      </TouchableOpacity>
+    ) : null
+  }
+/>
+
     </SafeAreaView>
   );
 };
@@ -187,7 +188,12 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 10,
+      paddingHorizontal: 10,
   },
+  columnWrapper: {
+    paddingLeft: 10,
+},
+
   itemContainer: {
     width: itemWidth,
     margin: 5,

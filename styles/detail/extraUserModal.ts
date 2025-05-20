@@ -9,6 +9,8 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 15,
     paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
 
   modalTitleContainer: {

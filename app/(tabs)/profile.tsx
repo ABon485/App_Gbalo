@@ -394,29 +394,29 @@ export default function ProfileScreen() {
                 onCancel={() => setShowLogoutModal(false)}
                 onConfirm={handleLogout}
               />
+
+              <TouchableOpacity
+                style={[styles.menuItem, styles.DeleteButton]}
+                onPress={() => setShowDeleteAccountModal(true)}
+              >
+                <Text style={styles.DeleteAcount}>Xóa tài khoản</Text>
+              </TouchableOpacity>
+
+              <DeleteAccountModal
+                visible={showDeleteAccountModal}
+                onClose={() => setShowDeleteAccountModal(false)}
+                onDelete={() => {
+                  console.log("Tài khoản bị xóa");
+                  setShowDeleteAccountModal(false);
+                  showToast({
+                    type: "success",
+                    heading: "Thành công",
+                    message: "Tài khoản đã được xóa!",
+                  });
+                }}
+              />
             </>
           )}
-
-          <TouchableOpacity
-            style={[styles.menuItem, styles.DeleteButton]}
-            onPress={() => setShowDeleteAccountModal(true)}
-          >
-            <Text style={styles.DeleteAcount}>Xóa tài khoản</Text>
-          </TouchableOpacity>
-
-          <DeleteAccountModal
-            visible={showDeleteAccountModal}
-            onClose={() => setShowDeleteAccountModal(false)}
-            onDelete={() => {
-              console.log("Tài khoản bị xóa");
-              setShowDeleteAccountModal(false);
-              showToast({
-                type: "success",
-                heading: "Thành công",
-                message: "Tài khoản đã được xóa!",
-              });
-            }}
-          />
         </View>
       </ScrollView>
     </SafeAreaView>
