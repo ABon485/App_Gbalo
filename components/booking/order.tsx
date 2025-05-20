@@ -13,7 +13,9 @@ type Props = {
   fromPrice: number;
   tourId: number;
   user: any;
-  imageUrl: string | null; // Add imageUrl prop
+  imageUrl: string | null;
+  tourName: string;
+  tourSubName: string; // Add tourSubName prop
   onConfirm: () => void;
 };
 
@@ -24,7 +26,9 @@ const OrderTourModal = ({
   fromPrice,
   tourId,
   user,
-  imageUrl, // Receive imageUrl
+  imageUrl,
+  tourName,
+  tourSubName, // Receive tourSubName
   onConfirm,
 }: Props) => {
   const [selectedDate, setSelectedDate] = useState("Chọn ngày");
@@ -61,7 +65,9 @@ const OrderTourModal = ({
         selectedGuests,
         totalPrice: totalPrice.toString(),
         user: JSON.stringify(user),
-        imageUrl: imageUrl || "", // Pass imageUrl to ConfirmBooking
+        imageUrl: imageUrl || "",
+        tourName,
+        tourSubName, // Pass tourSubName to ConfirmBooking
       },
     });
   };

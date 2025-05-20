@@ -15,7 +15,9 @@ export default function ConfirmBooking() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedGuests, setSelectedGuests] = useState("");
   const [totalPrice, setTotalPrice] = useState(0);
-  const [imageUrl, setImageUrl] = useState<string | null>(null); // State for imageUrl
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [tourName, setTourName] = useState<string>("");
+  const [tourSubName, setTourSubName] = useState<string>(""); // State for tourSubName
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [tour, setTour] = useState<TourDetail | null>(null);
@@ -25,7 +27,9 @@ export default function ConfirmBooking() {
   const initialDate = params.selectedDate as string;
   const initialGuests = params.selectedGuests as string;
   const initialTotalPrice = Number(params.totalPrice) || 0;
-  const initialImageUrl = params.imageUrl as string; // Retrieve imageUrl from params
+  const initialImageUrl = params.imageUrl as string;
+  const initialTourName = params.tourName as string;
+  const initialTourSubName = params.tourSubName as string; // Retrieve tourSubName from params
   let user = null;
   try {
     user = params.user ? JSON.parse(params.user as string) : null;
@@ -52,8 +56,17 @@ export default function ConfirmBooking() {
     if (initialDate) setSelectedDate(initialDate);
     if (initialGuests) setSelectedGuests(initialGuests);
     if (initialTotalPrice) setTotalPrice(initialTotalPrice);
-    if (initialImageUrl) setImageUrl(initialImageUrl); // Set imageUrl from params
-  }, [initialDate, initialGuests, initialTotalPrice, initialImageUrl]);
+    if (initialImageUrl) setImageUrl(initialImageUrl);
+    if (initialTourName) setTourName(initialTourName);
+    if (initialTourSubName) setTourSubName(initialTourSubName); // Set tourSubName correctly
+  }, [
+    initialDate,
+    initialGuests,
+    initialTotalPrice,
+    initialImageUrl,
+    initialTourName,
+    initialTourSubName,
+  ]);
 
   const handleSaveDate = (date: string) => {
     setSelectedDate(date);
@@ -91,7 +104,9 @@ export default function ConfirmBooking() {
         selectedDate,
         selectedGuests,
         totalPrice: totalPrice.toString(),
-        imageUrl: imageUrl || "", // Pass imageUrl to SuccessBooking
+        imageUrl: imageUrl || "",
+        tourName,
+        tourSubName, // Pass tourSubName to SuccessBooking
       },
     });
   };
@@ -122,7 +137,7 @@ export default function ConfirmBooking() {
             source={
               imageUrl
                 ? { uri: imageUrl }
-                : require("@/assets/images/home/Property1.png") 
+                : require("@/assets/images/home/Property1.png")
             }
             style={styles.tourImage}
             onError={() => {
@@ -131,8 +146,8 @@ export default function ConfirmBooking() {
             }}
           />
           <View style={styles.tourInfo}>
-            <Text style={styles.tourTitle}>{tour.name}</Text>
-            <Text style={styles.tourDesc}>{tour.subName}</Text>
+            <Text style={styles.tourTitle}>{tourName || tour.name}</Text>
+            <Text style={styles.tourDesc}>{tourSubName || tour.subName}</Text>
             <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
             <Text style={styles.price}>
               Tổng giá: {totalPrice.toLocaleString("vi-VN")}₫

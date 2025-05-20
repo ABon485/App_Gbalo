@@ -9,7 +9,10 @@ export default function SuccessBooking() {
   const params = useLocalSearchParams();
   const selectedDate = params.selectedDate as string;
   const selectedGuests = params.selectedGuests as string;
-  const totalPrice = Number(params.totalPrice) || 0; // Retrieve totalPrice from params
+  const totalPrice = Number(params.totalPrice) || 0;
+  const imageUrl = params.imageUrl as string;
+  const tourName = params.tourName as string;
+  const tourSubName = params.tourSubName as string; // Retrieve tourSubName from params
 
   return (
     <View style={styles.container}>
@@ -36,18 +39,22 @@ export default function SuccessBooking() {
       {/* Tour Info */}
       <View style={styles.tourCard}>
         <Image
-          source={{
-            uri: "https://images2.thanhnien.vn/zoom/700_438/528068263637045248/2024/1/26/e093e9cfc9027d6a142358d24d2ee350-65a11ac2af785880-17061562929701875684912-37-0-587-880-crop-1706239860681642023140.jpg",
-          }}
+          source={
+            imageUrl
+              ? { uri: imageUrl }
+              : require("@/assets/images/home/Property1.png")
+          }
           style={styles.tourImage}
+          onError={() => {
+            console.log("Failed to load image from URL:", imageUrl);
+          }}
         />
         <View style={styles.tourInfo}>
           <Text style={styles.tourTitle}>
-            Tour sớm đến đồi BaNaHILL/Cầu vàng
+            {tourName}
           </Text>
           <Text style={styles.tourDesc}>
-            Tour sớm Bà Nà Hills/Cầu Vàng – săn mây, tận hưởng không khí trong
-            lành
+            {tourSubName}
           </Text>
           <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
           <Text style={styles.price}>
