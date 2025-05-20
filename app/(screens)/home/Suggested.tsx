@@ -39,7 +39,7 @@ const TourListScreen = () => {
       setLoading(true);
       let allTours: TourItem[] = [];
       let currentPage = 1;
-      let totalPages = 20;
+      let totalPages = 100;
 
       // Loop through all pages
       while (currentPage <= totalPages) {
@@ -87,7 +87,7 @@ const TourListScreen = () => {
 
   const handleCardPress = (id: string) => {
     router.push({
-      pathname: "/(screens)/[detailID]",
+      pathname: "/(screens)/detail/[detailID]",
       params: { detailID: id },
     });
     console.log("Card pressed:", id);

@@ -34,24 +34,24 @@ const SearchResult = () => {
             setLoading(true);
             const responseTours = await tourApi.ListTour(1, 100);
             console.log("API Tours response:", responseTours.data.datas.length);
-            
+
             // Map tour data and ensure provinceIds is always processed correctly
             const fetchedTours: TourItem[] = responseTours.data.datas.map((item: any) => {
                 // Handle different possible formats of provinceIds
                 let provinceIds = [];
-                
+
                 if (item.provinceIds && Array.isArray(item.provinceIds)) {
                     // Convert all provinceIds to numbers to ensure consistency
-                    provinceIds = item.provinceIds.map((id: any) => 
+                    provinceIds = item.provinceIds.map((id: any) =>
                         typeof id === 'string' ? parseInt(id, 10) : id
                     );
                 } else if (item.provinceId) {
                     // If there's a single provinceId field instead
-                    const id = typeof item.provinceId === 'string' ? 
+                    const id = typeof item.provinceId === 'string' ?
                         parseInt(item.provinceId, 10) : item.provinceId;
                     provinceIds = [id];
                 }
-                
+
                 return {
                     id: item.id.toString(),
                     name: item.name,
@@ -68,7 +68,7 @@ const SearchResult = () => {
             if (fetchedTours.length > 0) {
                 console.log("Tour example:", fetchedTours[0]);
             }
-            
+
             setAllTours(fetchedTours);
             return fetchedTours;
         } catch (error) {
@@ -111,7 +111,7 @@ const SearchResult = () => {
             setHasSearched(true);
 
             console.log(`Searching for tours: provinceId=${provinceId}, keyword=${keyword}`);
-            
+
             let toursToFilter = allTours;
             if (!allTours.length) {
                 console.log("No tours loaded yet, fetching tours first...");
@@ -122,17 +122,17 @@ const SearchResult = () => {
 
             // Convert provinceId to number for comparison
             const provinceIdNum = provinceId !== 'all' ? parseInt(provinceId, 10) : null;
-            
+
             const normalizeText = (text: string) =>
                 text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            
+
             const normalizedKeyword = normalizeText(keyword);
-            
+
             // More flexible tour filtering
             const filteredTours = toursToFilter.filter((tour) => {
                 // Check if tour has the province we're looking for
                 let matchProvince = false;
-                
+
                 if (provinceId === 'all') {
                     matchProvince = true;
                 } else if (tour.provinceIds && Array.isArray(tour.provinceIds)) {
@@ -142,15 +142,15 @@ const SearchResult = () => {
                         return numId === provinceIdNum;
                     });
                 }
-                
+
                 // Check if tour name contains the keyword
                 const matchKeyword = normalizeText(tour.name).includes(normalizedKeyword);
-                
+
                 // For debugging only
                 if (matchProvince && matchKeyword) {
                     console.log(`Found matching tour: ${tour.name}`);
                 }
-                
+
                 return matchProvince && matchKeyword;
             });
 
@@ -159,16 +159,16 @@ const SearchResult = () => {
             if (filteredTours.length === 0) {
                 // If no exact matches, try a fallback to search by keyword only
                 console.log("No matches with province filter, trying keyword-only search");
-                const keywordOnlyTours = toursToFilter.filter(tour => 
+                const keywordOnlyTours = toursToFilter.filter(tour =>
                     normalizeText(tour.name).includes(normalizedKeyword)
                 );
-                
+
                 if (keywordOnlyTours.length > 0) {
                     console.log(`Found ${keywordOnlyTours.length} tours by keyword only`);
                     setTours(keywordOnlyTours);
                     return;
                 }
-                
+
                 setError(`Không tìm thấy tour nào cho "${keyword}"`);
                 setTours([]);
             } else {
@@ -203,22 +203,25 @@ const SearchResult = () => {
         );
     };
 
-    const handleTourPress = (id: string) => {
+    const handleTourPress = (tour: TourItem) => {
         router.push({
-            pathname: '/(screens)/[detailID]',
-            params: { detailID: id },
+            pathname: '/(screens)/detail/[detailID]',
+            params: {
+                detailID: tour.id,
+                provinceIds: JSON.stringify(tour.provinceIds), // Pass provinceIds as JSON string
+            },
         });
     };
 
     const handleSuggestionPress = (province: ProvinceType) => {
         console.log(`Selected province: ${province.name} (ID: ${province.id})`);
-        
+
         // Update states
         setSearchQuery(province.name);
         setSelectedProvinceId(province.id.toString());
         setSuggestions([]);
         setHasSearched(true);
-        
+
         // Force a fresh search with the selected province
         searchTours(province.id.toString(), province.name);
     };
@@ -231,7 +234,7 @@ const SearchResult = () => {
     }, [searchTrigger]);
 
     const renderTourItem = ({ item }: { item: TourItem }) => (
-        <TouchableOpacity style={styles.ContainerItem} onPress={() => handleTourPress(item.id)}>
+        <TouchableOpacity style={styles.ContainerItem} onPress={() => handleTourPress(item)}>
             <View style={styles.imageContainer}>
                 <Image
                     source={{ uri: item.featuredImageUrl }}
@@ -389,8 +392,8 @@ const styles = StyleSheet.create({
     },
     backButton: {
         marginRight: 10,
-        marginTop:20,
-        
+        marginTop: 20,
+
     },
     searchContainer: {
         flexDirection: 'row',
@@ -400,7 +403,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         elevation: 2,
         flex: 1,
-        marginTop:20,
+        marginTop: 20,
     },
     searchIcon: {
         marginRight: 10,
@@ -420,7 +423,7 @@ const styles = StyleSheet.create({
     filterButtonIcon: {
         marginLeft: 10,
         padding: 9,
-        marginTop:20
+        marginTop: 20
     },
     errorText: {
         fontSize: 12,

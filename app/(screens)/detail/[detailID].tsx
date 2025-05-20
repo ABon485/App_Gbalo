@@ -21,6 +21,7 @@ import RenderHtml from "react-native-render-html";
 import { useWindowDimensions } from "react-native";
 import Order from "@/components/booking/order";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import SimilarTour from "@/app/(screens)/detail/similarTour"; 
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
@@ -38,6 +39,8 @@ export default function Detail() {
   const [showExtraUserModal, setShowExtraUserModal] = useState(false);
   const tourId = Number(params?.detailID);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const provinceIds = params?.provinceIds ? JSON.parse(params.provinceIds as string) : []; 
+  
 
   useFocusEffect(
     React.useCallback(() => {
@@ -56,7 +59,7 @@ export default function Detail() {
         try {
           const userData = await AsyncStorage.getItem("data");
           const userInfo = userData ? JSON.parse(userData) : null;
-          console.log("User Info:", userInfo); // Debug
+          console.log("User Info:", userInfo); 
           setUser(userInfo);
         } catch (error) {
           console.error("Lỗi khi lấy thông tin người dùng:", error);
@@ -225,6 +228,9 @@ export default function Detail() {
                 title="Yêu cầu đối với khách hàng"
               />
             </View>
+            {/* Add SimilarTour Component */}
+              <Text style={styles.sectionTitle}>Các tour tương tự</Text>
+              <SimilarTour provinceIds={provinceIds} tourId={tourId} /> {/* Pass provinceIds and tourId */}
           </View>
         )}
       />
