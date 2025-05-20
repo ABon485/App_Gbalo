@@ -24,7 +24,6 @@ import GoogleButton from "@/components/common/customButtonSocial/GoogleButton";
 import FacebookButton from "@/components/common/customButtonSocial/FacebookButton";
 import AppleButton from "@/components/common/customButtonSocial/AppleButton";
 
-
 const LoginEmail = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,7 +38,6 @@ const LoginEmail = () => {
   const handleForgotPassword = () => {
     router.push("/(auths)/(Login)/forgotPassword/forgot-password-email");
   };
-
   const handleRegister = () => {
     router.push("/(auths)/(register)/registerPhone/RegisterPhone");
   };
@@ -48,10 +46,15 @@ const LoginEmail = () => {
   };
   const handleLoginPressApple = () => {
     router.push('/(auths)/(Login)/loginPhone');
-  }
+  };
 
   const handleLogin = async () => {
-    if (!email) {
+    // Trim inputs to avoid whitespace issues
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    // Validate empty fields
+    if (!trimmedEmail) {
       showToast({
         type: "error",
         heading: "Lỗi",
@@ -60,17 +63,7 @@ const LoginEmail = () => {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      showToast({
-        type: "error",
-        heading: "Lỗi",
-        message: "Định dạng email không hợp lệ",
-      });
-      return;
-    }
-
-    if (!password) {
+    if (!trimmedPassword) {
       showToast({
         type: "error",
         heading: "Lỗi",
@@ -79,12 +72,34 @@ const LoginEmail = () => {
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Định dạng email không hợp lệ",
+      });
+      return;
+    }
+
+    // Validate password: at least 8 characters, one uppercase, one number, one special character
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+    if (!passwordRegex.test(trimmedPassword)) {
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, số và ký tự đặc biệt",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const formData: LoginEmailType = {
-        email,
-        password,
+        email: trimmedEmail,
+        password: trimmedPassword,
         rememberMe,
       };
 
@@ -107,7 +122,7 @@ const LoginEmail = () => {
 
         const authData = {
           token,
-          email,
+          email: trimmedEmail,
           fullName,
         };
         await AsyncStorage.setItem("data", JSON.stringify(authData));
@@ -126,6 +141,8 @@ const LoginEmail = () => {
           errorMessage = "Sai mật khẩu";
         } else if (errorMessage.toLowerCase().includes("not found")) {
           errorMessage = "Tài khoản không tồn tại";
+        } else if (!errorMessage) {
+          errorMessage = "Có lỗi xảy ra, vui lòng thử lại";
         }
 
         showToast({
@@ -144,6 +161,7 @@ const LoginEmail = () => {
       setLoading(false);
     }
   };
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
