@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import RenderHtml from "react-native-render-html";
 import { useWindowDimensions } from "react-native";
 import Order from "@/components/booking/order";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import SimilarTour from "@/app/(screens)/detail/similarTour"; 
+import SimilarTour from "@/app/(screens)/detail/similarTour";
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
@@ -32,26 +32,45 @@ export default function Detail() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const [tour, setTour] = useState<TourDetail | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null); // Lưu URL ảnh đầu tiên
   const [isFavorite, setIsFavorite] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [user, setUser] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showExtraUserModal, setShowExtraUserModal] = useState(false);
-  const tourId = Number(params?.detailID);
+  const tourId = params?.detailID; // Giữ nguyên định dạng chuỗi như "Tours6"
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const provinceIds = params?.provinceIds ? JSON.parse(params.provinceIds as string) : []; 
-  
+  const provinceIds = params?.provinceIds ? JSON.parse(params.provinceIds as string) : [];
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       const fetchTourDetail = async () => {
         try {
-          const detail = await tourApi.TourDetail(tourId);
+          const detail = await tourApi.TourDetail(Number(tourId) || 0); 
           setTour(detail);
           console.log("Tour Detail:", JSON.stringify(detail, null, 2));
-          console.log("Tour Detail:", tourId);
+          console.log("Tour Detail ID:", tourId);
         } catch (error) {
-          console.error("Lỗi API:", error);
+          console.error("Lỗi API (Tour Detail):", error);
+        }
+      };
+
+      const fetchImage = async () => {
+        try {
+          console.log("Fetching image for tourId:", tourId);
+          const response = await fetch(`https://files.vbalo.com/list/Tours${tourId}`);
+          const data = await response.json();
+          console.log("Image API Response:", JSON.stringify(data, null, 2));
+
+          if (data.status === "Success" && data.data && data.data.length > 0) {
+            setImageUrl(data.data[0]); 
+          } else {
+            console.log("No image data found for tourId:", tourId);
+            setImageUrl(null);
+          }
+        } catch (error) {
+          console.error("Lỗi khi lấy ảnh:", error);
+          setImageUrl(null);
         }
       };
 
@@ -59,7 +78,7 @@ export default function Detail() {
         try {
           const userData = await AsyncStorage.getItem("data");
           const userInfo = userData ? JSON.parse(userData) : null;
-          console.log("User Info:", userInfo); 
+          console.log("User Info:", userInfo);
           setUser(userInfo);
         } catch (error) {
           console.error("Lỗi khi lấy thông tin người dùng:", error);
@@ -67,6 +86,7 @@ export default function Detail() {
       };
 
       fetchTourDetail();
+      fetchImage();
       fetchUserInfo();
     }, [tourId])
   );
@@ -145,9 +165,17 @@ export default function Detail() {
 
             {/* Image */}
             <Image
-              source={require("@/assets/images/home/Property1.png")}
+              source={
+                imageUrl
+                  ? { uri: imageUrl }
+                  : require("@/assets/images/home/Property1.png")
+              }
               style={styles.image}
               resizeMode="cover"
+              onError={() => {
+                console.log("Failed to load image from URL:", imageUrl);
+                setImageUrl(null);
+              }}
             />
 
             {/* Content */}
@@ -197,7 +225,7 @@ export default function Detail() {
                 source={{ html: item.included }}
               />
 
-               <ExtraUserModal
+              <ExtraUserModal
                 visible={showScheduleModal}
                 onClose={() => setShowScheduleModal(false)}
                 content={item.included}
@@ -229,8 +257,8 @@ export default function Detail() {
               />
             </View>
             {/* Add SimilarTour Component */}
-              <Text style={styles.sectionTitle}>Các tour tương tự</Text>
-              <SimilarTour provinceIds={provinceIds} tourId={tourId} /> {/* Pass provinceIds and tourId */}
+            <Text style={styles.sectionTitle}>Các tour tương tự</Text>
+            <SimilarTour provinceIds={provinceIds} tourId={Number(tourId) || 0} />
           </View>
         )}
       />
