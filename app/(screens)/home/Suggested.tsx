@@ -33,7 +33,6 @@ const TourListScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState<boolean>(false);
 
-  // Function to fetch all tours from API across all pages
   const fetchTours = async () => {
     try {
       setLoading(true);
@@ -41,7 +40,6 @@ const TourListScreen = () => {
       let currentPage = 1;
       let totalPages = 100;
 
-      // Loop through all pages
       while (currentPage <= totalPages) {
         const response: TourListResponse = await tourApi.ListTour();
         const fetchedTours: TourItem[] = response.data.datas.map(
@@ -71,12 +69,10 @@ const TourListScreen = () => {
     }
   };
 
-  // Fetch tours on component mount
   useEffect(() => {
     fetchTours();
   }, []);
 
-  // Toggle favorite status
   const toggleFavorite = (id: string) => {
     setTours(
       tours.map((tour) =>
@@ -93,7 +89,6 @@ const TourListScreen = () => {
     console.log("Card pressed:", id);
   };
 
-  // Render each tour item
   const renderTourItem = ({ item }: { item: TourItem }) => (
     <TouchableOpacity
       onPress={() => handleCardPress(item.id)}

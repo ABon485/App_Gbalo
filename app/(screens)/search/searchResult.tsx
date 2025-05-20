@@ -21,7 +21,6 @@ const SearchResult = () => {
     const [allProvinces, setAllProvinces] = useState<ProvinceType[]>([]);
     const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
 
-    // Fetch tours on component mount
     useEffect(() => {
         if (isFirstLoad) {
             fetchTours();
@@ -35,18 +34,14 @@ const SearchResult = () => {
             const responseTours = await tourApi.ListTour(1, 100);
             console.log("API Tours response:", responseTours.data.datas.length);
 
-            // Map tour data and ensure provinceIds is always processed correctly
             const fetchedTours: TourItem[] = responseTours.data.datas.map((item: any) => {
-                // Handle different possible formats of provinceIds
                 let provinceIds = [];
 
                 if (item.provinceIds && Array.isArray(item.provinceIds)) {
-                    // Convert all provinceIds to numbers to ensure consistency
                     provinceIds = item.provinceIds.map((id: any) =>
                         typeof id === 'string' ? parseInt(id, 10) : id
                     );
                 } else if (item.provinceId) {
-                    // If there's a single provinceId field instead
                     const id = typeof item.provinceId === 'string' ?
                         parseInt(item.provinceId, 10) : item.provinceId;
                     provinceIds = [id];
@@ -64,7 +59,6 @@ const SearchResult = () => {
                 };
             });
 
-            // Debug the first tour for structure verification
             if (fetchedTours.length > 0) {
                 console.log("Tour example:", fetchedTours[0]);
             }
@@ -82,11 +76,10 @@ const SearchResult = () => {
 
     const fetchProvinceSuggestions = async (keyword: string) => {
         try {
-            // Nếu đã có danh sách tỉnh, không cần gọi API lại
             if (!allProvinces.length) {
                 const provinces = await tourApi.getProvince();
                 console.log("Fetched provinces:", provinces.length);
-                setAllProvinces(provinces); // Lưu danh sách tỉnh vào state
+                setAllProvinces(provinces); 
             }
 
             const normalizeText = (text: string) =>
@@ -120,33 +113,25 @@ const SearchResult = () => {
 
             console.log(`Total tours to filter: ${toursToFilter.length}`);
 
-            // Convert provinceId to number for comparison
             const provinceIdNum = provinceId !== 'all' ? parseInt(provinceId, 10) : null;
 
             const normalizeText = (text: string) =>
                 text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-
             const normalizedKeyword = normalizeText(keyword);
-
-            // More flexible tour filtering
             const filteredTours = toursToFilter.filter((tour) => {
-                // Check if tour has the province we're looking for
                 let matchProvince = false;
 
                 if (provinceId === 'all') {
                     matchProvince = true;
                 } else if (tour.provinceIds && Array.isArray(tour.provinceIds)) {
-                    // Try multiple ways to match province
                     matchProvince = tour.provinceIds.some(id => {
                         const numId = typeof id === 'string' ? parseInt(id, 10) : id;
                         return numId === provinceIdNum;
                     });
                 }
 
-                // Check if tour name contains the keyword
                 const matchKeyword = normalizeText(tour.name).includes(normalizedKeyword);
 
-                // For debugging only
                 if (matchProvince && matchKeyword) {
                     console.log(`Found matching tour: ${tour.name}`);
                 }
@@ -157,7 +142,6 @@ const SearchResult = () => {
             console.log(`Found ${filteredTours.length} matching tours`);
 
             if (filteredTours.length === 0) {
-                // If no exact matches, try a fallback to search by keyword only
                 console.log("No matches with province filter, trying keyword-only search");
                 const keywordOnlyTours = toursToFilter.filter(tour =>
                     normalizeText(tour.name).includes(normalizedKeyword)
@@ -188,7 +172,7 @@ const SearchResult = () => {
             return;
         }
         setHasSearched(true);
-        setSearchTrigger(prev => prev + 1); // Kích hoạt tìm kiếm
+        setSearchTrigger(prev => prev + 1);
     };
 
     const handleBack = () => {
@@ -208,7 +192,7 @@ const SearchResult = () => {
             pathname: '/(screens)/detail/[detailID]',
             params: {
                 detailID: tour.id,
-                provinceIds: JSON.stringify(tour.provinceIds), // Pass provinceIds as JSON string
+                provinceIds: JSON.stringify(tour.provinceIds),
             },
         });
     };
@@ -216,17 +200,13 @@ const SearchResult = () => {
     const handleSuggestionPress = (province: ProvinceType) => {
         console.log(`Selected province: ${province.name} (ID: ${province.id})`);
 
-        // Update states
         setSearchQuery(province.name);
         setSelectedProvinceId(province.id.toString());
         setSuggestions([]);
         setHasSearched(true);
-
-        // Force a fresh search with the selected province
         searchTours(province.id.toString(), province.name);
     };
 
-    // Xử lý tìm kiếm khi searchTrigger thay đổi
     useEffect(() => {
         if (hasSearched && searchQuery.trim()) {
             searchTours(selectedProvinceId, searchQuery);

@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Star } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { ProvinceType } from "@/types/tour"; // Adjust path based on your project structure
-import tourService from "@/services/tour"; // Import the service object
+import { ProvinceType } from "@/types/tour"; 
+import tourService from "@/services/tour"; 
 
 const { width } = Dimensions.get("window");
 const cardWidth = width * 0.35;

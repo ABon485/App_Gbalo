@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontSize: 16,
     fontFamily: "Inter-Medium",
+    marginLeft:10
   },
   description: {
     color: "#333",
