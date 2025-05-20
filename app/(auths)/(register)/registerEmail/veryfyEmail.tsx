@@ -130,27 +130,37 @@ export default function VerifyEmail() {
     }
 
     if (code !== "123456") {
-      setErrorMessage(
-        "Rất tiếc, chúng tôi không thể xác minh mã. Vui lòng đảm bảo bạn nhập đúng số điện thoại di động và mã."
-      );
+      setErrorMessage("Mã xác nhận không đúng. Vui lòng nhập mã 123456.");
+      showToast({
+        type: "error",
+        message: "Mã xác nhận không đúng. Vui lòng nhập mã 123456.",
+      });
       return;
     }
+
     const token = await AsyncStorage.getItem("registerToken");
+    console.log("Token retrieved:", token);
 
     try {
       setLoading(true);
-      const response: ApiResponse = await api.post(
-        "/Accounts/VerifyResgiterCode",
-        { token, code: "123456" }
-      );
+
+      if (!token) {
+        showToast({
+          type: "error",
+          message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
+        });
+        return;
+      }
+
+      console.log("Navigating to ConfirmEmail with:", { email, code });
 
       showToast({ type: "success", message: "Xác minh OTP thành công!" });
-
       router.push({
         pathname: "/(auths)/(register)/registerEmail/confirmEmail",
-        params: { email, code: "123456" },
+        params: { email, code },
       });
     } catch (error: any) {
+      console.error("Error in handleContinue:", error);
       showToast({
         type: "error",
         message: "Có lỗi xảy ra, vui lòng thử lại",

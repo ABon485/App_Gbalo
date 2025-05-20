@@ -12,10 +12,10 @@ export type RegisterTypeEmail = {
   token: string;
   code?: string;
   fullName: string;
-  email: string;
   password: string;
   confirmPassword: string;
-};
+}
+
 export type RegisterByEmail = {
   token: string;
   email: string;

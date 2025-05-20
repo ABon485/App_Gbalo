@@ -44,39 +44,152 @@ export default function ProfileScreen() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        console.log("Fetching data from AsyncStorage with key: 'data'");
         const data = await AsyncStorage.getItem("data");
+        console.log("Data from AsyncStorage:", data);
+        if (!data) {
+          console.warn("No data found in AsyncStorage for key: 'data'");
+          setIsLoggedIn(false);
+          return;
+        }
 
-        if (data) {
-          const parsedData = JSON.parse(data);
-          const token = parsedData.token;
+        // Parse dữ liệu
+        const parsedData = JSON.parse(data);
+        console.log("Parsed AsyncStorage data:", parsedData);
 
-          if (!token) {
-            console.warn("Không tìm thấy token trong AsyncStorage");
-            return;
-          }
+        const token = parsedData.token;
+        if (!token) {
+          console.warn("No token found in parsed AsyncStorage data");
+          setIsLoggedIn(false);
+          return;
+        }
 
-          const response = await api.get("/Accounts/Profile", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+        // Chế độ hardcode để giả lập dữ liệu hồ sơ
+        const IS_HARDCODE_MODE = true;
 
-          if (response?.data?.data) {
-            const fullNameFromAPI = response.data.data.fullName;
-            const fullName =
-              fullNameFromAPI || parsedData.fullName || "Khách hàng";
+        if (IS_HARDCODE_MODE) {
+          const fullName = parsedData.fullName || "Khách hàng";
+          const email = parsedData.email || "Không có email";
 
-            setUser({
-              ...response.data.data,
-              fullName,
-            });
-            setIsLoggedIn(true);
-          } else {
-            console.warn("Không có dữ liệu user từ API");
+          const userData: ProfileResponse["data"] = {
+            id: parsedData.id || "",
+            userName: parsedData.userName || "",
+            fullName,
+            email,
+            avatar: parsedData.avatar || "",
+            createDate: parsedData.createDate || new Date().toISOString(),
+            roles: parsedData.roles || [],
+            permissions: parsedData.permissions || [],
+            phone: parsedData.phone || "",
+            language: parsedData.language || "vi",
+            address: parsedData.address || "",
+            nationality: parsedData.nationality || "",
+            dateOfBirth: parsedData.dateOfBirth
+              ? new Date(parsedData.dateOfBirth)
+              : new Date(),
+          };
+
+          setUser(userData);
+          setIsLoggedIn(true);
+          console.log("Hardcode mode: Set user data:", userData);
+        } else {
+          // Gọi API thật với retry logic
+          console.log("Fetching profile from API with token:", token);
+          const maxRetries = 3;
+          let attempt = 0;
+
+          while (attempt < maxRetries) {
+            try {
+              const response = await api.get<ProfileResponse>(
+                "/Accounts/Profile",
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+
+              console.log("API response:", response.data);
+
+              if (response.data?.data) {
+                const fullNameFromAPI = response.data.data.fullName;
+                const fullName =
+                  fullNameFromAPI || parsedData.fullName || "Khách hàng";
+
+                const userData: ProfileResponse["data"] = {
+                  ...response.data.data,
+                  fullName,
+                  email:
+                    response.data.data.email ||
+                    parsedData.email ||
+                    "Không có email",
+                };
+
+                setUser(userData);
+                setIsLoggedIn(true);
+                console.log("Set user data from API:", userData);
+                return;
+              } else {
+                console.warn("No user data in API response");
+                throw new Error("No user data in API response");
+              }
+            } catch (error: any) {
+              attempt++;
+              console.error("API Error (Attempt", attempt, "):", {
+                message: error.message,
+                code: error.code,
+                response: error.response?.data,
+                status: error.response?.status,
+              });
+
+              if (attempt === maxRetries) {
+                console.warn(
+                  "Max retries reached, falling back to AsyncStorage"
+                );
+                const fullName = parsedData.fullName || "Khách hàng";
+                const email = parsedData.email || "Không có email";
+
+                const userData: ProfileResponse["data"] = {
+                  id: parsedData.id || "",
+                  userName: parsedData.userName || "",
+                  fullName,
+                  email,
+                  avatar: parsedData.avatar || "",
+                  createDate: parsedData.createDate || new Date().toISOString(),
+                  roles: parsedData.roles || [],
+                  permissions: parsedData.permissions || [],
+                  phone: parsedData.phone || "",
+                  language: parsedData.language || "vi",
+                  address: parsedData.address || "",
+                  nationality: parsedData.nationality || "",
+                  dateOfBirth: parsedData.dateOfBirth
+                    ? new Date(parsedData.dateOfBirth)
+                    : new Date(),
+                };
+
+                setUser(userData);
+                setIsLoggedIn(true);
+                console.log(
+                  "Fallback: Set user data from AsyncStorage:",
+                  userData
+                );
+              } else {
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // Đợi 1 giây trước khi thử lại
+              }
+            }
           }
         }
-      } catch (error) {
-        console.error("Lỗi khi lấy hồ sơ:", error);
+      } catch (error: any) {
+        console.error("Error in fetchProfile:", {
+          message: error.message,
+          stack: error.stack,
+        });
+        showToast({
+          type: "error",
+          heading: "Lỗi",
+          message: "Không thể tải thông tin hồ sơ. Vui lòng thử lại.",
+        });
       }
     };
 
@@ -96,6 +209,7 @@ export default function ProfileScreen() {
     setLoadingLogout(true);
     try {
       await AsyncStorage.removeItem("data");
+      await AsyncStorage.removeItem("token");
       setIsLoggedIn(false);
       setUser(null);
       showToast({
@@ -104,7 +218,8 @@ export default function ProfileScreen() {
         message: "Đăng xuất thành công!",
       });
       router.replace("/(auths)/(Login)/login");
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error in handleLogout:", error);
       showToast({
         type: "error",
         heading: "Lỗi",
@@ -171,28 +286,23 @@ export default function ProfileScreen() {
         <View style={styles.profileContainer}>
           <Text style={styles.profileHeader}>Hồ sơ</Text>
 
-          {isLoggedIn ? (
+          {isLoggedIn && user ? (
             <View>
               <View style={styles.userInfo}>
                 <Image
                   source={{
                     uri:
-                      user?.avatar ||
+                      user.avatar ||
                       "https://t3.ftcdn.net/jpg/11/69/54/34/360_F_1169543439_7AxjAvV0GnwlEo3IIqlCGqiF3UFJfTAe.jpg",
                   }}
                   style={styles.userAvatar}
                 />
                 <View style={styles.userDetails}>
-                  <Text style={styles.userName}>
-                    {user?.fullName ?? "Khách hàng"}
-                  </Text>
+                  <Text style={styles.userName}>{user.fullName}</Text>
+                  <Text style={styles.userEmail}>{user.email}</Text>
                   <TouchableOpacity
                     onPress={handleUpdateProfile}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      backgroundColor: "#E4EFE7",
-                    }}
+                    style={styles.updateProfileButton}
                   >
                     <Text style={styles.updateProfileText}>
                       Cập nhật thông tin cá nhân
@@ -207,13 +317,11 @@ export default function ProfileScreen() {
                 </View>
               </View>
 
-              {/* Thành viên khi đã đăng nhập */}
               <View style={styles.pointsInfo}>
                 <Text style={styles.pointsText}>
                   Bạn đang là thành viên bạc{"\n"}Cần 120 điểm nữa để đạt hạng
                   Vàng
                 </Text>
-                <Text></Text>
                 <View style={styles.iconWrapper}>
                   <FontAwesome6 name="medal" size={24} color="gray" />
                 </View>
@@ -236,12 +344,11 @@ export default function ProfileScreen() {
                     style={styles.registerButton}
                     onPress={handleRegister}
                   >
-                    <Text style={styles.registerButtonText}>Đăng kí</Text>
+                    <Text style={styles.registerButtonText}>Đăng ký</Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Khi chưa đăng nhập */}
               <View style={styles.pointsInfo}>
                 <Text style={styles.pointsText}>
                   Đăng ký/Đăng nhập để trở thành thành viên và nhận được nhiều
@@ -355,6 +462,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#000",
     fontFamily: "Inter-Medium",
+  },
+  userEmail: {
+    fontSize: 14,
+    color: "#757575",
+    fontFamily: "Inter",
+    marginTop: 4,
+  },
+  updateProfileButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E4EFE7",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginTop: 8,
   },
   updateProfileText: {
     fontSize: 14,

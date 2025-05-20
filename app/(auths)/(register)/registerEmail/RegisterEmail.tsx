@@ -49,10 +49,8 @@ export default function RegisterEmail() {
         "/Accounts/SendResgiterCode",
         { email }
       );
-
-      const receivedToken = response.data?.data?.token;
-      if (receivedToken) {
-        await AsyncStorage.setItem("registerToken", receivedToken);
+      console.log("Full response:", response.data);
+      if (response.data?.status === "Success") {
         showToast({
           type: "success",
           message: "Mã xác minh đã được gửi đến email của bạn",
@@ -64,7 +62,7 @@ export default function RegisterEmail() {
       } else {
         showToast({
           type: "error",
-          message: "Không nhận được token từ server",
+          message: "Gửi mã xác minh thất bại. Vui lòng thử lại.",
         });
       }
     } catch (error: any) {
