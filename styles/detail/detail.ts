@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgb(255, 253, 253)",
     justifyContent: "center",
     alignItems: "center",
-    marginLeft: 150, 
+    marginLeft: 150,
   },
   iconShareButton: {
     width: 30,
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  
+
   favoriteButton: {
     width: 30,
     height: 30,
@@ -101,17 +101,19 @@ const styles = StyleSheet.create({
   tagsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginBottom: 16,
+    marginBottom: 10,
   },
+
   tag: {
     backgroundColor: "#f0f0f0",
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 16,
-    marginRight: 8,
     fontSize: 12,
     color: "#333",
     fontFamily: "Inter-Medium",
+    marginRight: 8,
+    marginBottom: 8,
   },
   priceHighlight: {
     color: "#F24E1E",
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontSize: 16,
     fontFamily: "Inter-Medium",
-    marginLeft:10
+    marginLeft: 10,
   },
   description: {
     color: "#333",

@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  FlatList,
+  ScrollView,
 } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
@@ -24,9 +24,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import SimilarTour from "@/app/(screens)/detail/similarTour";
 import Rating from "./rating";
 
-const formatPrice = (price: number): string => {
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
-};
+const formatPrice = (price: number): string =>
+  price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
 
 export default function Detail() {
   const { width } = useWindowDimensions();
@@ -51,8 +50,6 @@ export default function Detail() {
         try {
           const detail = await tourApi.TourDetail(Number(tourId) || 0);
           setTour(detail);
-          console.log("Tour Detail:", JSON.stringify(detail, null, 2));
-          console.log("Tour Detail ID:", tourId);
         } catch (error) {
           console.error("Lỗi API (Tour Detail):", error);
         }
@@ -60,17 +57,13 @@ export default function Detail() {
 
       const fetchImage = async () => {
         try {
-          console.log("Fetching image for tourId:", tourId);
           const response = await fetch(
             `https://files.vbalo.com/list/Tours${tourId}`
           );
           const data = await response.json();
-          console.log("Image API Response:", JSON.stringify(data, null, 2));
-
-          if (data.status === "Success" && data.data && data.data.length > 0) {
+          if (data.status === "Success" && data.data?.length > 0) {
             setImageUrl(data.data[0]);
           } else {
-            console.log("No image data found for tourId:", tourId);
             setImageUrl(null);
           }
         } catch (error) {
@@ -83,7 +76,6 @@ export default function Detail() {
         try {
           const userData = await AsyncStorage.getItem("data");
           const userInfo = userData ? JSON.parse(userData) : null;
-          console.log("User Info:", userInfo);
           setUser(userInfo);
         } catch (error) {
           console.error("Lỗi khi lấy thông tin người dùng:", error);
@@ -96,13 +88,13 @@ export default function Detail() {
     }, [tourId])
   );
 
-  const truncateHTML = (html: string, maxLength: number): string => {
+  const truncateHTML = (html: string | null, maxLength: number): string => {
+    if (!html) return "<p></p>";
     const plainText = html.replace(/<[^>]*>/g, "");
     const shortText =
       plainText.length > maxLength
         ? plainText.substring(0, maxLength).trim() + "..."
         : plainText;
-
     return `<p>${shortText}</p>`;
   };
 
@@ -134,146 +126,133 @@ export default function Detail() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
-      <FlatList
-        data={[tour]}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-              >
-                <Ionicons name="arrow-back" size={18} color="#000000" />
-              </TouchableOpacity>
+      <ScrollView>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="arrow-back" size={18} color="#000000" />
+            </TouchableOpacity>
 
-              <TouchableOpacity style={styles.iconCartButton}>
-                <Ionicons name="cart-outline" size={24} color="#000000" />
-              </TouchableOpacity>
+            <TouchableOpacity style={styles.iconCartButton}>
+              <Ionicons name="cart-outline" size={24} color="#000000" />
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.favoriteButton}
-                onPress={toggleFavorite}
-              >
-                <Ionicons
-                  name={isFavorite ? "heart" : "heart-outline"}
-                  size={24}
-                  color={isFavorite ? "#ff5c5c" : "#000000"}
-                />
-              </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.favoriteButton}
+              onPress={toggleFavorite}
+            >
+              <Ionicons
+                name={isFavorite ? "heart" : "heart-outline"}
+                size={24}
+                color={isFavorite ? "#ff5c5c" : "#000000"}
+              />
+            </TouchableOpacity>
 
-              <TouchableOpacity style={styles.iconShareButton}>
-                <FontAwesome5 name="share-square" size={20} color="#000000" />
-              </TouchableOpacity>
+            <TouchableOpacity style={styles.iconShareButton}>
+              <FontAwesome5 name="share-square" size={20} color="#000000" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Image */}
+          <Image
+            source={
+              imageUrl
+                ? { uri: imageUrl }
+                : require("@/assets/images/home/Property1.png")
+            }
+            style={styles.image}
+            resizeMode="cover"
+          />
+
+          {/* Content */}
+          <View style={styles.content}>
+            <Text style={styles.title}>{tour.name}</Text>
+            <Text style={styles.subTitle}>{tour.slug}</Text>
+            {/* <Text style={styles.subTitle}>{tour.subName}</Text> */}
+
+            <View style={styles.ratingContainer}>
+              <Ionicons name="star" size={16} color="#F24E1E" />
+              <Text style={styles.rating}>
+                4.5+ Đánh giá • 34K khách đã đặt • Khởi hành tại Đà Nẵng
+              </Text>
             </View>
 
-            {/* Image */}
-            <Image
-              source={
-                imageUrl
-                  ? { uri: imageUrl }
-                  : require("@/assets/images/home/Property1.png")
-              }
-              style={styles.image}
-              resizeMode="cover"
-              onError={() => {
-                console.log("Failed to load image from URL:", imageUrl);
-                setImageUrl(null);
-              }}
+            <View style={styles.tagsContainer}>
+              {tour.tourExtraServices.map((service) => (
+                <Text key={service.id} style={styles.tag}>
+                  {service.name}
+                </Text>
+              ))}
+            </View>
+
+            {/* Giới thiệu */}
+            <Text style={styles.sectionTitle}>Giới thiệu về tour</Text>
+            <RenderHtml
+              contentWidth={width}
+              source={{ html: truncateHTML(tour.description, 150) }}
+            />
+            <TouchableOpacity
+              style={styles.showMoreButton}
+              onPress={() => setShowIntroModal(true)}
+            >
+              <Text style={styles.showMoreText}>Xem thêm</Text>
+            </TouchableOpacity>
+            <TourDetailModal
+              visible={showIntroModal}
+              onClose={() => setShowIntroModal(false)}
+              title="Giới thiệu về tour"
+              content={tour.description}
             />
 
-            {/* Content */}
-            <View style={styles.content}>
-              <Text style={styles.title}>{item.name}</Text>
-              <Text style={styles.subTitle}>{item.subName}</Text>
+            <Text style={styles.sectionTitle}>Trải nghiệm bao gồm</Text>
+            <RenderHtml
+              contentWidth={width}
+              source={{ html: tour.included || "" }}
+            />
 
-              <View style={styles.ratingContainer}>
-                <Ionicons name="star" size={16} color="#F24E1E" />
-                <Text style={styles.rating}>
-                  4.5+ Đánh giá • 34K khách đã đặt • Khởi hành tại Đà Nẵng
-                </Text>
-              </View>
+            <Text style={styles.sectionTitle}>Lịch trình chi tiết</Text>
+            <RenderHtml
+              contentWidth={width}
+              source={{ html: truncateHTML(tour.schedule, 350) }}
+            />
+            <TouchableOpacity
+              style={styles.showMoreButton}
+              onPress={() => setShowScheduleModal(true)}
+            >
+              <Text style={styles.showMoreText}>Xem thêm</Text>
+            </TouchableOpacity>
 
-              <View style={styles.tagsContainer}>
-                {item.tourExtraServices.map((service) => (
-                  <Text key={service.id} style={styles.tag}>
-                    {service.name}
-                  </Text>
-                ))}
-              </View>
+            <SchechuleModal
+              visible={showScheduleModal}
+              onClose={() => setShowScheduleModal(false)}
+              content={tour.schedule}
+              title="Lịch trình chi tiết"
+            />
 
-              {/* Giới thiệu về tour */}
-              <Text style={styles.sectionTitle}>Giới thiệu về tour</Text>
-              <RenderHtml
-                contentWidth={width}
-                source={{ html: truncateHTML(item.description, 150) }}
-              />
-
-              <TouchableOpacity
-                style={styles.showMoreButton}
-                onPress={() => setShowIntroModal(true)}
-              >
-                <Text style={styles.showMoreText}>Xem thêm</Text>
-              </TouchableOpacity>
-
-              <TourDetailModal
-                visible={showIntroModal}
-                onClose={() => setShowIntroModal(false)}
-                title="Giới thiệu về tour"
-                content={item.description}
-              />
-
-              <Text style={styles.sectionTitle}>Trải nghiệm bao gồm</Text>
-              <RenderHtml
-                contentWidth={width}
-                source={{ html: item.included }}
-              />
-
-              <ExtraUserModal
-                visible={showScheduleModal}
-                onClose={() => setShowScheduleModal(false)}
-                content={item.included}
-                title="Lịch trình chi tiết"
-              />
-
-              <Text style={styles.sectionTitle}>Lịch trình chi tiết</Text>
-              <RenderHtml
-                contentWidth={width}
-                source={{ html: item.schedule }}
-              />
-              
-              <SchechuleModal
-                visible={showScheduleModal}
-                onClose={() => setShowScheduleModal(false)}
-                content={item.schedule}
-                title="Lịch trình chi tiết"
-              />
-
-              <Text style={styles.sectionTitle}>
-                Những yêu cầu đối với khách
-              </Text>
-              <RenderHtml
-                contentWidth={width}
-                source={{ html: item.policies }}
-              />
-              <ExtraUserModal
-                visible={showExtraUserModal}
-                onClose={() => setShowExtraUserModal(false)}
-                content={item.policies}
-                title="Yêu cầu đối với khách hàng"
-              />
-            </View>
-            <Rating />
-            {/* Add SimilarTour Component */}
-            <Text style={styles.sectionTitle}>Các tour tương tự</Text>
-            <SimilarTour
-              provinceIds={provinceIds}
-              tourId={Number(tourId) || 0}
+            <Text style={styles.sectionTitle}>Những yêu cầu đối với khách</Text>
+            <RenderHtml
+              contentWidth={width}
+              source={{ html: truncateHTML(tour.policies, 150) }}
+            />
+            <ExtraUserModal
+              visible={showExtraUserModal}
+              onClose={() => setShowExtraUserModal(false)}
+              content={tour.policies}
+              title="Yêu cầu đối với khách hàng"
             />
           </View>
-        )}
-      />
+
+          <Rating />
+
+          {/* Các tour tương tự */}
+          <Text style={styles.sectionTitle}>Các tour tương tự</Text>
+          <SimilarTour provinceIds={provinceIds} tourId={Number(tourId) || 0} />
+        </View>
+      </ScrollView>
 
       {/* Footer */}
       <View style={styles.footer}>
@@ -289,7 +268,6 @@ export default function Detail() {
         <TouchableOpacity style={styles.button} onPress={handleBookTour}>
           <Text style={styles.buttonText}>Đặt ngay</Text>
         </TouchableOpacity>
-
         {showOrderModal && (
           <Order
             visible={showOrderModal}
@@ -301,9 +279,7 @@ export default function Detail() {
             imageUrl={imageUrl}
             tourName={tour.name}
             tourSubName={tour.subName}
-            onConfirm={() => {
-              setShowOrderModal(false);
-            }}
+            onConfirm={() => setShowOrderModal(false)}
           />
         )}
       </View>
