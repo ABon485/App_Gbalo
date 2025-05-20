@@ -74,7 +74,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(auths)/(register)/registerEmail/RegisterEmail" options={{ headerShown: false }} />
           <Stack.Screen name="(auths)/(register)/registerPhone/veryfyPhone" options={{ headerShown: false }} />
           <Stack.Screen name="(auths)/(register)/registerEmail/veryfyEmail" options={{ headerShown: false }} />
-          <Stack.Screen name="(screens)/[detailID]" options={{ headerShown: false }} />
+          <Stack.Screen name="(screens)/detail/[detailID]" options={{ headerShown: false }} />
           <Stack.Screen name="(screens)/profile/profile" options={{ headerShown: false }} />
           <Stack.Screen name="(screens)/booking/confirmBooking" options={{ headerShown: false }} />
           <Stack.Screen name="(screens)/booking/successBooking" options={{ headerShown: false }} />
