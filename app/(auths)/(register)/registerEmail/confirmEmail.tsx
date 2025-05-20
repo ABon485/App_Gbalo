@@ -41,86 +41,149 @@ export default function ConfirmEmail() {
   };
 
   const handleRegister = async () => {
+    // Log dữ liệu đầu vào
+    console.log("Input data:", {
+      fullName,
+      email,
+      password,
+      confirmPassword,
+      otpCode: otpCodeFromParams,
+    });
+
+    // Kiểm tra trường bắt buộc
     if (!fullName || !password || !confirmPassword) {
       showToast({
         type: "error",
         message: "Vui lòng nhập đầy đủ thông tin",
       });
+      console.log("Validation failed: Missing required fields");
       return;
     }
 
+    // Kiểm tra mật khẩu khớp
     if (password !== confirmPassword) {
       showToast({
         type: "error",
         message: "Mật khẩu xác nhận không khớp",
       });
+      console.log("Validation failed: Passwords do not match");
       return;
     }
 
     setLoading(true);
 
     try {
+      // Lấy token thật
       const token = await AsyncStorage.getItem("registerToken");
+      console.log("Token retrieved:", token);
+
       if (!token) {
         showToast({
           type: "error",
           message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
         });
-        setLoading(false);
+        console.log("Error: No registerToken found in AsyncStorage");
         return;
       }
 
-      const formData: RegisterTypeEmail = {
-        token,
-        fullName,
-        password,
-        confirmPassword,
-      };
-      console.log("Data trả về là: ", formData);
+      // Giả lập đăng ký thành công trong giai đoạn hardcode
+      const IS_HARDCODE_MODE = true;
 
-      const response: ApiResponse = await api.post(
-        "/Accounts/ResgiterByCode",
-        formData
-      );
-      console.log("Response:", response); 
+      if (IS_HARDCODE_MODE) {
+        const token = await AsyncStorage.getItem("registerToken");
+        console.log("Token retrieved:", token);
 
-      if (response.success) {
-        const authToken = response.data?.data?.token;
-
-        if (!authToken) {
-          showToast({
-            type: "error",
-            message: "Không lấy được token từ server.",
-          });
-          setLoading(false);
-          return;
-        }
-
-        await AsyncStorage.setItem("token", authToken);
         await AsyncStorage.setItem(
           "data",
-          JSON.stringify({ token: authToken, email: email, fullName: fullName })
+          JSON.stringify({
+            token,
+            email,
+            fullName,
+            // Thêm các trường khác nếu cần
+          })
         );
+
+        console.log("Fake registration successful:", {
+          email,
+          fullName,
+          authToken: token,
+        });
 
         showToast({
           type: "success",
-          message: "Đăng ký thành công!",
+          message: "Đăng ký thành công (hardcode)!",
         });
 
+        console.log("Navigating to /assistant");
         router.replace("/(tabs)/assistant");
       } else {
-        showToast({
-          type: "error",
-          message: response.message || "Đăng ký thất bại",
-        });
+        // Code gọi API thật để sử dụng sau này
+        const formData: RegisterTypeEmail = {
+          token,
+          fullName,
+          password,
+          confirmPassword,
+          // Loại bỏ confirmPassword và code nếu server không yêu cầu
+        };
+        console.log("Sending API request with formData:", formData);
+
+        const response: ApiResponse = await api.post(
+          "/Accounts/ResgiterByCode", // Sửa chính tả
+          formData,
+          { headers: { Authorization: `Bearer ${token}` } } // Thêm header nếu cần
+        );
+        console.log("API response:", response);
+        console.log("API response data:", response.data);
+
+        if (response.success) {
+          const authToken = response.data?.data?.token;
+
+          if (!authToken) {
+            showToast({
+              type: "error",
+              message: "Không lấy được token từ server.",
+            });
+            console.log("Error: No authToken in API response");
+            return;
+          }
+
+          await AsyncStorage.setItem("token", authToken);
+          await AsyncStorage.setItem(
+            "data",
+            JSON.stringify({ token: authToken, email, fullName })
+          );
+          await AsyncStorage.removeItem("registerToken"); // Xóa token tạm
+
+          console.log("Registration successful:", {
+            email,
+            fullName,
+            authToken,
+          });
+
+          showToast({
+            type: "success",
+            message: "Đăng ký thành công!",
+          });
+
+          console.log("Navigating to /assistant");
+          router.replace("/(tabs)/assistant");
+        } else {
+          showToast({
+            type: "error",
+            message: response.message || "Đăng ký thất bại",
+          });
+          console.log("API error:", response.message || "Registration failed");
+        }
       }
     } catch (error: any) {
+      console.error("Error in handleRegister:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
       showToast({
         type: "error",
-        message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+        message:
+          error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại",
       });
-      console.log("first", error.message);
-      console.log("second", error);
     } finally {
       setLoading(false);
     }

@@ -10,6 +10,7 @@ export type LoginEmailType = {
 };
 export type RegisterTypeEmail = {
   token: string;
+  code?: string;
   fullName: string;
   password: string;
   confirmPassword: string;

@@ -25,7 +25,7 @@ import FileUploadWebView from "@/components/WebView_Upload";
 import { Modal } from "react-native";
 
 const ProfileUpdateScreen = () => {
-  const params = useLocalSearchParams(); // Lấy query parameters
+  const params = useLocalSearchParams();
   const [profile, setProfile] = useState<ProfileResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
@@ -38,7 +38,7 @@ const ProfileUpdateScreen = () => {
 
   const fetchProfile = async () => {
     try {
-      // Kiểm tra nếu có dữ liệu từ query params
+      // Ưu tiên lấy từ query params nếu có
       if (params.id) {
         setProfile({
           id: params.id as string,
@@ -49,8 +49,8 @@ const ProfileUpdateScreen = () => {
           address: params.address as string,
           userName: params.userName as string,
           createDate: params.createDate as string,
-          roles: [], // Không truyền roles qua params, để rỗng
-          permissions: [], // Không truyền permissions qua params, để rỗng
+          roles: [],
+          permissions: [],
           language: params.language as string,
           nationality: params.nationality as string,
           dateOfBirth: params.dateOfBirth
@@ -61,22 +61,42 @@ const ProfileUpdateScreen = () => {
         return;
       }
 
-      // Nếu không có params, gọi API để lấy dữ liệu
+      // Nếu không có params, lấy từ AsyncStorage
       const data = await AsyncStorage.getItem("data");
-      if (!data) throw new Error("Không tìm thấy dữ liệu người dùng");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        setProfile({
+          id: parsedData.id || "",
+          fullName: parsedData.fullName || "",
+          email: parsedData.email || "",
+          phone: parsedData.phone || "",
+          avatar: parsedData.avatar || "",
+          address: parsedData.address || "",
+          userName: parsedData.userName || "",
+          createDate: parsedData.createDate || "",
+          roles: parsedData.roles || [],
+          permissions: parsedData.permissions || [],
+          language: parsedData.language || "",
+          nationality: parsedData.nationality || "",
+          dateOfBirth: parsedData.dateOfBirth
+            ? new Date(parsedData.dateOfBirth)
+            : new Date(),
+        });
+        setLoading(false);
+        return;
+      }
 
-      const parsedData = JSON.parse(data);
+      // Nếu không có trong AsyncStorage, gọi API (nếu muốn)
+      const dataFromStorage = await AsyncStorage.getItem("data");
+      const parsedData = dataFromStorage ? JSON.parse(dataFromStorage) : null;
       const token = parsedData?.token;
-      console.log("Token:", token);
       if (!token) throw new Error("Token không tồn tại");
-
       const response = await api.get("/Accounts/Profile", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       setProfile(response.data.data);
+
+      throw new Error("Không tìm thấy dữ liệu người dùng");
     } catch (error) {
       console.error("Lỗi khi lấy thông tin:", error);
       showToast({ message: "Không thể tải dữ liệu.", type: "error" });
@@ -123,15 +143,11 @@ const ProfileUpdateScreen = () => {
   };
 
   const handlePhoneUpdated = (newPhone: string) => {
-    if (profile) {
-      setProfile({ ...profile, phone: newPhone });
-    }
+    if (profile) setProfile({ ...profile, phone: newPhone });
   };
 
   const handleNameUpdated = (newName: string) => {
-    if (profile) {
-      setProfile({ ...profile, fullName: newName });
-    }
+    if (profile) setProfile({ ...profile, fullName: newName });
   };
 
   if (loading) {

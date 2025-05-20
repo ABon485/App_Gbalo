@@ -157,7 +157,7 @@ export default function VerifyEmail() {
       showToast({ type: "success", message: "Xác minh OTP thành công!" });
       router.push({
         pathname: "/(auths)/(register)/registerEmail/confirmEmail",
-        params: { email, code:"123456" },
+        params: { email, code },
       });
     } catch (error: any) {
       console.error("Error in handleContinue:", error);
@@ -183,7 +183,7 @@ export default function VerifyEmail() {
       const response: ApiResponse = await api.post(
         "/Accounts/VerifyResgiterCode",
         {
-          code: "123456",
+          code: otp.join(""),
           token,
         },
         {
