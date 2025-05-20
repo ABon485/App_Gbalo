@@ -22,6 +22,8 @@ import { useWindowDimensions } from "react-native";
 import Order from "@/components/booking/order";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SimilarTour from "@/app/(screens)/detail/similarTour";
+import Rating from "@/app/(screens)/detail/rating";
+
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
@@ -32,13 +34,13 @@ export default function Detail() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const [tour, setTour] = useState<TourDetail | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null); // Lưu URL ảnh đầu tiên
+  const [imageUrl, setImageUrl] = useState<string | null>(null); 
   const [isFavorite, setIsFavorite] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [user, setUser] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showExtraUserModal, setShowExtraUserModal] = useState(false);
-  const tourId = params?.detailID; // Giữ nguyên định dạng chuỗi như "Tours6"
+  const tourId = params?.detailID; 
   const [showOrderModal, setShowOrderModal] = useState(false);
   const provinceIds = params?.provinceIds
     ? JSON.parse(params.provinceIds as string)
@@ -262,6 +264,7 @@ export default function Detail() {
                 title="Yêu cầu đối với khách hàng"
               />
             </View>
+            <Rating/>
             {/* Add SimilarTour Component */}
             <Text style={styles.sectionTitle}>Các tour tương tự</Text>
             <SimilarTour
