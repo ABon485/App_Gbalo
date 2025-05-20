@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Modal, View, Text, TouchableOpacity } from "react-native";
 import tourApi from "@/services/tour";
 import { guestType } from "@/types/tour"; // Import guestType
 import styles from "@/styles/booking/clientOption";
@@ -7,7 +7,7 @@ import styles from "@/styles/booking/clientOption";
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onSave: (client: string) => void;
+  onSave: (client: string, totalPrice: number) => void; // Cập nhật onSave để nhận thêm totalPrice
 };
 
 type GuestCount = {
@@ -22,6 +22,13 @@ export default function ClientModal({ visible, onClose, onSave }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Giá vé cố định
+  const PRICES = {
+    "Người lớn": 1988000, // Từ 13 tuổi trở lên
+    "Trẻ em": 1000000, // Từ 2-11 tuổi
+    "Em bé": 888000, // Dưới 2 tuổi
+  };
+
   // Fetch guest types từ API khi modal mở
   useEffect(() => {
     if (visible) {
@@ -29,8 +36,6 @@ export default function ClientModal({ visible, onClose, onSave }: Props) {
         setLoading(true);
         try {
           const response: guestType = await tourApi.GuestType();
-          // Khởi tạo state với số.setdefault: true
-          // Đặt giá trị mặc định cho số lượng: ví dụ, 2 người lớn, 0 trẻ em, 1 em bé
           const initialCounts: GuestCount[] = response.data.map((item) => ({
             id: item.id,
             guestType: item.guestType,
@@ -72,13 +77,44 @@ export default function ClientModal({ visible, onClose, onSave }: Props) {
     );
   };
 
+  // Reset số lượng khách về mặc định
+  const handleReset = () => {
+    setGuestTypes((prev) =>
+      prev.map((item) => ({
+        ...item,
+        count:
+          item.guestType === "Người lớn"
+            ? 1
+            : item.guestType === "Em bé"
+            ? 0
+            : 0,
+      }))
+    );
+    onClose(); // Đóng modal sau khi reset
+  };
+
+  // Tính tổng giá
+  const calculateTotalPrice = () => {
+    return guestTypes.reduce((total, guest) => {
+      return (
+        total +
+        (PRICES[guest.guestType as keyof typeof PRICES] || 0) * guest.count
+      );
+    }, 0);
+  };
+
   const handleSave = () => {
     // Tạo chuỗi kết quả, ví dụ: "2 Người lớn, 1 Trẻ em, 1 Em bé"
     const result = guestTypes
       .filter((item) => item.count > 0)
       .map((item) => `${item.count} ${item.guestType}`)
       .join(", ");
-    onSave(result || "1 Người lớn"); // Đảm bảo ít nhất 1 người lớn nếu không chọn gì
+
+    // Tính tổng giá
+    const totalPrice = calculateTotalPrice();
+
+    // Gọi onSave với chuỗi mô tả và tổng giá
+    onSave(result || "1 Người lớn", totalPrice);
     onClose();
   };
 
@@ -141,7 +177,7 @@ export default function ClientModal({ visible, onClose, onSave }: Props) {
             />
           ))}
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.deleteButton} onPress={onClose}>
+            <TouchableOpacity style={styles.deleteButton} onPress={handleReset}>
               <Text style={styles.deleteText}>Xóa</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>

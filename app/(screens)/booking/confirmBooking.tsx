@@ -14,6 +14,10 @@ export default function ConfirmBooking() {
   const [isOther, setIsOther] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedGuests, setSelectedGuests] = useState("");
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [tourName, setTourName] = useState<string>("");
+  const [tourSubName, setTourSubName] = useState<string>(""); // State for tourSubName
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [tour, setTour] = useState<TourDetail | null>(null);
@@ -22,6 +26,10 @@ export default function ConfirmBooking() {
   const tourId = Number(params.tourId);
   const initialDate = params.selectedDate as string;
   const initialGuests = params.selectedGuests as string;
+  const initialTotalPrice = Number(params.totalPrice) || 0;
+  const initialImageUrl = params.imageUrl as string;
+  const initialTourName = params.tourName as string;
+  const initialTourSubName = params.tourSubName as string; // Retrieve tourSubName from params
   let user = null;
   try {
     user = params.user ? JSON.parse(params.user as string) : null;
@@ -47,15 +55,27 @@ export default function ConfirmBooking() {
   useEffect(() => {
     if (initialDate) setSelectedDate(initialDate);
     if (initialGuests) setSelectedGuests(initialGuests);
-  }, [initialDate, initialGuests]);
+    if (initialTotalPrice) setTotalPrice(initialTotalPrice);
+    if (initialImageUrl) setImageUrl(initialImageUrl);
+    if (initialTourName) setTourName(initialTourName);
+    if (initialTourSubName) setTourSubName(initialTourSubName); // Set tourSubName correctly
+  }, [
+    initialDate,
+    initialGuests,
+    initialTotalPrice,
+    initialImageUrl,
+    initialTourName,
+    initialTourSubName,
+  ]);
 
   const handleSaveDate = (date: string) => {
     setSelectedDate(date);
     setShowScheduleModal(false);
   };
 
-  const handleSaveClient = (client: string) => {
+  const handleSaveClient = (client: string, price: number) => {
     setSelectedGuests(client);
+    setTotalPrice(price);
     setShowClientModal(false);
   };
 
@@ -77,7 +97,18 @@ export default function ConfirmBooking() {
       router.push("/(auths)/(Login)/login");
       return;
     }
-    router.push("/booking/successBooking");
+    router.push({
+      pathname: "/booking/successBooking",
+      params: {
+        tourId: tourId.toString(),
+        selectedDate,
+        selectedGuests,
+        totalPrice: totalPrice.toString(),
+        imageUrl: imageUrl || "",
+        tourName,
+        tourSubName, // Pass tourSubName to SuccessBooking
+      },
+    });
   };
 
   if (!tour) {
@@ -103,17 +134,23 @@ export default function ConfirmBooking() {
         {/* Tour Info */}
         <View style={styles.tourCard}>
           <Image
-            source={{
-              uri: "https://images2.thanhnien.vn/zoom/700_438/528068263637045248/2024/1/26/e093e9cfc9027d6a142358d24d2ee350-65a11ac2af785880-17061562929701875684912-37-0-587-880-crop-1706239860681642023140.jpg",
-            }}
+            source={
+              imageUrl
+                ? { uri: imageUrl }
+                : require("@/assets/images/home/Property1.png")
+            }
             style={styles.tourImage}
+            onError={() => {
+              console.log("Failed to load image from URL:", imageUrl);
+              setImageUrl(null);
+            }}
           />
           <View style={styles.tourInfo}>
-            <Text style={styles.tourTitle}>{tour.name}</Text>
-            <Text style={styles.tourDesc}>{tour.subName}</Text>
+            <Text style={styles.tourTitle}>{tourName || tour.name}</Text>
+            <Text style={styles.tourDesc}>{tourSubName || tour.subName}</Text>
             <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
             <Text style={styles.price}>
-              Từ {tour.fromPrice.toLocaleString("vi-VN")}₫/Người
+              Tổng giá: {totalPrice.toLocaleString("vi-VN")}₫
             </Text>
           </View>
         </View>
@@ -156,13 +193,13 @@ export default function ConfirmBooking() {
             </TouchableOpacity>
           </View>
           <Text style={styles.contactText}>
-            Họ tên: {user.fullName || "Chưa cung cấp"}
+            Họ tên: {user?.fullName || "Chưa cung cấp"}
           </Text>
           <Text style={styles.contactText}>
-            Số điện thoại: {user.phone || "Chưa cung cấp"}
+            Số điện thoại: {user?.phone || "Chưa cung cấp"}
           </Text>
           <Text style={styles.contactText}>
-            Email: {user.email || "Chưa cung cấp"}
+            Email: {user?.email || "Chưa cung cấp"}
           </Text>
         </View>
 
@@ -220,7 +257,7 @@ export default function ConfirmBooking() {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.priceHighlight}>
-            đ {tour.fromPrice.toLocaleString("vi-VN")}
+            đ {totalPrice.toLocaleString("vi-VN")}
           </Text>
           <TouchableOpacity style={styles.button} onPress={handlePayment}>
             <Text style={styles.buttonText}>Thanh toán</Text>

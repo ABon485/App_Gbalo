@@ -13,6 +13,9 @@ type Props = {
   fromPrice: number;
   tourId: number;
   user: any;
+  imageUrl: string | null;
+  tourName: string;
+  tourSubName: string; // Add tourSubName prop
   onConfirm: () => void;
 };
 
@@ -23,10 +26,14 @@ const OrderTourModal = ({
   fromPrice,
   tourId,
   user,
+  imageUrl,
+  tourName,
+  tourSubName, // Receive tourSubName
   onConfirm,
 }: Props) => {
   const [selectedDate, setSelectedDate] = useState("Chọn ngày");
   const [selectedGuests, setSelectedGuests] = useState("1 khách");
+  const [totalPrice, setTotalPrice] = useState(fromPrice);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const router = useRouter();
@@ -36,8 +43,9 @@ const OrderTourModal = ({
     setShowScheduleModal(false);
   };
 
-  const handleSaveClient = (client: string) => {
+  const handleSaveClient = (client: string, price: number) => {
     setSelectedGuests(client);
+    setTotalPrice(price);
     setShowClientModal(false);
   };
 
@@ -55,7 +63,11 @@ const OrderTourModal = ({
         tourId: tourId.toString(),
         selectedDate,
         selectedGuests,
+        totalPrice: totalPrice.toString(),
         user: JSON.stringify(user),
+        imageUrl: imageUrl || "",
+        tourName,
+        tourSubName, // Pass tourSubName to ConfirmBooking
       },
     });
   };
@@ -84,11 +96,10 @@ const OrderTourModal = ({
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
               <View style={styles.priceBox}>
                 <Text style={styles.priceText}>
-                  Từ{" "}
+                  Tổng giá:{" "}
                   <Text style={styles.priceHighlight}>
-                    {fromPrice.toLocaleString("vi-VN")}đ
-                  </Text>{" "}
-                  /người
+                    {totalPrice.toLocaleString("vi-VN")}đ
+                  </Text>
                 </Text>
               </View>
 
@@ -124,7 +135,7 @@ const OrderTourModal = ({
 
               <View style={styles.footerRow}>
                 <Text style={styles.totalPrice}>
-                  đ {fromPrice.toLocaleString("vi-VN")}
+                  đ {totalPrice.toLocaleString("vi-VN")}
                 </Text>
                 <TouchableOpacity
                   style={styles.bookButton}

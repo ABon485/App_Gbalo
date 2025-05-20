@@ -22,8 +22,7 @@ import { useWindowDimensions } from "react-native";
 import Order from "@/components/booking/order";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SimilarTour from "@/app/(screens)/detail/similarTour";
-import Rating from "@/app/(screens)/detail/rating";
-
+import Rating from "./rating";
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
@@ -34,21 +33,23 @@ export default function Detail() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const [tour, setTour] = useState<TourDetail | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null); 
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [user, setUser] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showExtraUserModal, setShowExtraUserModal] = useState(false);
-  const tourId = params?.detailID; 
+  const tourId = params?.detailID;
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const provinceIds = params?.provinceIds ? JSON.parse(params.provinceIds as string) : [];
+  const provinceIds = params?.provinceIds
+    ? JSON.parse(params.provinceIds as string)
+    : [];
 
   useFocusEffect(
     useCallback(() => {
       const fetchTourDetail = async () => {
         try {
-          const detail = await tourApi.TourDetail(Number(tourId) || 0); 
+          const detail = await tourApi.TourDetail(Number(tourId) || 0);
           setTour(detail);
           console.log("Tour Detail:", JSON.stringify(detail, null, 2));
           console.log("Tour Detail ID:", tourId);
@@ -60,12 +61,14 @@ export default function Detail() {
       const fetchImage = async () => {
         try {
           console.log("Fetching image for tourId:", tourId);
-          const response = await fetch(`https://files.vbalo.com/list/Tours${tourId}`);
+          const response = await fetch(
+            `https://files.vbalo.com/list/Tours${tourId}`
+          );
           const data = await response.json();
           console.log("Image API Response:", JSON.stringify(data, null, 2));
 
           if (data.status === "Success" && data.data && data.data.length > 0) {
-            setImageUrl(data.data[0]); 
+            setImageUrl(data.data[0]);
           } else {
             console.log("No image data found for tourId:", tourId);
             setImageUrl(null);
@@ -239,6 +242,7 @@ export default function Detail() {
                 contentWidth={width}
                 source={{ html: item.schedule }}
               />
+              
               <SchechuleModal
                 visible={showScheduleModal}
                 onClose={() => setShowScheduleModal(false)}
@@ -246,7 +250,9 @@ export default function Detail() {
                 title="Lịch trình chi tiết"
               />
 
-              <Text style={styles.sectionTitle}>Những yêu cầu đối với khách</Text>
+              <Text style={styles.sectionTitle}>
+                Những yêu cầu đối với khách
+              </Text>
               <RenderHtml
                 contentWidth={width}
                 source={{ html: item.policies }}
@@ -258,10 +264,13 @@ export default function Detail() {
                 title="Yêu cầu đối với khách hàng"
               />
             </View>
-            <Rating/>
+            <Rating />
             {/* Add SimilarTour Component */}
             <Text style={styles.sectionTitle}>Các tour tương tự</Text>
-            <SimilarTour provinceIds={provinceIds} tourId={Number(tourId) || 0} />
+            <SimilarTour
+              provinceIds={provinceIds}
+              tourId={Number(tourId) || 0}
+            />
           </View>
         )}
       />
@@ -289,6 +298,9 @@ export default function Detail() {
             fromPrice={tour.fromPrice}
             tourId={tour.id}
             user={user}
+            imageUrl={imageUrl}
+            tourName={tour.name}
+            tourSubName={tour.subName}
             onConfirm={() => {
               setShowOrderModal(false);
             }}
