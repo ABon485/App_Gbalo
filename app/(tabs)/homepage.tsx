@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, TextInput, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
-import Suggested from '@/components/home/Suggested';
+import Suggested from '@/app/(screens)/home/Suggested';
 // import Recent from '@/components/home/Recent';
 // import Popular from '@/components/home/Popular';
 import SearchHeader from '@/components/home/search';
-import DestinationSection from '@/components/home/attractive';
+import DestinationSection from '@/app/(screens)/home/attractive';
 import Banner from '@/components/banner';
 
 // Import hình ảnh từ thư mục assets
