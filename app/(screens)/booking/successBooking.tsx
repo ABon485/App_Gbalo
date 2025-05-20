@@ -1,18 +1,16 @@
 import React from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import styles from "@/styles/booking/successBooking";
 
 export default function SuccessBooking() {
+  const params = useLocalSearchParams();
+  const selectedDate = params.selectedDate as string;
+  const selectedGuests = params.selectedGuests as string;
+  const totalPrice = Number(params.totalPrice) || 0; // Retrieve totalPrice from params
+
   return (
     <View style={styles.container}>
       {/* Success Message */}
@@ -52,7 +50,9 @@ export default function SuccessBooking() {
             lành
           </Text>
           <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
-          <Text style={styles.price}>Từ 1,234,567đ/Người</Text>
+          <Text style={styles.price}>
+            Tổng giá: {totalPrice.toLocaleString("vi-VN")}₫
+          </Text>
         </View>
       </View>
 
@@ -64,11 +64,15 @@ export default function SuccessBooking() {
           color="#000"
           style={styles.calendarIcon}
         />
-        <Text style={styles.dateText}>Thứ 3, 01/04/2025</Text>
+        <Text style={styles.dateText}>
+          {selectedDate || "Thứ 3, 01/04/2025"}
+        </Text>
       </View>
       {/* Guest Info with Border */}
       <View style={styles.guestTextContainer}>
-        <Text style={styles.guestText}>2 người lớn, trẻ em và 1 em bé</Text>
+        <Text style={styles.guestText}>
+          {selectedGuests || "2 người lớn, trẻ em và 1 em bé"}
+        </Text>
       </View>
 
       {/* Tour Details */}
@@ -92,7 +96,9 @@ export default function SuccessBooking() {
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Tổng cộng:</Text>
-          <Text style={styles.detailValuePrice}>4.964.000 đ</Text>
+          <Text style={styles.detailValuePrice}>
+            {totalPrice.toLocaleString("vi-VN")}₫
+          </Text>
         </View>
       </View>
 
@@ -108,4 +114,3 @@ export default function SuccessBooking() {
     </View>
   );
 }
-

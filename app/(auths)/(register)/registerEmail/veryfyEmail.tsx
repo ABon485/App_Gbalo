@@ -46,7 +46,7 @@ export default function VerifyEmail() {
         type: "error",
         message: "Email không hợp lệ",
       });
-      router.replace("/(auths)/login");
+      router.replace("/(auths)/(Login)/login");
     }
   }, []);
 

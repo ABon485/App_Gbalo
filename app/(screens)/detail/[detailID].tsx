@@ -40,13 +40,15 @@ export default function Detail() {
   const [showExtraUserModal, setShowExtraUserModal] = useState(false);
   const tourId = params?.detailID; // Giữ nguyên định dạng chuỗi như "Tours6"
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const provinceIds = params?.provinceIds ? JSON.parse(params.provinceIds as string) : [];
+  const provinceIds = params?.provinceIds
+    ? JSON.parse(params.provinceIds as string)
+    : [];
 
   useFocusEffect(
     useCallback(() => {
       const fetchTourDetail = async () => {
         try {
-          const detail = await tourApi.TourDetail(Number(tourId) || 0); 
+          const detail = await tourApi.TourDetail(Number(tourId) || 0);
           setTour(detail);
           console.log("Tour Detail:", JSON.stringify(detail, null, 2));
           console.log("Tour Detail ID:", tourId);
@@ -58,12 +60,14 @@ export default function Detail() {
       const fetchImage = async () => {
         try {
           console.log("Fetching image for tourId:", tourId);
-          const response = await fetch(`https://files.vbalo.com/list/Tours${tourId}`);
+          const response = await fetch(
+            `https://files.vbalo.com/list/Tours${tourId}`
+          );
           const data = await response.json();
           console.log("Image API Response:", JSON.stringify(data, null, 2));
 
           if (data.status === "Success" && data.data && data.data.length > 0) {
-            setImageUrl(data.data[0]); 
+            setImageUrl(data.data[0]);
           } else {
             console.log("No image data found for tourId:", tourId);
             setImageUrl(null);
@@ -244,7 +248,9 @@ export default function Detail() {
                 title="Lịch trình chi tiết"
               />
 
-              <Text style={styles.sectionTitle}>Những yêu cầu đối với khách</Text>
+              <Text style={styles.sectionTitle}>
+                Những yêu cầu đối với khách
+              </Text>
               <RenderHtml
                 contentWidth={width}
                 source={{ html: item.policies }}
@@ -258,7 +264,10 @@ export default function Detail() {
             </View>
             {/* Add SimilarTour Component */}
             <Text style={styles.sectionTitle}>Các tour tương tự</Text>
-            <SimilarTour provinceIds={provinceIds} tourId={Number(tourId) || 0} />
+            <SimilarTour
+              provinceIds={provinceIds}
+              tourId={Number(tourId) || 0}
+            />
           </View>
         )}
       />
@@ -286,6 +295,7 @@ export default function Detail() {
             fromPrice={tour.fromPrice}
             tourId={tour.id}
             user={user}
+            imageUrl={imageUrl} 
             onConfirm={() => {
               setShowOrderModal(false);
             }}
