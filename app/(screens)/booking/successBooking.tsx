@@ -4,6 +4,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { router, useLocalSearchParams } from "expo-router";
 import styles from "@/styles/booking/successBooking";
+import Feather from "@expo/vector-icons/Feather";
 
 export default function SuccessBooking() {
   const params = useLocalSearchParams();
@@ -12,7 +13,9 @@ export default function SuccessBooking() {
   const totalPrice = Number(params.totalPrice) || 0;
   const imageUrl = params.imageUrl as string;
   const tourName = params.tourName as string;
-  const tourSubName = params.tourSubName as string; // Retrieve tourSubName from params
+  const tourSubName = params.tourSubName as string; 
+  const prepaid = Math.round(totalPrice * 0.3); 
+  const remaining = totalPrice - prepaid;
 
   return (
     <View style={styles.container}>
@@ -50,15 +53,11 @@ export default function SuccessBooking() {
           }}
         />
         <View style={styles.tourInfo}>
-          <Text style={styles.tourTitle}>
-            {tourName}
-          </Text>
-          <Text style={styles.tourDesc}>
-            {tourSubName}
-          </Text>
+          <Text style={styles.tourTitle}>{tourName}</Text>
+          <Text style={styles.tourDesc}>{tourSubName}</Text>
           <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
           <Text style={styles.price}>
-            Tổng giá: {totalPrice.toLocaleString("vi-VN")}₫
+            Từ: {totalPrice.toLocaleString("vi-VN")}₫/Người
           </Text>
         </View>
       </View>
@@ -77,6 +76,7 @@ export default function SuccessBooking() {
       </View>
       {/* Guest Info with Border */}
       <View style={styles.guestTextContainer}>
+        <Feather name="users" size={16} color="black" />
         <Text style={styles.guestText}>
           {selectedGuests || "2 người lớn, trẻ em và 1 em bé"}
         </Text>
@@ -84,27 +84,51 @@ export default function SuccessBooking() {
 
       {/* Tour Details */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Chi tiết đặt Tour</Text>
+        <Text style={styles.sectionTitle}>Chi tiết Tour</Text>
+
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Mã đặt Tour:</Text>
-          <Text style={styles.detailValue}>NNSG-44H3-3RHD</Text>
+          <Text style={styles.detailValue}>#TOUR2025DN</Text>
         </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Thời gian:</Text>
-          <Text style={styles.detailValue}>3N2D Từ ngày 07/03/2025</Text>
-        </View>
+
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Khởi hành từ:</Text>
-          <Text style={styles.detailValue}>Hà Nội Vào lúc 09:20</Text>
+          <Text style={styles.detailValue}>Hà Nội</Text>
         </View>
+
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Phương thức thanh toán:</Text>
-          <Text style={styles.detailValue}>VN Pay</Text>
+          <Text style={styles.detailLabel}>Khách hàng:</Text>
+          <Text style={styles.detailValue}>Nguyen Chi Thanh</Text>
         </View>
+
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Tổng cộng:</Text>
-          <Text style={styles.detailValuePrice}>
-            {totalPrice.toLocaleString("vi-VN")}₫
+          <Text style={styles.detailLabel}>Số điện thoại:</Text>
+          <Text style={styles.detailValue}>0359998692</Text>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Email:</Text>
+          <Text style={styles.detailValue}>thanhchi170923@gmail.com</Text>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Tổng giá Tour:</Text>
+          <Text style={styles.detailPrice}>
+            {totalPrice.toLocaleString("vi-VN")} vnd
+          </Text>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Đã thanh toán 30%:</Text>
+          <Text style={styles.detailPrice}>
+            {prepaid.toLocaleString("vi-VN")} vnd
+          </Text>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Số tiền còn lại:</Text>
+          <Text style={styles.detailPriceBold}>
+            {remaining.toLocaleString("vi-VN")} vnd
           </Text>
         </View>
       </View>
@@ -112,10 +136,10 @@ export default function SuccessBooking() {
       {/* Explore More Button */}
       <TouchableOpacity
         style={styles.exploreButton}
-        onPress={() => router.back()}
+        onPress={() => router.replace("/homepage")}
       >
         <Text style={styles.exploreButtonText}>
-          Khám phá các khách sạn hấp dẫn
+          Khám phá các Tours hấp dẫn
         </Text>
       </TouchableOpacity>
     </View>

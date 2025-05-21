@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import styles from "@/styles/booking/confirmBooking";
 import Schedule from "@/components/booking/schedule";
@@ -11,9 +18,7 @@ import tourApi from "@/services/tour";
 import { TourDetail } from "@/types/tour";
 
 export default function ConfirmBooking() {
-  const [isThaiGuide, setIsThaiGuide] = useState(false);
-  const [isPrivateCar, setIsPrivateCar] = useState(false);
-  const [isOther, setIsOther] = useState(false);
+  const [checkbox, setIsCheckbox] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedGuests, setSelectedGuests] = useState("");
   const [totalPrice, setTotalPrice] = useState(0);
@@ -30,6 +35,7 @@ export default function ConfirmBooking() {
     phone?: string;
     email?: string;
   } | null>(null);
+  const prepayment = Math.round(totalPrice * 0.3);
 
   const params = useLocalSearchParams();
   const tourId = Number(params.tourId);
@@ -194,19 +200,21 @@ export default function ConfirmBooking() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Thời gian chuyến đi</Text>
           <View style={styles.scheduleRow}>
-            <View style={styles.labelValuePair}>
+            <View style={styles.labelValueBlock}>
               <Text style={styles.label}>Ngày:</Text>
               <Text style={styles.value}>{selectedDate || "Chưa chọn"}</Text>
             </View>
+
             <TouchableOpacity onPress={() => setShowScheduleModal(true)}>
               <Text style={styles.link}>Chỉnh sửa</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.scheduleRow}>
-            <View style={styles.labelValuePair}>
+            <View style={styles.labelValueBlock}>
               <Text style={styles.label}>Khách:</Text>
               <Text style={styles.value}>{selectedGuests || "Chưa chọn"}</Text>
             </View>
+
             <TouchableOpacity onPress={() => setShowClientModal(true)}>
               <Text style={styles.link}>Chỉnh sửa</Text>
             </TouchableOpacity>
@@ -239,15 +247,15 @@ export default function ConfirmBooking() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Bạn yêu cầu nào không?</Text>
           <Text style={styles.sectionSub}>
-            Chọn lựa chọn của quý khách. Phụ thuộc vào tình trạng thực tế.
+            Hãy gửi yêu cầu của bạn để chúng tôi hỗ trợ tốt hơn.
           </Text>
-          {renderCheckbox("Hướng dẫn viên nói tiếng Thái", isThaiGuide, () =>
-            setIsThaiGuide(!isThaiGuide)
-          )}
-          {renderCheckbox("Xe riêng đưa đón", isPrivateCar, () =>
-            setIsPrivateCar(!isPrivateCar)
-          )}
-          {renderCheckbox("Khác", isOther, () => setIsOther(!isOther))}
+          <TextInput
+            style={styles.input}
+            placeholder="Nhập yêu cầu của bạn..."
+            multiline
+            numberOfLines={4}
+            scrollEnabled={true}
+          />
         </View>
 
         {/* Discount */}
@@ -259,8 +267,11 @@ export default function ConfirmBooking() {
           </View>
           <View style={styles.discountRow}>
             <Text style={styles.discountLabel}>Mã ưu đãi thanh toán</Text>
-            <TouchableOpacity onPress={() => setShowAddDiscountModal(true)}>
-              <Text style={styles.Discount}>+ Thêm mã giảm giá</Text>
+            <TouchableOpacity style={styles.discountContainer}  onPress={() => setShowAddDiscountModal(true)}>
+              <View style={styles.plusBox}>
+                <Text style={styles.plusText}>+</Text>
+              </View>
+              <Text style={styles.discountText}>Thêm mã giảm giá</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -286,11 +297,67 @@ export default function ConfirmBooking() {
           </View>
         </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Chính sách</Text>
+          <View style={styles.policyItem}>
+            <Text style={styles.checkMark}>
+              <AntDesign name="check" size={20} color="green" />
+            </Text>
+            <Text style={styles.policyText}>
+              Khách sẽ thanh toán trước 30% tổng tiền tour, bằng hình thức
+              vnpay.
+            </Text>
+          </View>
+          <View style={styles.policyItem}>
+            <Text style={styles.checkMark}>
+              <AntDesign name="check" size={20} color="green" />
+            </Text>
+            <Text style={styles.policyText}>
+              Khách không được hoàn lại số tiền đã thanh toán trước nếu hủy tour
+              bất kỳ lúc nào.
+            </Text>
+          </View>
+          <View style={styles.policyItem}>
+            <Text style={styles.checkMark}>
+              <AntDesign name="check" size={20} color="green" />
+            </Text>
+            <Text style={styles.policyText}>
+              Khách có thể hủy đến 14 ngày trước khi tour khởi hành. Khách phải
+              trả 50% tổng tiền thanh toán trước nếu hủy tour trong vòng 14 ngày
+              trước khi tour khởi hành và phải trả 100% tổng tiền thanh toán
+              trước nếu vắng mặt.
+            </Text>
+          </View>
+
+          <View style={styles.checkboxContainer}>
+            {renderCheckbox("", checkbox, () => setIsCheckbox(!checkbox))}
+
+            <Text style={styles.checkboxText}>
+              Bạn đồng ý rằng bạn đã đọc và hiểu{" "}
+              <Text style={styles.Newlink}>Điều khoản sử dụng</Text> và{" "}
+              <Text style={styles.Newlink}>Chính sách hoàn huỷ</Text>
+            </Text>
+          </View>
+        </View>
+
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.priceHighlight}>
-            đ {totalPrice.toLocaleString("vi-VN")}
-          </Text>
+          <View style={styles.priceInfo}>
+            <View style={styles.priceRow}>
+              <Text style={styles.label}>Tổng cộng:</Text>
+              <Text style={styles.totalAmount}>
+                đ {totalPrice.toLocaleString("vi-VN")}
+              </Text>
+            </View>
+
+            <View style={styles.prepayRow}>
+              <Text style={styles.label}>Thanh toán trước 30%:</Text>
+              <Text style={styles.prepayAmount}>
+                đ {prepayment.toLocaleString("vi-VN")}
+              </Text>
+            </View>
+          </View>
+
           <TouchableOpacity style={styles.button} onPress={handlePayment}>
             <Text style={styles.buttonText}>Thanh toán</Text>
           </TouchableOpacity>
