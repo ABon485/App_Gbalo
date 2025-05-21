@@ -269,6 +269,7 @@ export default function Detail() {
           <Text style={styles.buttonText}>Đặt ngay</Text>
         </TouchableOpacity>
         {showOrderModal && (
+          // Inside Detail.js
           <Order
             visible={showOrderModal}
             onClose={() => setShowOrderModal(false)}
@@ -279,6 +280,10 @@ export default function Detail() {
             imageUrl={imageUrl}
             tourName={tour.name}
             tourSubName={tour.subName}
+            tourPrices={tour.tourPrices.map(tp => ({
+              ...tp,
+              unitName: tp.unitName ?? null
+            }))}
             onConfirm={() => setShowOrderModal(false)}
           />
         )}

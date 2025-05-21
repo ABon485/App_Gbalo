@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     saveButton: {
         backgroundColor: "#f4511e",
         paddingVertical: 12,
-        paddingHorizontal: 24,
+        paddingHorizontal: 34,
         borderRadius: 25,
     },
     cancelText: {

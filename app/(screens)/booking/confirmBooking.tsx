@@ -374,6 +374,7 @@ export default function ConfirmBooking() {
         visible={showClientModal}
         onClose={() => setShowClientModal(false)}
         onSave={handleSaveClient}
+        tourPrices={tour.tourPrices || []} 
       />
       <EditPersonalInformation
         visible={showEditPersonalModal}

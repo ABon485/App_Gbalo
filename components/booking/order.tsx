@@ -1,3 +1,4 @@
+// Order.js
 import React, { useState } from "react";
 import { Modal, View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
@@ -15,7 +16,16 @@ type Props = {
   user: any;
   imageUrl: string | null;
   tourName: string;
-  tourSubName: string; // Add tourSubName prop
+  tourSubName: string;
+  tourPrices: Array<{
+    id: number;
+    guestTypeId: number;
+    guestType: string;
+    age: string;
+    price: number;
+    unitId: number;
+    unitName: string | null;
+  }>;
   onConfirm: () => void;
 };
 
@@ -28,7 +38,8 @@ const OrderTourModal = ({
   user,
   imageUrl,
   tourName,
-  tourSubName, // Receive tourSubName
+  tourSubName,
+  tourPrices, 
   onConfirm,
 }: Props) => {
   const [selectedDate, setSelectedDate] = useState("Chọn ngày");
@@ -67,7 +78,7 @@ const OrderTourModal = ({
         user: JSON.stringify(user),
         imageUrl: imageUrl || "",
         tourName,
-        tourSubName, // Pass tourSubName to ConfirmBooking
+        tourSubName,
       },
     });
   };
@@ -82,6 +93,7 @@ const OrderTourModal = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
+            <Text>11:04 AM, 21/05/2025</Text>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{title}</Text>
               <TouchableOpacity onPress={onClose}>
@@ -92,7 +104,6 @@ const OrderTourModal = ({
                 />
               </TouchableOpacity>
             </View>
-
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
               <View style={styles.priceBox}>
                 <Text style={styles.priceText}>
@@ -158,6 +169,7 @@ const OrderTourModal = ({
         visible={showClientModal}
         onClose={() => setShowClientModal(false)}
         onSave={handleSaveClient}
+        tourPrices={tourPrices}
       />
     </>
   );

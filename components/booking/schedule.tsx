@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   arrowText: {
-    fontSize: 24,
+    fontSize: 29,
     color: "#000",
   },
   weekRow: {
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 100,
     paddingVertical: 12,
     backgroundColor: "#E0E0E0",
     borderRadius: 24,
