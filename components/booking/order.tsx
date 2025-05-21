@@ -1,5 +1,6 @@
+// Order.js
 import React, { useState } from "react";
-import { Modal, View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { Modal, View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import Schedule from "../booking/schedule";
 import ClientOption from "../booking/clientOption";
@@ -15,7 +16,16 @@ type Props = {
   user: any;
   imageUrl: string | null;
   tourName: string;
-  tourSubName: string; // Add tourSubName prop
+  tourSubName: string;
+  tourPrices: Array<{
+    id: number;
+    guestTypeId: number;
+    guestType: string;
+    age: string;
+    price: number;
+    unitId: number;
+    unitName: string | null;
+  }>;
   onConfirm: () => void;
 };
 
@@ -28,11 +38,12 @@ const OrderTourModal = ({
   user,
   imageUrl,
   tourName,
-  tourSubName, // Receive tourSubName
+  tourSubName,
+  tourPrices, 
   onConfirm,
 }: Props) => {
   const [selectedDate, setSelectedDate] = useState("Chọn ngày");
-  const [selectedGuests, setSelectedGuests] = useState("1 khách");
+  const [selectedGuests, setSelectedGuests] = useState("0 khách");
   const [totalPrice, setTotalPrice] = useState(fromPrice);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
@@ -49,28 +60,39 @@ const OrderTourModal = ({
     setShowClientModal(false);
   };
 
-  const handleConfirm = () => {
-    if (!user) {
-      router.push("/(auths)/(Login)/login");
-      onClose();
-      return;
-    }
+  // Trong Order.js
+const handleConfirm = () => {
+  if (!user) {
+    router.push("/(auths)/(Login)/login");
+    onClose();
+    return;
+  }
 
-    onConfirm();
-    router.push({
-      pathname: "/booking/confirmBooking",
-      params: {
-        tourId: tourId.toString(),
-        selectedDate,
-        selectedGuests,
-        totalPrice: totalPrice.toString(),
-        user: JSON.stringify(user),
-        imageUrl: imageUrl || "",
-        tourName,
-        tourSubName, // Pass tourSubName to ConfirmBooking
-      },
-    });
-  };
+  // Kiểm tra validate
+  if (!selectedDate || selectedDate === "Chọn ngày") {
+    Alert.alert("Lỗi", "Vui lòng chọn ngày khởi hành trước khi tiếp tục.");
+    return;
+  }
+  if (!selectedGuests || selectedGuests === "1 khách") {
+    Alert.alert("Lỗi", "Vui lòng chọn số lượng khách trước khi tiếp tục.");
+    return;
+  }
+
+  onConfirm();
+  router.push({
+    pathname: "/booking/confirmBooking",
+    params: {
+      tourId: tourId.toString(),
+      selectedDate,
+      selectedGuests,
+      totalPrice: totalPrice.toString(),
+      user: JSON.stringify(user),
+      imageUrl: imageUrl || "",
+      tourName,
+      tourSubName,
+    },
+  });
+};
 
   return (
     <>
@@ -82,6 +104,7 @@ const OrderTourModal = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
+            <Text>11:04 AM, 21/05/2025</Text>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{title}</Text>
               <TouchableOpacity onPress={onClose}>
@@ -92,7 +115,6 @@ const OrderTourModal = ({
                 />
               </TouchableOpacity>
             </View>
-
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
               <View style={styles.priceBox}>
                 <Text style={styles.priceText}>
@@ -158,6 +180,7 @@ const OrderTourModal = ({
         visible={showClientModal}
         onClose={() => setShowClientModal(false)}
         onSave={handleSaveClient}
+        tourPrices={tourPrices}
       />
     </>
   );

@@ -13,8 +13,11 @@ export default function SuccessBooking() {
   const totalPrice = Number(params.totalPrice) || 0;
   const imageUrl = params.imageUrl as string;
   const tourName = params.tourName as string;
-  const tourSubName = params.tourSubName as string; 
-  const prepaid = Math.round(totalPrice * 0.3); 
+  const tourSubName = params.tourSubName as string;
+  const userInfo = params.userInfo
+    ? JSON.parse(params.userInfo as string)
+    : null; // Parse userInfo từ params
+  const prepaid = Math.round(totalPrice * 0.3);
   const remaining = totalPrice - prepaid;
 
   return (
@@ -98,17 +101,23 @@ export default function SuccessBooking() {
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Khách hàng:</Text>
-          <Text style={styles.detailValue}>Nguyen Chi Thanh</Text>
+          <Text style={styles.detailValue}>
+            {userInfo?.fullName || "Chưa cung cấp"}
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Số điện thoại:</Text>
-          <Text style={styles.detailValue}>0359998692</Text>
+          <Text style={styles.detailValue}>
+            {userInfo?.phone || "Chưa cung cấp"}
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Email:</Text>
-          <Text style={styles.detailValue}>thanhchi170923@gmail.com</Text>
+          <Text style={styles.detailValue}>
+            {userInfo?.email || "Chưa cung cấp"}
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
@@ -138,9 +147,7 @@ export default function SuccessBooking() {
         style={styles.exploreButton}
         onPress={() => router.replace("/homepage")}
       >
-        <Text style={styles.exploreButtonText}>
-          Khám phá các Tours hấp dẫn
-        </Text>
+        <Text style={styles.exploreButtonText}>Khám phá các Tours hấp dẫn</Text>
       </TouchableOpacity>
     </View>
   );

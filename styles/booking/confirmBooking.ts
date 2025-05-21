@@ -276,12 +276,14 @@ const styles = StyleSheet.create({
   },
 
   footer: {
+    borderTopWidth: 1,
+    borderColor: "#ddd",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 16,
     backgroundColor: "#fff",
-    marginBottom: 16,
+    marginBottom: 8,
   },
 
   priceInfo: {

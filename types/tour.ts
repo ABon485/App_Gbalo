@@ -78,6 +78,7 @@ export type TourDetail = {
     name: string;
   }[];
   tourPrices: {
+    unitName: null;
     id: number;
     guestTypeId: number;
     guestType: string;
