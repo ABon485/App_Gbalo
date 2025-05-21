@@ -86,15 +86,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   guestTextContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
     padding: 8,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 10,
-    marginBottom: 16,
   },
   guestText: {
     fontSize: 14,
     color: "#555",
+    marginLeft: 8,
   },
   section: {
     marginBottom: 18,
@@ -110,28 +113,39 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 8,
+    marginBottom: 6,
   },
+
   detailLabel: {
-    fontSize: 14,
-    color: "#000000",
-  },
-  detailValue: {
-    fontSize: 14,
+    fontWeight: "500",
     color: "#000",
-  },
-  detailValuePrice: {
     fontSize: 14,
-    color: "#F24E1E",
+    paddingLeft: 10,
+  },
+
+  detailValue: {
+    color: "#333",
+    fontSize: 14,
+  },
+
+  detailPrice: {
+    color: "#F35C2C",
+    fontSize: 14,
+  },
+
+  detailPriceBold: {
+    color: "#F35C2C",
+    fontSize: 14,
     fontWeight: "bold",
   },
+
   exploreButton: {
     backgroundColor: "#F24E1E",
     paddingVertical: 6,
-    paddingHorizontal: 20, 
+    paddingHorizontal: 20,
     borderRadius: 100,
-    alignItems: "center", 
-    alignSelf: "flex-start", 
+    alignItems: "center",
+    alignSelf: "flex-start",
     marginVertical: 16,
   },
   exploreButtonText: {
