@@ -64,7 +64,7 @@ export default function ConfirmBooking() {
     if (initialTotalPrice) setTotalPrice(initialTotalPrice);
     if (initialImageUrl) setImageUrl(initialImageUrl);
     if (initialTourName) setTourName(initialTourName);
-    if (initialTourSubName) setTourSubName(initialTourSubName); // Set tourSubName correctly
+    if (initialTourSubName) setTourSubName(initialTourSubName);
   }, [
     initialDate,
     initialGuests,
@@ -112,7 +112,7 @@ export default function ConfirmBooking() {
         totalPrice: totalPrice.toString(),
         imageUrl: imageUrl || "",
         tourName,
-        tourSubName, // Pass tourSubName to SuccessBooking
+        tourSubName,
       },
     });
   };
@@ -340,6 +340,7 @@ export default function ConfirmBooking() {
         visible={showClientModal}
         onClose={() => setShowClientModal(false)}
         onSave={handleSaveClient}
+        tourPrices={tour.tourPrices || []} 
       />
     </View>
   );
