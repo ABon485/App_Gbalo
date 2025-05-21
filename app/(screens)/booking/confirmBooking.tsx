@@ -11,6 +11,8 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import styles from "@/styles/booking/confirmBooking";
 import Schedule from "@/components/booking/schedule";
 import ClientOption from "@/components/booking/clientOption";
+import EditPersonalInformation from "@/components/booking/edit-personal-information";
+import AddDiscountCode from "@/components/booking/add-discount-code"; // Import the new component
 import { router, useLocalSearchParams } from "expo-router";
 import tourApi from "@/services/tour";
 import { TourDetail } from "@/types/tour";
@@ -22,10 +24,17 @@ export default function ConfirmBooking() {
   const [totalPrice, setTotalPrice] = useState(0);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [tourName, setTourName] = useState<string>("");
-  const [tourSubName, setTourSubName] = useState<string>(""); // State for tourSubName
+  const [tourSubName, setTourSubName] = useState<string>("");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
+  const [showEditPersonalModal, setShowEditPersonalModal] = useState(false);
+  const [showAddDiscountModal, setShowAddDiscountModal] = useState(false); // New state for discount modal
   const [tour, setTour] = useState<TourDetail | null>(null);
+  const [userInfo, setUserInfo] = useState<{
+    fullName?: string;
+    phone?: string;
+    email?: string;
+  } | null>(null);
   const prepayment = Math.round(totalPrice * 0.3);
 
   const params = useLocalSearchParams();
@@ -35,13 +44,17 @@ export default function ConfirmBooking() {
   const initialTotalPrice = Number(params.totalPrice) || 0;
   const initialImageUrl = params.imageUrl as string;
   const initialTourName = params.tourName as string;
-  const initialTourSubName = params.tourSubName as string; // Retrieve tourSubName from params
-  let user = null;
-  try {
-    user = params.user ? JSON.parse(params.user as string) : null;
-  } catch (error) {
-    console.error("Lỗi khi parse user:", error);
-  }
+  const initialTourSubName = params.tourSubName as string;
+
+  useEffect(() => {
+    try {
+      const parsedUser = params.user ? JSON.parse(params.user as string) : null;
+      setUserInfo(parsedUser);
+    } catch (error) {
+      console.error("Lỗi khi parse user:", error);
+      setUserInfo(null);
+    }
+  }, [params.user]);
 
   useEffect(() => {
     const fetchTourDetail = async () => {
@@ -85,6 +98,22 @@ export default function ConfirmBooking() {
     setShowClientModal(false);
   };
 
+  const handleSavePersonalInfo = (personalInfo: { fullName: string; phone: string; email: string }) => {
+    setUserInfo({
+      ...userInfo,
+      fullName: personalInfo.fullName,
+      phone: personalInfo.phone,
+      email: personalInfo.email,
+    });
+    setShowEditPersonalModal(false);
+  };
+
+  const handleApplyDiscount = (code: string) => {
+    // Logic to apply discount (e.g., update totalPrice)
+    console.log("Applied discount code:", code);
+    // Add your discount application logic here
+  };
+
   const renderCheckbox = (
     label: string,
     isChecked: boolean,
@@ -99,7 +128,7 @@ export default function ConfirmBooking() {
   );
 
   const handlePayment = () => {
-    if (!user) {
+    if (!userInfo) {
       router.push("/(auths)/(Login)/login");
       return;
     }
@@ -196,18 +225,21 @@ export default function ConfirmBooking() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Thông tin liên hệ</Text>
-            <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setShowEditPersonalModal(true)}
+            >
               <Text style={styles.link}>Chỉnh sửa</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.contactText}>
-            Họ tên: {user?.fullName || "Chưa cung cấp"}
+            Họ tên: {userInfo?.fullName || "Chưa cung cấp"}
           </Text>
           <Text style={styles.contactText}>
-            Số điện thoại: {user?.phone || "Chưa cung cấp"}
+            Số điện thoại: {userInfo?.phone || "Chưa cung cấp"}
           </Text>
           <Text style={styles.contactText}>
-            Email: {user?.email || "Chưa cung cấp"}
+            Email: {userInfo?.email || "Chưa cung cấp"}
           </Text>
         </View>
 
@@ -235,7 +267,7 @@ export default function ConfirmBooking() {
           </View>
           <View style={styles.discountRow}>
             <Text style={styles.discountLabel}>Mã ưu đãi thanh toán</Text>
-            <TouchableOpacity style={styles.discountContainer}>
+            <TouchableOpacity style={styles.discountContainer}  onPress={() => setShowAddDiscountModal(true)}>
               <View style={styles.plusBox}>
                 <Text style={styles.plusText}>+</Text>
               </View>
@@ -331,6 +363,8 @@ export default function ConfirmBooking() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Modals */}
       <Schedule
         visible={showScheduleModal}
         onClose={() => setShowScheduleModal(false)}
@@ -341,6 +375,19 @@ export default function ConfirmBooking() {
         onClose={() => setShowClientModal(false)}
         onSave={handleSaveClient}
         tourPrices={tour.tourPrices || []} 
+      />
+      <EditPersonalInformation
+        visible={showEditPersonalModal}
+        onClose={() => setShowEditPersonalModal(false)}
+        onSave={handleSavePersonalInfo}
+        initialFullName={userInfo?.fullName || ""}
+        initialPhone={userInfo?.phone || ""}
+        initialEmail={userInfo?.email || ""}
+      />
+      <AddDiscountCode
+        visible={showAddDiscountModal}
+        onClose={() => setShowAddDiscountModal(false)}
+        onApply={handleApplyDiscount}
       />
     </View>
   );
