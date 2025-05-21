@@ -5,6 +5,7 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import tourApi from '@/services/tour';
 import { TourItem, ProvinceType } from '@/types/tour';
 import { Heart, SlidersHorizontal } from 'lucide-react-native';
+import SearchFilters from '@/components/home/Search-filters';
 
 const SearchResult = () => {
     const { searchQuery: initialSearchQuery, selectedProvinceId: initialProvinceId } = useLocalSearchParams();
@@ -20,6 +21,7 @@ const SearchResult = () => {
     const [searchTrigger, setSearchTrigger] = useState<number>(0);
     const [allProvinces, setAllProvinces] = useState<ProvinceType[]>([]);
     const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
+    const [isFilterModalVisible, setIsFilterModalVisible] = useState<boolean>(false);
 
     useEffect(() => {
         if (isFirstLoad) {
@@ -79,7 +81,7 @@ const SearchResult = () => {
             if (!allProvinces.length) {
                 const provinces = await tourApi.getProvince();
                 console.log("Fetched provinces:", provinces.length);
-                setAllProvinces(provinces); 
+                setAllProvinces(provinces);
             }
 
             const normalizeText = (text: string) =>
@@ -97,7 +99,7 @@ const SearchResult = () => {
         }
     };
 
-    const searchTours = async (provinceId: string, keyword: string) => {
+    const searchTours = async (provinceId: string, keyword: string, filters: any = {}) => {
         try {
             setLoading(true);
             setError(null);
@@ -118,7 +120,7 @@ const SearchResult = () => {
             const normalizeText = (text: string) =>
                 text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const normalizedKeyword = normalizeText(keyword);
-            const filteredTours = toursToFilter.filter((tour) => {
+            let filteredTours = toursToFilter.filter((tour) => {
                 let matchProvince = false;
 
                 if (provinceId === 'all') {
@@ -138,6 +140,13 @@ const SearchResult = () => {
 
                 return matchProvince && matchKeyword;
             });
+
+            // Apply additional filters
+            if (filters.priceRange) {
+                filteredTours = filteredTours.filter(tour =>
+                    tour.fromPrice >= filters.priceRange.min && tour.fromPrice <= filters.priceRange.max
+                );
+            }
 
             console.log(`Found ${filteredTours.length} matching tours`);
 
@@ -205,6 +214,10 @@ const SearchResult = () => {
         setSuggestions([]);
         setHasSearched(true);
         searchTours(province.id.toString(), province.name);
+    };
+
+    const handleApplyFilters = (filters: any) => {
+        searchTours(selectedProvinceId, searchQuery, filters);
     };
 
     useEffect(() => {
@@ -298,7 +311,10 @@ const SearchResult = () => {
                             </TouchableOpacity>
                         </View>
                         {hasSearched && tours.length > 0 && (
-                            <TouchableOpacity style={styles.filterButtonIcon}>
+                            <TouchableOpacity
+                                style={styles.filterButtonIcon}
+                                onPress={() => setIsFilterModalVisible(true)} // Correctly show the modal
+                            >
                                 <SlidersHorizontal size={20} color="#888" />
                             </TouchableOpacity>
                         )}
@@ -349,6 +365,13 @@ const SearchResult = () => {
                         </>
                     )}
                 </View>
+
+                {/* Add SearchFilters Modal */}
+                <SearchFilters
+                    visible={isFilterModalVisible}
+                    onClose={() => setIsFilterModalVisible(false)}
+                    onApply={handleApplyFilters}
+                />
             </View>
         </>
     );
@@ -368,12 +391,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 20,
-
     },
     backButton: {
         marginRight: 10,
         marginTop: 20,
-
     },
     searchContainer: {
         flexDirection: 'row',
@@ -403,7 +424,7 @@ const styles = StyleSheet.create({
     filterButtonIcon: {
         marginLeft: 10,
         padding: 9,
-        marginTop: 20
+        marginTop: 20,
     },
     errorText: {
         fontSize: 12,

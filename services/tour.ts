@@ -58,12 +58,45 @@ const tourApi = {
       if (!Array.isArray(data)) {
         throw new Error("Guest type response is not an array");
       }
-      return { data }; // Trả về { data: [{ id, guestType, age }, ...] }
+      return { data };
     } catch (error) {
       console.error("Error fetching guest types:", error);
       throw error;
     }
   },
+  getTourGroups: async (): Promise<{ id: number; name: string }[]> => {
+    try {
+      const response = await apiTour.get("/tour/group");
+      const data = response.data?.data;
+      if (!Array.isArray(data)) {
+        throw new Error("Tour group response is not an array");
+      }
+      return data;
+    } catch (error) {
+      console.error("Error fetching tour groups:", error);
+      throw error;
+    }
+  },
+  getProvinceDestination: async (
+    type: "prov" | "dest"
+  ): Promise<{ id: string; name: string; type: string }[]> => {
+    try {
+      const response = await api.get("/province_destination", {
+        params: { type },
+      });
+      const data = response.data?.data;
+
+      if (!Array.isArray(data)) {
+        throw new Error("province_destination response is not an array");
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching province destinations:", error);
+      throw error;
+    }
+  },
+
 };
 
 export default tourApi;

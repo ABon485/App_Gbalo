@@ -98,3 +98,7 @@ export type guestType = {
     age: string;
   }>;
 };
+export type TourGroupType ={
+  id: number;
+  name: string;
+}
