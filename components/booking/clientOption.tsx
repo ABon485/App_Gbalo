@@ -22,7 +22,7 @@ export default function ClientModal({
   onSave,
   tourPrices,
 }: Props) {
-  const [adults, setAdults] = useState(1); // Mặc định 1 người lớn
+  const [adults, setAdults] = useState(0); // Mặc định 1 người lớn
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
 

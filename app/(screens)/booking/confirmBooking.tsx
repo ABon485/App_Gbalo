@@ -12,10 +12,11 @@ import styles from "@/styles/booking/confirmBooking";
 import Schedule from "@/components/booking/schedule";
 import ClientOption from "@/components/booking/clientOption";
 import EditPersonalInformation from "@/components/booking/edit-personal-information";
-import AddDiscountCode from "@/components/booking/add-discount-code"; // Import the new component
+import AddDiscountCode from "@/components/booking/add-discount-code";
 import { router, useLocalSearchParams } from "expo-router";
 import tourApi from "@/services/tour";
 import { TourDetail } from "@/types/tour";
+import { useToast } from "@/context/ToastContext";
 
 export default function ConfirmBooking() {
   const [checkbox, setIsCheckbox] = useState(false);
@@ -28,8 +29,9 @@ export default function ConfirmBooking() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showEditPersonalModal, setShowEditPersonalModal] = useState(false);
-  const [showAddDiscountModal, setShowAddDiscountModal] = useState(false); // New state for discount modal
+  const [showAddDiscountModal, setShowAddDiscountModal] = useState(false);
   const [tour, setTour] = useState<TourDetail | null>(null);
+  const { showToast } = useToast();
   const [userInfo, setUserInfo] = useState<{
     fullName?: string;
     phone?: string;
@@ -72,8 +74,13 @@ export default function ConfirmBooking() {
   }, [tourId]);
 
   useEffect(() => {
-    if (initialDate) setSelectedDate(initialDate);
-    if (initialGuests) setSelectedGuests(initialGuests);
+    // Chỉ cập nhật nếu giá trị hợp lệ
+    if (initialDate && initialDate !== "Chọn ngày") {
+      setSelectedDate(initialDate);
+    }
+    if (initialGuests && initialGuests !== "1 khách") {
+      setSelectedGuests(initialGuests);
+    }
     if (initialTotalPrice) setTotalPrice(initialTotalPrice);
     if (initialImageUrl) setImageUrl(initialImageUrl);
     if (initialTourName) setTourName(initialTourName);
@@ -98,7 +105,11 @@ export default function ConfirmBooking() {
     setShowClientModal(false);
   };
 
-  const handleSavePersonalInfo = (personalInfo: { fullName: string; phone: string; email: string }) => {
+  const handleSavePersonalInfo = (personalInfo: {
+    fullName: string;
+    phone: string;
+    email: string;
+  }) => {
     setUserInfo({
       ...userInfo,
       fullName: personalInfo.fullName,
@@ -109,7 +120,6 @@ export default function ConfirmBooking() {
   };
 
   const handleApplyDiscount = (code: string) => {
-    // Logic to apply discount (e.g., update totalPrice)
     console.log("Applied discount code:", code);
     // Add your discount application logic here
   };
@@ -128,8 +138,41 @@ export default function ConfirmBooking() {
   );
 
   const handlePayment = () => {
+    // Kiểm tra validate chặt chẽ hơn
+    if (
+      !selectedDate ||
+      selectedDate === "Chưa chọn" ||
+      selectedDate === "Chọn ngày"
+    ) {
+      showToast({
+        type: "error",
+        message: "Vui lòng chọn ngày khởi hành trước khi thanh toán.",
+      });
+
+      return;
+    }
+    if (
+      !selectedGuests ||
+      selectedGuests === "Chưa chọn" ||
+      selectedGuests === "1 khách"
+    ) {
+      showToast({
+        type: "error",
+        message: "Vui lòng chọn số lượng khách trước khi thanh toán.",
+      });
+
+      return;
+    }
     if (!userInfo) {
       router.push("/(auths)/(Login)/login");
+      return;
+    }
+    if (!checkbox) {
+      showToast({
+        type: "error",
+        message:
+          "Vui lòng đồng ý với Điều khoản sử dụng và Chính sách hoàn hủy trước khi thanh toán.",
+      });
       return;
     }
     router.push({
@@ -142,6 +185,7 @@ export default function ConfirmBooking() {
         imageUrl: imageUrl || "",
         tourName,
         tourSubName,
+        userInfo: JSON.stringify(userInfo),
       },
     });
   };
@@ -204,7 +248,6 @@ export default function ConfirmBooking() {
               <Text style={styles.label}>Ngày:</Text>
               <Text style={styles.value}>{selectedDate || "Chưa chọn"}</Text>
             </View>
-
             <TouchableOpacity onPress={() => setShowScheduleModal(true)}>
               <Text style={styles.link}>Chỉnh sửa</Text>
             </TouchableOpacity>
@@ -214,7 +257,6 @@ export default function ConfirmBooking() {
               <Text style={styles.label}>Khách:</Text>
               <Text style={styles.value}>{selectedGuests || "Chưa chọn"}</Text>
             </View>
-
             <TouchableOpacity onPress={() => setShowClientModal(true)}>
               <Text style={styles.link}>Chỉnh sửa</Text>
             </TouchableOpacity>
@@ -267,7 +309,10 @@ export default function ConfirmBooking() {
           </View>
           <View style={styles.discountRow}>
             <Text style={styles.discountLabel}>Mã ưu đãi thanh toán</Text>
-            <TouchableOpacity style={styles.discountContainer}  onPress={() => setShowAddDiscountModal(true)}>
+            <TouchableOpacity
+              style={styles.discountContainer}
+              onPress={() => setShowAddDiscountModal(true)}
+            >
               <View style={styles.plusBox}>
                 <Text style={styles.plusText}>+</Text>
               </View>
@@ -331,11 +376,10 @@ export default function ConfirmBooking() {
 
           <View style={styles.checkboxContainer}>
             {renderCheckbox("", checkbox, () => setIsCheckbox(!checkbox))}
-
             <Text style={styles.checkboxText}>
               Bạn đồng ý rằng bạn đã đọc và hiểu{" "}
               <Text style={styles.Newlink}>Điều khoản sử dụng</Text> và{" "}
-              <Text style={styles.Newlink}>Chính sách hoàn huỷ</Text>
+              <Text style={styles.Newlink}>Chính sách hoàn hủy</Text>
             </Text>
           </View>
         </View>
@@ -349,7 +393,6 @@ export default function ConfirmBooking() {
                 đ {totalPrice.toLocaleString("vi-VN")}
               </Text>
             </View>
-
             <View style={styles.prepayRow}>
               <Text style={styles.label}>Thanh toán trước 30%:</Text>
               <Text style={styles.prepayAmount}>
@@ -374,7 +417,7 @@ export default function ConfirmBooking() {
         visible={showClientModal}
         onClose={() => setShowClientModal(false)}
         onSave={handleSaveClient}
-        tourPrices={tour.tourPrices || []} 
+        tourPrices={tour.tourPrices || []}
       />
       <EditPersonalInformation
         visible={showEditPersonalModal}
