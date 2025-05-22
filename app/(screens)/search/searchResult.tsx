@@ -58,6 +58,7 @@ const SearchResult = () => {
                     fromPrice: item.fromPrice || 0,
                     isFavorite: false,
                     provinceIds: provinceIds,
+                    tourExtraServices: [],
                 };
             });
 

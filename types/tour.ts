@@ -14,6 +14,7 @@ export type TourItem = {
   fromPrice: number;
   isFavorite: boolean;
   provinceIds: number[];
+  tourExtraServices: TourExtraService[];
 };
 
 export type PaginationInfo<T> = {
@@ -103,3 +104,4 @@ export type TourGroupType ={
   id: number;
   name: string;
 }
+

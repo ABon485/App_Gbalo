@@ -53,6 +53,8 @@ const TourListScreen = () => {
             vote: item.vote || 0,
             fromPrice: item.fromPrice || 0,
             isFavorite: false,
+            tourExtraServices: [],
+
           })
         );
 
