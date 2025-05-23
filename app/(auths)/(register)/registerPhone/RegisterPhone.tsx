@@ -22,11 +22,26 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/config/api";
 import { ApiResponse } from "@/types/api";
 import { RegistercodeByPhone } from "@/types/user";
+import { BackHandler } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function Register() {
   const router = useRouter();
-  const { showToast } = useToast();
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        router.replace("/profile"); 
+        return true; 
+      };
 
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
+
+  const { showToast } = useToast();
   const countryPhoneCodes = [
     { name: "Việt Nam", code: "+84" },
     { name: "Hoa Kỳ", code: "+1" },

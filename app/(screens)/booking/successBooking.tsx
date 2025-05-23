@@ -30,7 +30,7 @@ export default function SuccessBooking() {
 
       {/* Booking Title */}
       <View style={styles.titleRow}>
-        <Text style={styles.titleText}>Đặt Tour của bạn</Text>
+        <Text style={styles.titleText}>Thông tin Tour của bạn</Text>
         <View style={styles.iconRow}>
           <FontAwesome6 name="share-from-square" size={20} color="black" />
           <AntDesign
@@ -58,31 +58,35 @@ export default function SuccessBooking() {
         <View style={styles.tourInfo}>
           <Text style={styles.tourTitle}>{tourName}</Text>
           <Text style={styles.tourDesc}>{tourSubName}</Text>
-          <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
+          <Text style={styles.rating}>
+            <AntDesign name="star" size={16} color="#F24E1E" /> 4.95/5 (648)
+          </Text>
           <Text style={styles.price}>
-            Từ: {totalPrice.toLocaleString("vi-VN")}₫/Người
+            Từ
+            <Text style={styles.bold}>
+              {" "}
+              {totalPrice.toLocaleString("vi-VN")}₫/
+            </Text>
+            Người
           </Text>
         </View>
       </View>
 
       {/* Date and Guest Info */}
       <View style={styles.dateGuestContainer}>
-        <AntDesign
-          name="calendar"
-          size={16}
-          color="#000"
-          style={styles.calendarIcon}
-        />
-        <Text style={styles.dateText}>
-          {selectedDate || "Thứ 3, 01/04/2025"}
-        </Text>
+        <AntDesign name="calendar" size={16} color="#666" style={styles.icon} />
+        <View>
+          <Text style={styles.labelText}>Ngày khởi hành</Text>
+          <Text style={styles.valueText}>Từ {selectedDate || "..."}</Text>
+        </View>
       </View>
-      {/* Guest Info with Border */}
-      <View style={styles.guestTextContainer}>
-        <Feather name="users" size={16} color="black" />
-        <Text style={styles.guestText}>
-          {selectedGuests || "2 người lớn, trẻ em và 1 em bé"}
-        </Text>
+
+      <View style={styles.dateGuestContainer}>
+        <Feather name="users" size={16} color="#666" style={styles.icon} />
+        <View>
+          <Text style={styles.labelText}>Khách</Text>
+          <Text style={styles.valueText}>{selectedGuests || "..."}</Text>
+        </View>
       </View>
 
       {/* Tour Details */}
