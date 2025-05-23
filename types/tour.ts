@@ -1,4 +1,5 @@
 export type ProvinceType = {
+  type: string;
   id: string;
   name: string;
   image?: string;
@@ -14,6 +15,7 @@ export type TourItem = {
   fromPrice: number;
   isFavorite: boolean;
   provinceIds: number[];
+  tourExtraServices: TourExtraService[];
 };
 
 export type PaginationInfo<T> = {
@@ -33,6 +35,10 @@ export type TourExtraService = {
   id: number;
   name: string;
 };
+export type groupType ={
+  id:number
+  name:string 
+}
 
 export type searchTourType = {
   fromPrice: number;
@@ -99,3 +105,8 @@ export type guestType = {
     age: string;
   }>;
 };
+export type TourGroupType ={
+  id: number;
+  name: string;
+}
+

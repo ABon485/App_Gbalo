@@ -5,6 +5,7 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import tourApi from '@/services/tour';
 import { TourItem, ProvinceType } from '@/types/tour';
 import { Heart, SlidersHorizontal } from 'lucide-react-native';
+import SearchFilters from '@/components/home/Search-filters';
 
 const SearchResult = () => {
     const { searchQuery: initialSearchQuery, selectedProvinceId: initialProvinceId } = useLocalSearchParams();
@@ -20,10 +21,12 @@ const SearchResult = () => {
     const [searchTrigger, setSearchTrigger] = useState<number>(0);
     const [allProvinces, setAllProvinces] = useState<ProvinceType[]>([]);
     const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
+    const [isFilterModalVisible, setIsFilterModalVisible] = useState<boolean>(false);
 
     useEffect(() => {
         if (isFirstLoad) {
             fetchTours();
+            fetchProvinceSuggestions('');
             setIsFirstLoad(false);
         }
     }, [isFirstLoad]);
@@ -53,9 +56,10 @@ const SearchResult = () => {
                     slug: item.slug,
                     featuredImageUrl: item.featuredImageUrl || 'default_image_url',
                     vote: item.vote || 0,
-                    fromPrice: item.fromPrice || 0,
+                    fromPrice: item.fromPrice || item.price || 0,
                     isFavorite: false,
                     provinceIds: provinceIds,
+                    tourExtraServices: [],
                 };
             });
 
@@ -76,28 +80,44 @@ const SearchResult = () => {
 
     const fetchProvinceSuggestions = async (keyword: string) => {
         try {
-            if (!allProvinces.length) {
-                const provinces = await tourApi.getProvince();
-                console.log("Fetched provinces:", provinces.length);
-                setAllProvinces(provinces); 
+            let suggestionsData: ProvinceType[] = [];
+            if (!keyword.trim()) {
+                const provinces = await tourApi.getProvinceDestination('prov');
+                const destinations = await tourApi.getProvinceDestination('dest');
+                suggestionsData = [...provinces, ...destinations]
+                    .map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        type: item.type,
+                    }))
+                    .slice(0, 12);
+                console.log(`Fetched ${suggestionsData.length} initial suggestions (provinces + destinations)`);
+            } else {
+                if (!allProvinces.length) {
+                    const provinces = await tourApi.getProvince();
+                    console.log("Fetched provinces:", provinces.length);
+                    setAllProvinces(provinces);
+                }
+
+                const normalizeText = (text: string) =>
+                    text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+                suggestionsData = allProvinces
+                    .filter((province) =>
+                        normalizeText(province.name).includes(normalizeText(keyword))
+                    )
+                    .slice(0, 12);
+                console.log(`Found ${suggestionsData.length} province suggestions for "${keyword}"`);
             }
 
-            const normalizeText = (text: string) =>
-                text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-
-            const filteredProvinces = allProvinces.filter((province) =>
-                normalizeText(province.name).includes(normalizeText(keyword))
-            );
-
-            console.log(`Found ${filteredProvinces.length} province suggestions for "${keyword}"`);
-            setSuggestions(filteredProvinces);
+            setSuggestions(suggestionsData);
         } catch (error) {
-            console.error('Lỗi khi lấy danh sách tỉnh:', error);
+            console.error('Lỗi khi lấy danh sách gợi ý:', error);
             setSuggestions([]);
         }
     };
 
-    const searchTours = async (provinceId: string, keyword: string) => {
+    const searchTours = async (provinceId: string, keyword: string, filters: any = {}) => {
         try {
             setLoading(true);
             setError(null);
@@ -118,7 +138,7 @@ const SearchResult = () => {
             const normalizeText = (text: string) =>
                 text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const normalizedKeyword = normalizeText(keyword);
-            const filteredTours = toursToFilter.filter((tour) => {
+            let filteredTours = toursToFilter.filter((tour) => {
                 let matchProvince = false;
 
                 if (provinceId === 'all') {
@@ -130,7 +150,10 @@ const SearchResult = () => {
                     });
                 }
 
-                const matchKeyword = normalizeText(tour.name).includes(normalizedKeyword);
+                const normalizedTourName = normalizeText(tour.name);
+                const matchKeyword = filters.isDestination
+                    ? normalizedTourName === normalizedKeyword || normalizedTourName.includes(normalizedKeyword)
+                    : normalizedTourName.includes(normalizedKeyword);
 
                 if (matchProvince && matchKeyword) {
                     console.log(`Found matching tour: ${tour.name}`);
@@ -139,13 +162,22 @@ const SearchResult = () => {
                 return matchProvince && matchKeyword;
             });
 
+            if (filters.priceRange) {
+                filteredTours = filteredTours.filter(tour =>
+                    tour.fromPrice >= filters.priceRange.min && tour.fromPrice <= filters.priceRange.max
+                );
+            }
+
             console.log(`Found ${filteredTours.length} matching tours`);
 
             if (filteredTours.length === 0) {
                 console.log("No matches with province filter, trying keyword-only search");
-                const keywordOnlyTours = toursToFilter.filter(tour =>
-                    normalizeText(tour.name).includes(normalizedKeyword)
-                );
+                const keywordOnlyTours = toursToFilter.filter(tour => {
+                    const normalizedTourName = normalizeText(tour.name);
+                    return filters.isDestination
+                        ? normalizedTourName === normalizedKeyword || normalizedTourName.includes(normalizedKeyword)
+                        : normalizedTourName.includes(normalizedKeyword);
+                });
 
                 if (keywordOnlyTours.length > 0) {
                     console.log(`Found ${keywordOnlyTours.length} tours by keyword only`);
@@ -169,6 +201,9 @@ const SearchResult = () => {
     const handleSearch = () => {
         if (!searchQuery.trim()) {
             setError('Vui lòng nhập từ khóa tìm kiếm');
+            setTours([]);
+            setHasSearched(false);
+            fetchProvinceSuggestions('');
             return;
         }
         setHasSearched(true);
@@ -197,21 +232,86 @@ const SearchResult = () => {
         });
     };
 
-    const handleSuggestionPress = (province: ProvinceType) => {
-        console.log(`Selected province: ${province.name} (ID: ${province.id})`);
+    const handleSuggestionPress = (suggestion: ProvinceType) => {
+        console.log(`Selected suggestion: ${suggestion.name} (ID: ${suggestion.id}, Type: ${suggestion.type})`);
 
-        setSearchQuery(province.name);
-        setSelectedProvinceId(province.id.toString());
+        setSearchQuery(suggestion.name);
         setSuggestions([]);
         setHasSearched(true);
-        searchTours(province.id.toString(), province.name);
+
+        if (suggestion.type === 'dest') {
+            searchTours('all', suggestion.name, { isDestination: true });
+        } else {
+            setSelectedProvinceId(suggestion.id.toString());
+            searchTours(suggestion.id.toString(), suggestion.name, { isDestination: false });
+        }
     };
 
+   const handleApplyFilters = (tourResponse: any) => {
+    try {
+        setLoading(true);
+        setError(null);
+        setHasSearched(true);
+
+        console.log('Received tourResponse in handleApplyFilters:', JSON.stringify(tourResponse, null, 2));
+
+        const datas = tourResponse?.data?.datas ?? tourResponse?.datas;
+
+        if (!Array.isArray(datas)) {
+            throw new Error("Không tìm thấy danh sách tour trong dữ liệu phản hồi.");
+        }
+
+        const filteredTours: TourItem[] = datas.map((item: any) => {
+            let provinceIds = [];
+
+            if (Array.isArray(item.provinceIds)) {
+                provinceIds = item.provinceIds.map((id: any) => typeof id === 'string' ? parseInt(id, 10) : id);
+            } else if (item.provinceId !== undefined) {
+                const id = typeof item.provinceId === 'string' ? parseInt(item.provinceId, 10) : item.provinceId;
+                provinceIds = [id];
+            }
+
+            return {
+                id: item.id.toString(),
+                name: item.name,
+                slug: item.slug,
+                featuredImageUrl: item.featuredImageUrl || 'default_image_url',
+                vote: item.vote || 0,
+                fromPrice: item.fromPrice || item.price || 0,
+                isFavorite: false,
+                provinceIds: provinceIds,
+                tourExtraServices: [],
+            };
+        });
+
+        console.log('Mapped Filtered Tours:', filteredTours);
+
+        if (filteredTours.length === 0) {
+            setError('Không tìm thấy tour nào phù hợp với bộ lọc');
+            setTours([]);
+        } else {
+            setTours(filteredTours);
+        }
+
+    } catch (error) {
+        console.error('Error applying filters:', error);
+        setError('Không thể áp dụng bộ lọc');
+        setTours([]);
+    } finally {
+        setLoading(false);
+    }
+};
+
     useEffect(() => {
-        if (hasSearched && searchQuery.trim()) {
+        if (!searchQuery.trim()) {
+            setTours([]);
+            setHasSearched(false);
+            setError(null);
+            fetchProvinceSuggestions('');
+        } else if (hasSearched) {
             searchTours(selectedProvinceId, searchQuery);
         }
-    }, [searchTrigger]);
+    }, [searchTrigger, searchQuery]);
 
     const renderTourItem = ({ item }: { item: TourItem }) => (
         <TouchableOpacity style={styles.ContainerItem} onPress={() => handleTourPress(item)}>
@@ -243,6 +343,11 @@ const SearchResult = () => {
             <Text style={styles.title} numberOfLines={2}>
                 {item.name}
             </Text>
+            <Text style={styles.province}>
+                {item.provinceIds
+                    .map(id => allProvinces.find(p => p.id.toString() === id.toString())?.name || 'Unknown')
+                    .join(', ')}
+            </Text>
             <View style={styles.ratingContainer}>
                 <AntDesign
                     name="staro"
@@ -251,7 +356,9 @@ const SearchResult = () => {
                 />
                 <Text style={styles.reviews}>({item.vote})</Text>
             </View>
-            <Text style={styles.price}>Từ {item.fromPrice.toLocaleString()}đ/Người</Text>
+            <Text style={styles.price}>
+                Từ {(item.fromPrice || 0).toLocaleString()}đ/Người
+            </Text>
         </TouchableOpacity>
     );
 
@@ -260,8 +367,10 @@ const SearchResult = () => {
             style={styles.suggestionItem}
             onPress={() => handleSuggestionPress(item)}
         >
-            <FontAwesome6 name="location-dot" size={16} color="#f97316" style={styles.suggestionIcon} />
-            <Text style={styles.suggestionText}>{item.name}</Text>
+            <FontAwesome6 name="location-dot" size={16} color="gray" style={styles.suggestionIcon} />
+            <Text style={styles.suggestionText}>
+                {item.name} {item.type && item.type === 'dest'}
+            </Text>
         </TouchableOpacity>
     );
 
@@ -278,18 +387,12 @@ const SearchResult = () => {
                             <FontAwesome6 name="location-dot" size={20} color="#f97316" style={styles.searchIcon} />
                             <TextInput
                                 style={styles.searchInput}
-                                placeholder="Bạn muốn đi đâu ?"
+                                placeholder="Bạn muốn đi đâu?"
                                 placeholderTextColor="#888"
                                 value={searchQuery}
                                 onChangeText={(text) => {
                                     setSearchQuery(text);
-                                    if (text.trim()) {
-                                        fetchProvinceSuggestions(text);
-                                    } else {
-                                        setSuggestions([]);
-                                        setHasSearched(false);
-                                        setTours([]);
-                                    }
+                                    fetchProvinceSuggestions(text);
                                 }}
                                 onSubmitEditing={handleSearch}
                             />
@@ -298,7 +401,10 @@ const SearchResult = () => {
                             </TouchableOpacity>
                         </View>
                         {hasSearched && tours.length > 0 && (
-                            <TouchableOpacity style={styles.filterButtonIcon}>
+                            <TouchableOpacity
+                                style={styles.filterButtonIcon}
+                                onPress={() => setIsFilterModalVisible(true)}
+                            >
                                 <SlidersHorizontal size={20} color="#888" />
                             </TouchableOpacity>
                         )}
@@ -333,7 +439,7 @@ const SearchResult = () => {
                         </>
                     ) : (
                         <>
-                            {searchQuery.trim() && suggestions.length > 0 && (
+                            {suggestions.length > 0 && (
                                 <FlatList
                                     data={suggestions}
                                     renderItem={renderSuggestionItem}
@@ -341,14 +447,18 @@ const SearchResult = () => {
                                     style={styles.suggestionList}
                                 />
                             )}
-                            {(!searchQuery.trim() || (hasSearched && tours.length === 0)) && (
-                                <Text style={styles.infoText}>
-                                    {hasSearched ? 'Không tìm thấy tour nào.' : 'Vui lòng nhập từ khóa để tìm kiếm.'}
-                                </Text>
+                            {!hasSearched && suggestions.length === 0 && (
+                                <Text style={styles.infoText}>Nhập từ khóa để tìm kiếm tour</Text>
                             )}
                         </>
                     )}
                 </View>
+
+                <SearchFilters
+                    visible={isFilterModalVisible}
+                    onClose={() => setIsFilterModalVisible(false)}
+                    onApply={handleApplyFilters}
+                />
             </View>
         </>
     );
@@ -368,12 +478,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 20,
-
     },
     backButton: {
         marginRight: 10,
         marginTop: 20,
-
     },
     searchContainer: {
         flexDirection: 'row',
@@ -403,7 +511,7 @@ const styles = StyleSheet.create({
     filterButtonIcon: {
         marginLeft: 10,
         padding: 9,
-        marginTop: 20
+        marginTop: 20,
     },
     errorText: {
         fontSize: 12,
@@ -455,6 +563,12 @@ const styles = StyleSheet.create({
         color: '#333',
         fontFamily: 'Inter-Medium',
     },
+    province: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 3,
+        fontFamily: 'Inter-Medium',
+    },
     ratingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -491,7 +605,6 @@ const styles = StyleSheet.create({
     },
     suggestionList: {
         marginTop: 5,
-        maxHeight: 200,
     },
     suggestionItem: {
         flexDirection: 'row',
@@ -499,7 +612,6 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 15,
         backgroundColor: '#fff',
-        borderBottomWidth: 1,
         borderBottomColor: '#eee',
     },
     suggestionIcon: {
