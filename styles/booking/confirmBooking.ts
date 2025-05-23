@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   price: {
-    fontWeight: "bold",
+    // fontWeight: "bold",
     marginTop: 4,
     color: "#000",
   },
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#ddd",
     paddingTop: 8,
-    fontSize: 12,
+    fontSize: 14,
   },
   section: {
     marginBottom: 18,
@@ -128,6 +128,9 @@ const styles = StyleSheet.create({
   },
   contactText: {
     marginBottom: 10,
+  },
+  required: {
+    color: "red",
   },
   sectionSub: {
     fontSize: 12,
