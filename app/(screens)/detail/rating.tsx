@@ -25,7 +25,8 @@ const fakeReviews: Review[] = [
   {
     id: "1",
     userName: "Ji Chang Wook",
-    avatar: "https://example.com/avatar1.jpg",
+    avatar:
+      "https://media.istockphoto.com/id/1425103315/vi/anh/ng%C6%B0%E1%BB%9Di-ph%E1%BB%A5-n%E1%BB%AF-ch%C3%A2u-%C3%A1-m%E1%BA%B7c-v%C4%83n-h%C3%B3a-vi%E1%BB%87t-nam-truy%E1%BB%81n-th%E1%BB%91ng-t%E1%BA%A1i-tam-c%E1%BB%91c-vi%E1%BB%87t-nam.jpg?s=612x612&w=0&k=20&c=xZDKlDmMiYEv7r5z0KNgMYfEe19Ozr7s1JXc040TR0Y=",
     timeAgo: "1 tháng trước",
     rating: 5,
     content:
@@ -34,15 +35,17 @@ const fakeReviews: Review[] = [
   {
     id: "2",
     userName: "Ji Cha",
-    avatar: "https://example.com/avatar2.jpg",
+    avatar:
+      "https://d1hjkbq40fs2x4.cloudfront.net/2017-08-21/files/landscape-photography_1645.jpg",
     timeAgo: "1 tháng trước",
     rating: 4,
-    content: "Bà Nà Hills là một nơi tuyệt vời. Chuyến đi này rất đáng nhớ, khung cảnh từ cáp treo tuyệt đẹp...",
+    content:
+      "Bà Nà Hills là một nơi tuyệt vời. Chuyến đi này rất đáng nhớ, khung cảnh từ cáp treo tuyệt đẹp...",
   },
   {
     id: "3",
     userName: "Nguyen Van A",
-    avatar: "https://example.com/avatar3.jpg",
+    avatar: "https://nads.1cdn.vn/2024/06/28/W_than-thien-copyrs.jpg",
     timeAgo: "2 tháng trước",
     rating: 5,
     content:
@@ -52,10 +55,9 @@ const fakeReviews: Review[] = [
 
 // Component Rating
 export default function Rating() {
-  const [expandedReviews, setExpandedReviews] = useState<string[]>([]); // Quản lý trạng thái mở rộng của các đánh giá
+  const [expandedReviews, setExpandedReviews] = useState<string[]>([]);
   const { width } = Dimensions.get("window");
 
-  // Hàm xử lý mở rộng/thu gọn nội dung đánh giá
   const toggleExpand = (id: string) => {
     if (expandedReviews.includes(id)) {
       setExpandedReviews(expandedReviews.filter((reviewId) => reviewId !== id));
@@ -92,28 +94,30 @@ export default function Rating() {
     const isExpanded = expandedReviews.includes(item.id);
     const displayContent = isExpanded
       ? item.content
-      : truncateContent(item.content, 50); // Cắt ngắn nội dung nếu chưa mở rộng
+      : truncateContent(item.content, 100);
 
     return (
-      <View style={[styles.reviewItem, { width: width * 0.8 }]}>
+      <View style={[styles.reviewItem, { width: width * 0.85 }]}>
         <View style={styles.userInfo}>
-          <Image
-            source={{ uri: item.avatar }}
-            style={styles.avatar}
-            onError={() => console.log("Failed to load avatar:", item.avatar)}
-          />
+          <Image source={{ uri: item.avatar }} style={styles.avatar} />
           <View style={styles.userDetails}>
-            <Text style={styles.userName}>{item.userName}</Text>
-            <Text style={styles.timeAgo}>{item.timeAgo}</Text>
+            <View style={styles.nameAndTimeRow}>
+              <Text style={styles.userName}>{item.userName}</Text>
+              <Text style={styles.timeAgo}>{item.timeAgo}</Text>
+            </View>
+            <View style={styles.inlineStars}>{renderStars(item.rating)}</View>
           </View>
         </View>
-        <View style={styles.ratingContainer}>{renderStars(item.rating)}</View>
+
         <Text style={styles.reviewContent}>{displayContent}</Text>
-        {item.content.length > 50 && (
+        {!isExpanded && item.content.length > 100 && (
           <TouchableOpacity onPress={() => toggleExpand(item.id)}>
-            <Text style={styles.showMoreText}>
-              {isExpanded ? "Thu gọn" : "Xem thêm"}
-            </Text>
+            <Text style={styles.showMoreText}>Xem thêm</Text>
+          </TouchableOpacity>
+        )}
+        {isExpanded && (
+          <TouchableOpacity onPress={() => toggleExpand(item.id)}>
+            <Text style={styles.showMoreText}>Thu gọn</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -173,10 +177,40 @@ const styles = StyleSheet.create({
   },
   reviewItem: {
     backgroundColor: "#fff",
-    borderRadius: 15,
+    borderRadius: 12,
     padding: 15,
     marginRight: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
+  nameAndStars: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  userName: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#000",
+    marginRight: 6,
+  },
+  inlineStars: {
+    flexDirection: "row",
+  },
+  timeAgo: {
+    fontSize: 12,
+    color: "#8E8E93",
+    marginTop: 2,
+  },
+  showMoreText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    textDecorationLine: "underline",
+    color: "#000",
+  },
+
   userInfo: {
     flexDirection: "row",
     alignItems: "center",
@@ -186,20 +220,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#E5E5EA", // Placeholder nếu ảnh không load được
+    backgroundColor: "#E5E5EA",
     marginRight: 10,
   },
   userDetails: {
     flex: 1,
   },
-  userName: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  timeAgo: {
-    fontSize: 12,
-    color: "#8E8E93",
+  nameAndTimeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 2,
   },
   ratingContainer: {
     flexDirection: "row",
@@ -213,10 +244,6 @@ const styles = StyleSheet.create({
     color: "#333",
     lineHeight: 20,
     marginBottom: 5,
-  },
-  showMoreText: {
-    fontSize: 14,
-    textDecorationLine: "underline",
   },
   showAllButton: {
     borderWidth: 1,

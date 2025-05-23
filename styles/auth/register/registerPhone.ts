@@ -70,12 +70,12 @@ const styles = StyleSheet.create({
   },
   privacyText: {
     fontFamily: "Inter-Medium",
-    fontSize: 10,
+    fontSize: 12,
     color: "black",
     marginBottom: 16,
   },
   privacyLink: {
-    color: "#1e90ff",
+    color: "#000000",
     textDecorationLine: "underline",
   },
   divider: {
