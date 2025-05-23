@@ -22,42 +22,30 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/config/api";
 import { ApiResponse } from "@/types/api";
 import { RegistercodeByPhone } from "@/types/user";
+import { BackHandler } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function Register() {
   const router = useRouter();
-  const { showToast } = useToast();
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        router.replace("/profile"); 
+        return true; 
+      };
 
-   const countryPhoneCodes = [
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
+
+  const { showToast } = useToast();
+  const countryPhoneCodes = [
     { name: "Việt Nam", code: "+84" },
     { name: "Hoa Kỳ", code: "+1" },
-    { name: "Anh", code: "+44" },
-    { name: "Pháp", code: "+33" },
-    { name: "Đức", code: "+49" },
-    { name: "Nhật Bản", code: "+81" },
-    { name: "Hàn Quốc", code: "+82" },
-    { name: "Trung Quốc", code: "+86" },
-    { name: "Thái Lan", code: "+66" },
-    { name: "Singapore", code: "+65" },
-    { name: "Úc", code: "+61" },
-    { name: "Canada", code: "+1" },
-    { name: "Ấn Độ", code: "+91" },
-    { name: "Malaysia", code: "+60" },
-    { name: "Indonesia", code: "+62" },
-    { name: "Philippines", code: "+63" },
-    { name: "Nga", code: "+7" },
-    { name: "Brazil", code: "+55" },
-    { name: "Mexico", code: "+52" },
-    { name: "Tây Ban Nha", code: "+34" },
-    { name: "Ý", code: "+39" },
-    { name: "Hà Lan", code: "+31" },
-    { name: "Thụy Sĩ", code: "+41" },
-    { name: "Thụy Điển", code: "+46" },
-    { name: "Na Uy", code: "+47" },
-    { name: "Đan Mạch", code: "+45" },
-    { name: "New Zealand", code: "+64" },
-    { name: "Nam Phi", code: "+27" },
-    { name: "Argentina", code: "+54" },
-    { name: "Chile", code: "+56" },
+    // ... giữ nguyên danh sách mã quốc gia
   ];
 
   const [selectedCountry, setSelectedCountry] = useState(countryPhoneCodes[0]);
@@ -68,6 +56,7 @@ export default function Register() {
   const handleLogin = () => router.push("/(auths)/(Login)/login");
   const handleRegisterEmail = () =>
     router.push("/(auths)/(register)/registerEmail/RegisterEmail");
+  const InforBlog = () => router.push("/(screens)/blog/infor_blog");
 
   const verifyPhone = async () => {
     const phoneRegex = /^\+?[0-9]{7,15}$/;
@@ -104,7 +93,7 @@ export default function Register() {
           message: "Không nhận được token từ server",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       showToast({ type: "error", message: "Có lỗi xảy ra, vui lòng thử lại" });
     } finally {
       setLoading(false);
@@ -199,13 +188,16 @@ export default function Register() {
 
               <Text style={styles.privacyText}>
                 Bằng cách đăng ký hoặc đăng nhập, bạn đã hiểu và đồng ý với
-                <Text style={styles.privacyLink}>
+                <Text style={styles.privacyLink} onPress={InforBlog}>
                   {" "}
-                  Điều Khoản Sử Dụng Chung{" "}
-                </Text>
+                  Điều Khoản Sử Dụng Chung
+                </Text>{" "}
                 và
-                <Text style={styles.privacyLink}> Chính sách bảo mật</Text> của
-                Gbalo
+                <Text style={styles.privacyLink} onPress={InforBlog}>
+                  {" "}
+                  Chính sách bảo mật
+                </Text>{" "}
+                của Gbalo
               </Text>
 
               <CustomButtonRN

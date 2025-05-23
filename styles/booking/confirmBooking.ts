@@ -59,9 +59,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   price: {
-    fontWeight: "bold",
+    // fontWeight: "bold",
     marginTop: 4,
     color: "#000",
+  },
+  bold: {
+    fontWeight: "bold",
   },
   notice: {
     color: "#000",
@@ -69,7 +72,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#ddd",
     paddingTop: 8,
-    fontSize: 12,
+    fontSize: 14,
   },
   section: {
     marginBottom: 18,
@@ -85,13 +88,13 @@ const styles = StyleSheet.create({
   scheduleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start", 
+    alignItems: "flex-start",
     marginBottom: 12,
   },
 
   labelValueBlock: {
-    flex: 1, 
-    paddingRight: 10, 
+    flex: 1,
+    paddingRight: 10,
   },
 
   label: {
@@ -125,6 +128,9 @@ const styles = StyleSheet.create({
   },
   contactText: {
     marginBottom: 10,
+  },
+  required: {
+    color: "red",
   },
   sectionSub: {
     fontSize: 12,
@@ -292,7 +298,7 @@ const styles = StyleSheet.create({
 
   priceRow: {
     fontWeight: "500",
-    flexDirection: 'column',
+    flexDirection: "column",
   },
 
   totalAmount: {

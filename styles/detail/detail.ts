@@ -82,26 +82,25 @@ const styles = StyleSheet.create({
   },
   ratingContainer: {
     flexDirection: "row",
-    alignItems: "flex-start", // 👈 giúp icon không kéo text xuống
+    alignItems: "flex-start",
     marginBottom: 20,
   },
 
   icon: {
-    marginTop: 2, // 👈 optional, can tweak for better vertical alignment
+    marginTop: 2,
   },
 
   rating: {
     color: "#444",
     fontFamily: "Inter-Medium",
     marginLeft: 8,
-    flex: 1, // 👈 để text chiếm phần còn lại
-    flexWrap: "wrap", // 👈 cho phép xuống dòng
+    flex: 1,
+    flexWrap: "wrap",
   },
 
   tagsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginBottom: 10,
   },
 
   tag: {
@@ -123,10 +122,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: "bold",
     marginTop: 20,
-    marginBottom: 12,
     fontSize: 16,
     fontFamily: "Inter-Medium",
-    marginLeft: 10,
+  },
+  section1: {
+    marginLeft: 18,
+    fontWeight: "bold",
+    marginTop: 20,
+    fontSize: 16,
+    fontFamily: "Inter-Medium",
   },
   description: {
     color: "#333",

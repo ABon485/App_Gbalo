@@ -66,38 +66,35 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   price: {
-    fontWeight: "bold",
     marginTop: 4,
     color: "#000",
   },
+   bold: {
+    fontWeight: "bold",
+  },
   dateGuestContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginBottom: 8,
     padding: 8,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 10,
   },
-  calendarIcon: {
+  icon: {
     marginRight: 8,
+    marginTop: 2, 
   },
-  dateText: {
+
+  labelText: {
     fontSize: 14,
+    color: "#666",
   },
-  guestTextContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-  },
-  guestText: {
+
+  valueText: {
     fontSize: 14,
-    color: "#555",
-    marginLeft: 8,
+    color: "#000",
+    marginTop: 4,
   },
   section: {
     marginBottom: 18,
@@ -112,7 +109,7 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    // justifyContent: "space-between",
     marginBottom: 6,
   },
 
@@ -126,17 +123,20 @@ const styles = StyleSheet.create({
   detailValue: {
     color: "#333",
     fontSize: 14,
+    paddingLeft: 30,
   },
 
   detailPrice: {
     color: "#F35C2C",
     fontSize: 14,
+    paddingLeft: 30,
   },
 
   detailPriceBold: {
     color: "#F35C2C",
     fontSize: 14,
     fontWeight: "bold",
+    paddingLeft: 30,
   },
 
   exploreButton: {

@@ -23,6 +23,8 @@ import Order from "@/components/booking/order";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SimilarTour from "@/app/(screens)/detail/similarTour";
 import Rating from "./rating";
+import ImageSlider from 'react-native-image-slider';
+
 
 const formatPrice = (price: number): string =>
   price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
@@ -40,6 +42,8 @@ export default function Detail() {
   const [showExtraUserModal, setShowExtraUserModal] = useState(false);
   const tourId = params?.detailID;
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [imageList, setImageList] = useState<string[]>([]);
+
   const provinceIds = params?.provinceIds
     ? JSON.parse(params.provinceIds as string)
     : [];
@@ -62,13 +66,14 @@ export default function Detail() {
           );
           const data = await response.json();
           if (data.status === "Success" && data.data?.length > 0) {
-            setImageUrl(data.data[0]);
+            setImageList(data.data);
+            // setImageUrl(data.data[0]); // vẫn giữ cái này nếu bạn cần truyền ảnh đơn cho Order
           } else {
-            setImageUrl(null);
+            setImageList([]);
           }
         } catch (error) {
           console.error("Lỗi khi lấy ảnh:", error);
-          setImageUrl(null);
+          setImageList([]);
         }
       };
 
@@ -158,26 +163,28 @@ export default function Detail() {
           </View>
 
           {/* Image */}
-          <Image
-            source={
-              imageUrl
-                ? { uri: imageUrl }
-                : require("@/assets/images/home/Property1.png")
-            }
-            style={styles.image}
-            resizeMode="cover"
-          />
+          {imageList.length > 0 ? (
+            <ImageSlider
+              images={imageList}
+              autoPlayWithInterval={3000}
+              style={{ height: 250, width: "100%" }}
+            />
+          ) : (
+            <Image
+              source={require("@/assets/images/home/Property1.png")}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          )}
 
           {/* Content */}
           <View style={styles.content}>
             <Text style={styles.title}>{tour.name}</Text>
-            <Text style={styles.subTitle}>{tour.slug}</Text>
-            {/* <Text style={styles.subTitle}>{tour.subName}</Text> */}
 
             <View style={styles.ratingContainer}>
               <Ionicons name="star" size={16} color="#F24E1E" />
               <Text style={styles.rating}>
-                4.5+ Đánh giá • 34K khách đã đặt • Khởi hành tại Đà Nẵng
+                0 Đánh giá • 0 khách đã đặt • Khởi hành tại Đà Nẵng
               </Text>
             </View>
 
@@ -193,7 +200,7 @@ export default function Detail() {
             <Text style={styles.sectionTitle}>Giới thiệu về tour</Text>
             <RenderHtml
               contentWidth={width}
-              source={{ html: truncateHTML(tour.description, 150) }}
+              source={{ html: truncateHTML(tour.description, 550) }}
             />
             <TouchableOpacity
               style={styles.showMoreButton}
@@ -217,7 +224,7 @@ export default function Detail() {
             <Text style={styles.sectionTitle}>Lịch trình chi tiết</Text>
             <RenderHtml
               contentWidth={width}
-              source={{ html: truncateHTML(tour.schedule, 350) }}
+              source={{ html: truncateHTML(tour.schedule, 550) }}
             />
             <TouchableOpacity
               style={styles.showMoreButton}
@@ -236,7 +243,7 @@ export default function Detail() {
             <Text style={styles.sectionTitle}>Những yêu cầu đối với khách</Text>
             <RenderHtml
               contentWidth={width}
-              source={{ html: truncateHTML(tour.policies, 150) }}
+              source={{ html: truncateHTML(tour.policies, 550) }}
             />
             <ExtraUserModal
               visible={showExtraUserModal}
@@ -249,7 +256,7 @@ export default function Detail() {
           <Rating />
 
           {/* Các tour tương tự */}
-          <Text style={styles.sectionTitle}>Các tour tương tự</Text>
+          <Text style={styles.section1}>Các tour tương tự</Text>
           <SimilarTour provinceIds={provinceIds} tourId={Number(tourId) || 0} />
         </View>
       </ScrollView>
@@ -280,9 +287,9 @@ export default function Detail() {
             imageUrl={imageUrl}
             tourName={tour.name}
             tourSubName={tour.subName}
-            tourPrices={tour.tourPrices.map(tp => ({
+            tourPrices={tour.tourPrices.map((tp) => ({
               ...tp,
-              unitName: tp.unitName ?? null
+              unitName: tp.unitName ?? null,
             }))}
             onConfirm={() => setShowOrderModal(false)}
           />

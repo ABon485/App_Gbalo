@@ -226,18 +226,22 @@ export default function ConfirmBooking() {
           />
           <View style={styles.tourInfo}>
             <Text style={styles.tourTitle}>{tourName || tour.name}</Text>
-            <Text style={styles.tourDesc}>{tourSubName || tour.subName}</Text>
+            {/* <Text style={styles.tourDesc}>{tourSubName || tour.subName}</Text> */}
             <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
             <Text style={styles.price}>
-              Tổng giá: {totalPrice.toLocaleString("vi-VN")}₫
+              Từ
+              <Text style={styles.bold}>
+                {" "}
+                {totalPrice.toLocaleString("vi-VN")}₫/
+              </Text>Người
             </Text>
           </View>
         </View>
 
         {/* Cancellation Notice */}
         <Text style={styles.notice}>
-          Hủy miễn phí trước 8 tháng 4. Được hoàn tiền đầy đủ nếu bạn thay đổi
-          kế hoạch.
+          <Text style={styles.bold}>Hủy miễn phí</Text>
+          {" trước 8 tháng 4. Được hoàn tiền đầy đủ nếu bạn thay đổi kế hoạch."}
         </Text>
 
         {/* Schedule Section */}
@@ -275,13 +279,16 @@ export default function ConfirmBooking() {
             </TouchableOpacity>
           </View>
           <Text style={styles.contactText}>
-            Họ tên: {userInfo?.fullName || "Chưa cung cấp"}
+            Họ tên <Text style={styles.required}>*</Text>:{" "}
+            {userInfo?.fullName || "Chưa cung cấp"}
           </Text>
           <Text style={styles.contactText}>
-            Số điện thoại: {userInfo?.phone || "Chưa cung cấp"}
+            Số điện thoại <Text style={styles.required}>*</Text>:{" "}
+            {userInfo?.phone || "Chưa cung cấp"}
           </Text>
           <Text style={styles.contactText}>
-            Email: {userInfo?.email || "Chưa cung cấp"}
+            Email <Text style={styles.required}>*</Text>:{" "}
+            {userInfo?.email || "Chưa cung cấp"}
           </Text>
         </View>
 
@@ -329,7 +336,8 @@ export default function ConfirmBooking() {
         <View style={styles.paymentBox}>
           <Image
             source={{
-              uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTp1v7T287-ikP1m7dEUbs2n1SbbLEqkMd1ZA&s",
+              uri:
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTp1v7T287-ikP1m7dEUbs2n1SbbLEqkMd1ZA&s",
             }}
             style={styles.vnpayLogo}
           />
