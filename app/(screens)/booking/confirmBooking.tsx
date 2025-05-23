@@ -226,10 +226,10 @@ export default function ConfirmBooking() {
           />
           <View style={styles.tourInfo}>
             <Text style={styles.tourTitle}>{tourName || tour.name}</Text>
-            <Text style={styles.tourDesc}>{tourSubName || tour.subName}</Text>
+            {/* <Text style={styles.tourDesc}>{tourSubName || tour.subName}</Text> */}
             <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
             <Text style={styles.price}>
-              Tổng giá: {totalPrice.toLocaleString("vi-VN")}₫
+              Tổng giá:<Text style={styles.bold}> {totalPrice.toLocaleString("vi-VN")}₫</Text>
             </Text>
           </View>
         </View>

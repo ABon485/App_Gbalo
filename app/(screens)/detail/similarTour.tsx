@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,23 +8,23 @@ import {
   TouchableOpacity,
   Dimensions,
   SafeAreaView,
-} from 'react-native';
-import { Heart } from 'lucide-react-native';
-import { TourItem, TourListResponse } from '@/types/tour';
-import tourApi from '@/services/tour';
-import { AntDesign } from '@expo/vector-icons';
-import { router } from 'expo-router';
+} from "react-native";
+import { Heart } from "lucide-react-native";
+import { TourItem, TourListResponse } from "@/types/tour";
+import tourApi from "@/services/tour";
+import { AntDesign } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 interface SimilarTourProps {
-  provinceIds: number[]; 
-  tourId: number; 
+  provinceIds: number[];
+  tourId: number;
 }
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const itemWidth = (width - 30) / 2;
 
 const formatPrice = (price: number): string => {
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
 const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
@@ -34,7 +34,12 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
 
   // Log để kiểm tra provinceIds và tourId
   useEffect(() => {
-    console.log('SimilarTour nhận provinceIds:', provinceIds, 'tourId:', tourId);
+    console.log(
+      "SimilarTour nhận provinceIds:",
+      provinceIds,
+      "tourId:",
+      tourId
+    );
   }, [provinceIds, tourId]);
 
   // Hàm lấy và lọc tour
@@ -49,28 +54,34 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
 
       // Gọi API để lấy danh sách tour
       while (currentPage <= totalPages) {
-        const response: TourListResponse = await tourApi.ListTour(currentPage, 20);
-        const fetchedTours: TourItem[] = response.data.datas.map((item: any) => ({
-          id: item.id.toString(), 
-          name: item.name,
-          slug: item.slug,
-          featuredImageUrl: item.featuredImageUrl || 'https://via.placeholder.com/150',
-          provinceIds: Array.isArray(item.provinceIds)
-            ? item.provinceIds.map((id: string | number) => Number(id))
-            : item.provinceId
+        const response: TourListResponse = await tourApi.ListTour(
+          currentPage,
+          20
+        );
+        const fetchedTours: TourItem[] = response.data.datas.map(
+          (item: any) => ({
+            id: item.id.toString(),
+            name: item.name,
+            slug: item.slug,
+            featuredImageUrl:
+              item.featuredImageUrl || "https://via.placeholder.com/150",
+            provinceIds: Array.isArray(item.provinceIds)
+              ? item.provinceIds.map((id: string | number) => Number(id))
+              : item.provinceId
               ? [Number(item.provinceId)]
               : [],
-          vote: item.vote || 0,
-          fromPrice: item.fromPrice || 0,
-          isFavorite: false,
-        }));
+            vote: item.vote || 0,
+            fromPrice: item.fromPrice || 0,
+            isFavorite: false,
+          })
+        );
 
         allTours = [...allTours, ...fetchedTours];
         totalPages = response.data.totalPages || 1;
         currentPage += 1;
       }
 
-      console.log('Tổng số tour lấy được:', allTours.length);
+      console.log("Tổng số tour lấy được:", allTours.length);
 
       // Lọc tour
       let filteredTours: TourItem[] = [];
@@ -79,30 +90,35 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
           .filter((tour) => {
             const isCurrentTour = Number(tour.id) === Number(tourId);
             if (isCurrentTour) {
-              console.log(`Loại bỏ tour có id=${tour.id} vì trùng với tourId=${tourId}`);
+              console.log(
+                `Loại bỏ tour có id=${tour.id} vì trùng với tourId=${tourId}`
+              );
               return false;
             }
             return tour.provinceIds.some((id) => provinceIds.includes(id));
           })
-          .slice(0, 5); 
+          .slice(0, 5);
       } else {
-        console.warn('Không có provinceIds, lấy 5 tour phổ biến');
+        console.warn("Không có provinceIds, lấy 5 tour phổ biến");
         filteredTours = allTours
-          .filter((tour) => Number(tour.id) !== Number(tourId)) 
-          .sort((a, b) => b.vote - a.vote) 
-          .slice(0, 5); 
+          .filter((tour) => Number(tour.id) !== Number(tourId))
+          .sort((a, b) => b.vote - a.vote)
+          .slice(0, 5);
       }
 
-      console.log('Tour sau khi lọc:', filteredTours.map((tour) => tour.id));
+      console.log(
+        "Tour sau khi lọc:",
+        filteredTours.map((tour) => tour.id)
+      );
 
       if (filteredTours.length === 0) {
-        setError('Không tìm thấy tour tương tự nào');
+        setError("Không tìm thấy tour tương tự nào");
       } else {
         setTours(filteredTours);
       }
     } catch (err: any) {
-      console.error('Lỗi khi lấy tour tương tự:', err);
-      setError(err.message || 'Không tải được các tour tương tự');
+      console.error("Lỗi khi lấy tour tương tự:", err);
+      setError(err.message || "Không tải được các tour tương tự");
     } finally {
       setLoading(false);
     }
@@ -122,7 +138,7 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
 
   const handleCardPress = (id: string) => {
     router.push({
-      pathname: '/(screens)/detail/[detailID]',
+      pathname: "/(screens)/detail/[detailID]",
       params: {
         detailID: id,
         provinceIds: JSON.stringify(provinceIds.length > 0 ? provinceIds : []),
@@ -144,7 +160,10 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
             setTours((prevTours) =>
               prevTours.map((tour) =>
                 tour.id === item.id
-                  ? { ...tour, featuredImageUrl: 'https://via.placeholder.com/150' }
+                  ? {
+                      ...tour,
+                      featuredImageUrl: "https://via.placeholder.com/150",
+                    }
                   : tour
               )
             );
@@ -157,8 +176,8 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
           <Heart
             size={22}
             color="#fff"
-            fill={item.isFavorite ? '#FF3B30' : 'transparent'}
-            stroke={item.isFavorite ? '#FF3B30' : '#fff'}
+            fill={item.isFavorite ? "#FF3B30" : "transparent"}
+            stroke={item.isFavorite ? "#FF3B30" : "#fff"}
           />
         </TouchableOpacity>
       </View>
@@ -169,11 +188,13 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
         <AntDesign
           name="staro"
           size={15}
-          color={item.vote > 0 ? '#FF9500' : '#999999'}
+          color={item.vote > 0 ? "#FF9500" : "#999999"}
         />
         <Text style={styles.reviews}>({item.vote})</Text>
       </View>
-      <Text style={styles.price}>Từ {formatPrice(item.fromPrice)}đ/Người</Text>
+      <Text style={styles.price}>
+        Từ <Text style={styles.bold}>{formatPrice(item.fromPrice)}đ</Text>/Người
+      </Text>
     </TouchableOpacity>
   );
 
@@ -218,7 +239,7 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   listContainer: {
     paddingHorizontal: 10,
@@ -229,60 +250,64 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   imageContainer: {
-    position: 'relative',
-    width: '100%',
+    position: "relative",
+    width: "100%",
     height: 220,
     marginBottom: 5,
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 8,
   },
   favoriteButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     width: 32,
     height: 32,
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 12,
     marginBottom: 3,
-    color: '#333',
-    fontFamily: 'Inter-Medium',
+    color: "#333",
+    fontFamily: "Inter-Medium",
   },
   ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 3,
   },
   reviews: {
     fontSize: 10,
-    color: '#8E8E93',
-    fontFamily: 'Inter-Medium',
+    color: "#8E8E93",
+    fontFamily: "Inter-Medium",
   },
   price: {
     fontSize: 12,
-    color: '#333',
-    fontFamily: 'Inter-Medium',
+    color: "#333",
+    fontFamily: "Inter-Medium",
   },
+  bold: {
+    fontWeight: "bold",
+  },
+
   loadingText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 20,
-    color: '#333',
-    fontFamily: 'Inter-Medium',
+    color: "#333",
+    fontFamily: "Inter-Medium",
   },
   errorText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 20,
-    color: '#FF3B30',
-    fontFamily: 'Inter-Medium',
+    color: "#FF3B30",
+    fontFamily: "Inter-Medium",
   },
 });
 

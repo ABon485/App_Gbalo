@@ -63,6 +63,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: "#000",
   },
+  bold: {
+    fontWeight: "bold",
+  },
   notice: {
     color: "#000",
     marginBottom: 16,
@@ -85,13 +88,13 @@ const styles = StyleSheet.create({
   scheduleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start", 
+    alignItems: "flex-start",
     marginBottom: 12,
   },
 
   labelValueBlock: {
-    flex: 1, 
-    paddingRight: 10, 
+    flex: 1,
+    paddingRight: 10,
   },
 
   label: {
@@ -292,7 +295,7 @@ const styles = StyleSheet.create({
 
   priceRow: {
     fontWeight: "500",
-    flexDirection: 'column',
+    flexDirection: "column",
   },
 
   totalAmount: {
