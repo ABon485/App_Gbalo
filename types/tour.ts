@@ -1,4 +1,5 @@
 export type ProvinceType = {
+  type: string;
   id: string;
   name: string;
   image?: string;
@@ -34,6 +35,10 @@ export type TourExtraService = {
   id: number;
   name: string;
 };
+export type groupType ={
+  id:number
+  name:string 
+}
 
 export type searchTourType = {
   fromPrice: number;

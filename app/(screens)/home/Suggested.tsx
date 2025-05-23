@@ -38,7 +38,7 @@ const TourListScreen = () => {
     try {
       setLoading(true);
       let allTours: TourItem[] = [];
-      let currentPage = 1;
+      let currentPage = 10;
       let totalPages = 100;
 
       while (currentPage <= totalPages) {
@@ -161,7 +161,7 @@ const TourListScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <FlatList
-  data={showAll ? tours : tours.slice(0, 4)}
+  data={showAll ? tours : tours.slice(0,6)}
   renderItem={renderTourItem}
   keyExtractor={(item) => item.id}
   numColumns={2}

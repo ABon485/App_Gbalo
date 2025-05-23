@@ -3,17 +3,12 @@ import { View, Text, Modal, TouchableOpacity, ScrollView, StyleSheet } from 'rea
 import { AntDesign } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import tourApi from '@/services/tour'; // Adjust the import path as needed
-import { TourGroupType, ProvinceType } from '@/types/tour'; // Import types
+import { TourGroupType, ProvinceType, TourListResponse } from '@/types/tour'; // Import types
 
 interface SearchFiltersProps {
   visible: boolean;
   onClose: () => void;
-  onApply: (filters: {
-    price: number;
-    tourTypeIds: number[];
-    provinceIds: string[];
-    selectedPlaces: string[];
-  }) => void;
+  onApply: (tours: TourListResponse) => void; // Updated to pass tour results
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply }) => {
@@ -37,11 +32,10 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
         const [tourGroups, provinces, destinationData] = await Promise.all([
           tourApi.getTourGroups(),
           tourApi.getProvince(),
-          tourApi.getProvinceDestination('dest'), // Fetch only type: "dest"
+          tourApi.getProvinceDestination('dest'),
         ]);
         setTourTypes(tourGroups);
         setDestinations(provinces);
-        // Filter to ensure only type: "dest" is stored
         setDestinationPlaces(destinationData.filter(place => place.type === 'dest'));
       } catch (err) {
         setError('Không thể tải dữ liệu bộ lọc');
@@ -61,14 +55,32 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
     setList(list.includes(id) ? list.filter(i => i !== id) : [...list, id]);
   };
 
-  const handleApply = () => {
-    onApply({
-      price,
-      tourTypeIds: selectedTourTypes,
-      provinceIds: selectedDestinations,
-      selectedPlaces,
-    });
-    onClose();
+  const handleApply = async () => {
+    try {
+      setLoading(true);
+      const searchParams = {
+        fromPrice: 0,
+        toPrice: price > 0 ? price : 20000000, // Fallback to max price if 0
+        provinceIds: selectedDestinations.length > 0
+          ? selectedDestinations.map(id => parseInt(id, 10)).filter(id => !isNaN(id))
+          : [], // Allow all provinces if none selected
+        groupIds: selectedTourTypes.length > 0 ? selectedTourTypes : [], // Allow all tour types if none selected
+        durations: [],
+        guestQuantitys: [],
+        page: 1,
+        pageSize: 100,
+      };
+      console.log('Search Params in SearchFilters:', JSON.stringify(searchParams, null, 2));
+      const tourResponse = await tourApi.searchTour(searchParams);
+      console.log('API Response in SearchFilters:', JSON.stringify(tourResponse, null, 2));
+      onApply(tourResponse);
+      onClose();
+    } catch (err) {
+      setError('Không thể tìm kiếm tour');
+      console.error('Error searching tours:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleReset = () => {
@@ -251,6 +263,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
   );
 };
 
+// Styles remain unchanged
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,

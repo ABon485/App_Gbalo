@@ -60,12 +60,13 @@ const SearchTour = () => {
             fromPrice: item.fromPrice || 0,
             isFavorite: false,
             provinceIds,
+            tourExtraServices: [],
+
           };
         })
         .filter((tour: TourItem) =>
-          provinceId === 'all' ? true : tour.provinceIds.includes(parseInt(provinceId, 10))
+          provinceId === 'all' ? true : tour.provinceIds.includes(parseInt(provinceId, 100))
         );
-
       return fetchedTours;
     } catch (error) {
       console.error('Lỗi khi lấy danh sách tour:', error);
@@ -79,14 +80,12 @@ const SearchTour = () => {
   const handleProvinceClick = async (provinceId: string, provinceName: string) => {
     setSelectedProvinceId(provinceId);
 
-    // Tìm kiếm tour dựa trên provinceId
     const tours = await fetchToursByProvince(provinceId, provinceName);
 
-    // Chuyển hướng đến SearchResult với tham số cần thiết
     router.push({
       pathname: '/(screens)/search/searchResult',
       params: {
-        searchQuery: provinceName, // Truyền tên tỉnh làm từ khóa tìm kiếm
+        searchQuery: provinceName, 
         selectedProvinceId: provinceId,
       },
     });
