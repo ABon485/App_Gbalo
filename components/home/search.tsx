@@ -12,6 +12,10 @@ const SearchHeader = () => {
     router.push("/(screens)/notification/notification");
   };
 
+  const cart = () => {
+    router.push("/(screens)/cart/cart");
+  };
+
   return (
     <View style={styles.headerContainer}>
       <TouchableOpacity
@@ -33,12 +37,14 @@ const SearchHeader = () => {
 
       <View style={styles.iconsContainer}>
         <View style={styles.iconWrapper}>
-          <View style={styles.iconBackground}>
-            <Ionicons name="cart-outline" size={22} color="#999999" />
-          </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>2</Text>
-          </View>
+          <TouchableOpacity onPress={cart}>
+            <View style={styles.iconBackground}>
+              <Ionicons name="cart-outline" size={22} color="#999999" />
+            </View>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>2</Text>
+            </View>
+          </TouchableOpacity>
         </View>
         <View style={styles.iconWrapper}>
           <TouchableOpacity onPress={Notification}>
