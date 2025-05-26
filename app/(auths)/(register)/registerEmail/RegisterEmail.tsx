@@ -37,7 +37,7 @@ export default function RegisterEmail() {
       return;
     }
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailRegex = /^[a-zA-Z0 rz0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       showToast({ type: "error", message: "Email không hợp lệ" });
       return;
@@ -50,7 +50,11 @@ export default function RegisterEmail() {
         { email }
       );
       console.log("Full response:", response.data);
-      if (response.data?.status === "Success") {
+
+      if (response.data?.status === "Success" && response.data?.data?.token) {
+        // Lưu token vào AsyncStorage
+        await AsyncStorage.setItem("registerToken", response.data.data.token);
+        console.log("Saved token:", response.data.data.token);
         showToast({
           type: "success",
           message: "Mã xác minh đã được gửi đến email của bạn",
@@ -65,7 +69,18 @@ export default function RegisterEmail() {
           message: "Gửi mã xác minh thất bại. Vui lòng thử lại.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "response" in error && typeof (error as any).response === "object") {
+        console.error(
+          "SendResgiterCode error:",
+          (error as any).response?.data || (error as any).message
+        );
+      } else {
+        console.error(
+          "SendResgiterCode error:",
+          (error as any)?.message || error
+        );
+      }
       showToast({ type: "error", message: "Có lỗi xảy ra, vui lòng thử lại" });
     } finally {
       setLoading(false);

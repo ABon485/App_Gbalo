@@ -139,15 +139,22 @@ const ProfileUpdateScreen = () => {
   const handleEmailUpdated = (newEmail: string) => {
     if (profile) {
       setProfile({ ...profile, email: newEmail });
+      console.log("Updated profile:", { ...profile, email: newEmail });
     }
   };
 
   const handlePhoneUpdated = (newPhone: string) => {
-    if (profile) setProfile({ ...profile, phone: newPhone });
+    if (profile) {
+      setProfile({ ...profile, phone: newPhone });
+      console.log("Updated profile:", { ...profile, phone: newPhone });
+    }
   };
 
   const handleNameUpdated = (newName: string) => {
-    if (profile) setProfile({ ...profile, fullName: newName });
+    if (profile) {
+      setProfile({ ...profile, fullName: newName });
+      console.log("Updated profile:", { ...profile, fullName: newName });
+    }
   };
 
   if (loading) {
@@ -213,6 +220,7 @@ const ProfileUpdateScreen = () => {
           title="Họ và tên"
           content={profile.fullName || ""}
           onUpdateName={handleNameUpdated}
+          fetchProfile={fetchProfile}
         />
       </View>
 
@@ -236,6 +244,7 @@ const ProfileUpdateScreen = () => {
           title="Địa chỉ email"
           content={profile.email || ""}
           onUpdateEmail={handleEmailUpdated}
+          fetchProfile={fetchProfile}
         />
       </View>
 
@@ -259,6 +268,7 @@ const ProfileUpdateScreen = () => {
           title="Số điện thoại"
           content={profile.phone || ""}
           onUpdatePhone={handlePhoneUpdated}
+          fetchProfile={fetchProfile}
         />
       </View>
 

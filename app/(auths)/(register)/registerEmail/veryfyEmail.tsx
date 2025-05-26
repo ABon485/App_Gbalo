@@ -22,195 +22,189 @@ export default function VerifyEmail() {
   const { email } = useLocalSearchParams<{ email: string }>();
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
-  const inputRefs = useRef<TextInput[]>([]);
+  const [errorMessage, setErrorMessage] = useState("");
+  const inputRefs = useRef<(TextInput | null)[]>([]);
   const { showToast } = useToast();
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
 
-  const hideEmail = (email: string) => {
+  // Hide email for display
+  const hideEmail = (email: string = ""): string => {
     if (!email) return "";
     const [name, domain] = email.split("@");
-    if (name.length <= 2) {
-      // Nếu tên quá ngắn thì ẩn hết trừ 1 ký tự đầu
-      return name[0] + "***@" + domain;
-    }
-    // Giữ lại 2 ký tự đầu, ẩn phần còn lại
-    const visibleName = name.slice(0, 2);
-    const hiddenPart = "*".repeat(name.length - 2);
-    return `${visibleName}${hiddenPart}@${domain}`;
+    if (name.length <= 2) return `${name[0]}***@${domain}`;
+    return `${name.slice(0, 2)}${"*".repeat(name.length - 2)}@${domain}`;
   };
 
+  // Validate email on mount
   useEffect(() => {
-    if (!email) {
-      showToast({
-        type: "error",
-        message: "Email không hợp lệ",
-      });
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showToast({ type: "error", message: "Email không hợp lệ" });
       router.replace("/(auths)/(Login)/login");
     }
-  }, []);
+  }, [email, router, showToast]);
 
+  // Validate OTP input
   useEffect(() => {
     const isValidOtp =
       otp.join("").length === 6 && otp.every((digit) => /^\d$/.test(digit));
     setIsButtonDisabled(!isValidOtp);
-    if (errorMessage) setErrorMessage(""); // Reset lỗi khi người dùng sửa OTP
-  }, [otp]);
+    if (errorMessage && isValidOtp) setErrorMessage("");
+  }, [otp, errorMessage]);
 
+  // Handle OTP input changes
   const handleOtpChange = (text: string, index: number) => {
-    if (/^\d?$/.test(text)) {
-      const newOtp = [...otp];
-      newOtp[index] = text;
-      setOtp(newOtp);
+    if (!/^\d?$/.test(text)) return;
 
-      if (text && index < 5) {
-        inputRefs.current[index + 1]?.focus();
-      } else if (!text && index > 0) {
-        inputRefs.current[index - 1]?.focus();
-      }
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+
+    if (text && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    } else if (!text && index > 0) {
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
-  // const handleContinue = async () => {
-  //   const code = otp.join("");
-
-  //   if (code.length < 6) {
-  //     showToast({ type: "error", message: "Vui lòng nhập đầy đủ mã xác nhận" });
-  //     return;
-  //   }
-
-  //   try {
-  //     setLoading(true);
-
-  //     // Lấy token xác minh từ AsyncStorage
-  //     const token = await AsyncStorage.getItem("registerToken");
-
-  //     if (!token) {
-  //       showToast({
-  //         type: "error",
-  //         message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
-  //       });
-  //       return;
-  //     }
-
-  //     // Gửi mã OTP và token lên server để xác thực
-  //     const response: ApiResponse = await api.post(
-  //       "/Accounts/VerifyRegisterCode",
-  //       {
-  //         token,
-  //         code,
-  //       }
-  //     );
-
-  //     if (response.success) {
-  //       showToast({ type: "success", message: "Xác minh OTP thành công!" });
-  //       router.push({
-  //         pathname: "/(auths)/(register)/registerEmail/confirmEmail",
-  //         params: { email, code:"123456" },
-  //       });
-  //     } else {
-  //       showToast({ type: "error", message: "Mã xác nhận không đúng!" });
-  //     }
-  //   } catch (error: any) {
-  //     showToast({
-  //       type: "error",
-  //       message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
+  // Handle OTP verification
   const handleContinue = async () => {
     const code = otp.join("");
+    console.log("OTP entered:", otp, "Code:", code);
 
-    if (code.length < 6) {
+    if (code.length !== 6) {
+      setErrorMessage("Vui lòng nhập đầy đủ mã xác nhận");
       showToast({ type: "error", message: "Vui lòng nhập đầy đủ mã xác nhận" });
       return;
     }
 
-    if (code !== "123456") {
-      setErrorMessage("Mã xác nhận không đúng. Vui lòng nhập mã 123456.");
+    const token = await AsyncStorage.getItem("registerToken");
+    console.log("Token from AsyncStorage:", token);
+    if (!token) {
+      setErrorMessage("Không tìm thấy token xác minh");
       showToast({
         type: "error",
-        message: "Mã xác nhận không đúng. Vui lòng nhập mã 123456.",
+        message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
       });
       return;
     }
 
-    const token = await AsyncStorage.getItem("registerToken");
-    console.log("Token retrieved:", token);
+    console.log("OTP code before check:", code);
+    if (code !== "123456") {
+      setErrorMessage(
+        "Mã xác nhận không đúng. Vui lòng nhập 123456 (cho testing)."
+      );
+      showToast({
+        type: "error",
+        message: "Mã xác nhận không đúng. Vui lòng nhập 123456 (cho testing).",
+      });
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log("Sending API request with:", { token, code });
+      const response = await api.post<ApiResponse>(
+        "/Accounts/VerifyResgiterCode",
+        { token, code },
+        { headers: { "Content-Type": "application/json-patch+json" } } // Xóa Authorization
+      );
+      console.log("API response:", response.data);
 
-      if (!token) {
+      if (response.data?.status === "Success") {
+        showToast({ type: "success", message: "Xác minh OTP thành công!" });
+        router.push({
+          pathname: "/(auths)/(register)/registerEmail/confirmEmail",
+          params: { email, code },
+        });
+      } else {
+        setErrorMessage(response.data?.message || "Mã xác nhận không đúng!");
         showToast({
           type: "error",
-          message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
+          message: response.data?.message || "Mã xác nhận không đúng!",
         });
-        return;
       }
-
-      console.log("Navigating to ConfirmEmail with:", { email, code });
-
-      showToast({ type: "success", message: "Xác minh OTP thành công!" });
-      router.push({
-        pathname: "/(auths)/(register)/registerEmail/confirmEmail",
-        params: { email, code },
-      });
-    } catch (error: any) {
-      console.error("Error in handleContinue:", error);
-      showToast({
-        type: "error",
-        message: "Có lỗi xảy ra, vui lòng thử lại",
-      });
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "response" in error) {
+        // @ts-ignore
+        console.error("API error:", error.response?.data || error.message);
+      } else {
+        console.error("API error:", error);
+      }
+      let errorMsg = "Có lỗi xảy ra khi xác minh OTP";
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        // @ts-ignore
+        error.response?.data?.message
+      ) {
+        // @ts-ignore
+        errorMsg = error.response.data.message;
+      }
+      setErrorMessage(errorMsg);
+      showToast({ type: "error", message: errorMsg });
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle OTP resend
   const handleResend = async () => {
     try {
-      // Lấy token từ AsyncStorage
+      setLoading(true);
       const token = await AsyncStorage.getItem("registerToken");
+      console.log("Current token before resend:", token);
 
-      if (!token) {
-        showToast({ type: "error", message: "Không tìm thấy token xác minh" });
-        return;
-      }
-
-      const response: ApiResponse = await api.post(
-        "/Accounts/VerifyResgiterCode",
-        {
-          code: otp.join(""),
-          token,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await api.post<ApiResponse>(
+        "/Accounts/SendResgiterCode",
+        { email },
+        { headers: { "Content-Type": "application/json-patch+json" } } // Xóa Authorization nếu không cần
       );
+      console.log("SendResgiterCode response:", response.data);
 
-      if (response.success) {
-        showToast({
-          type: "success",
-          message: "Đã gửi lại mã OTP!",
-        });
-        setOtp(Array(6).fill("")); // Reset OTP fields
-        inputRefs.current[0]?.focus(); // Focus vào trường đầu tiên
+      if (response.data?.status === "Success" && response.data?.data?.token) {
+        // Lưu token mới vào AsyncStorage
+        await AsyncStorage.setItem("registerToken", response.data.data.token);
+        console.log("Saved new token:", response.data.data.token);
+        showToast({ type: "success", message: "Đã gửi lại mã OTP!" });
+        setOtp(Array(6).fill(""));
+        setErrorMessage("");
+        inputRefs.current[0]?.focus();
       } else {
+        setErrorMessage(response.data?.message || "Gửi lại OTP thất bại");
         showToast({
           type: "error",
-          message: response.message || "Gửi lại OTP thất bại",
+          message: response.data?.message || "Gửi lại OTP thất bại",
         });
       }
-    } catch (error: any) {
-      showToast({
-        type: "error",
-        message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
-      });
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        // @ts-ignore
+        error.response?.data
+      ) {
+        // @ts-ignore
+        console.error("Resend OTP error:", error.response?.data || error.message);
+      } else {
+        console.error("Resend OTP error:", error);
+      }
+      let errorMsg = "Có lỗi xảy ra khi gửi lại OTP";
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        // @ts-ignore
+        error.response?.data?.message
+      ) {
+        // @ts-ignore
+        errorMsg = error.response.data.message;
+      }
+      setErrorMessage(errorMsg);
+      showToast({ type: "error", message: errorMsg });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -223,6 +217,7 @@ export default function VerifyEmail() {
         <View style={styles.logoContainer}>
           <Image
             source={require("../../../../assets/images/imagLogo.png")}
+            style={styles.logo}
             resizeMode="contain"
           />
         </View>
@@ -238,65 +233,47 @@ export default function VerifyEmail() {
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={(ref) => {
-                  if (ref) inputRefs.current[index] = ref;
-                }}
+                ref={(ref) => (inputRefs.current[index] = ref)}
                 keyboardType="numeric"
                 maxLength={1}
                 value={digit}
                 onChangeText={(text) => handleOtpChange(text, index)}
-                style={[
-                  styles.otpInput,
-                  errorMessage
-                    ? { borderColor: "#FF4D4F", borderWidth: 1 }
-                    : {},
-                ]}
+                style={[styles.otpInput, errorMessage && styles.otpInputError]}
                 textContentType="oneTimeCode"
                 autoFocus={index === 0}
               />
             ))}
           </View>
-          {errorMessage ? (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 10,
-                paddingHorizontal: 4,
-              }}
-            >
+
+          {errorMessage && (
+            <View style={styles.errorContainer}>
               <AntDesign name="exclamationcircleo" size={16} color="#FF4D4F" />
-              <Text
-                style={{
-                  color: "#FF4D4F",
-                  fontSize: 10,
-                  marginLeft: 6,
-                  flexShrink: 1,
-                }}
-              >
-                {errorMessage}
-              </Text>
+              <Text>{errorMessage}</Text>
             </View>
-          ) : null}
+          )}
 
           <CustomButtonRN
-            title="Tiếp tục"
+            title={loading ? "Đang xử lý..." : "Tiếp tục"}
             onPress={handleContinue}
             disabled={isButtonDisabled || loading}
             backgroundColor={
-              isButtonDisabled
+              isButtonDisabled || loading
                 ? styles.disabledButton.backgroundColor
                 : styles.activeButton.backgroundColor
             }
             textColor={
-              isButtonDisabled
+              isButtonDisabled || loading
                 ? styles.disabledButton.color
                 : styles.activeButton.color
             }
           />
 
-          <TouchableOpacity style={styles.resendButton} onPress={handleResend}>
-            <Text style={styles.resendText}>Gửi lại</Text>
+          <TouchableOpacity
+            style={[styles.resendButton, loading && styles.disabledButton]}
+            onPress={handleResend}
+            disabled={loading}
+          >
+            <Text style={styles.resendText}>Gửi lại OTP</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
