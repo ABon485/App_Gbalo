@@ -8,28 +8,33 @@ import {
   ScrollView,
   ImageBackground,
 } from "react-native";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 import styles from "@/styles/auth/register/confirmEmail";
 import { router, useLocalSearchParams } from "expo-router";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
 import CustomButtonRN from "@/components/common/customButtonRN";
 import api from "@/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ApiResponse } from "@/types/api";
 import { RegisterTypeEmail } from "@/types/user";
 import { useToast } from "@/context/ToastContext";
+import { AntDesign } from "@expo/vector-icons";
 
 export default function ConfirmEmail() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [fullName, setUserName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // Thêm để hiển thị lỗi
   const [loading, setLoading] = useState(false);
-  const { email: emailFromParams, code: otpCodeFromParams } =
-    useLocalSearchParams<{ email: string; code: string }>();
+  const { email: emailFromParams, code } = useLocalSearchParams<{
+    email: string;
+    code: string;
+  }>();
   const { showToast } = useToast();
 
+  // Cập nhật email từ params
   useEffect(() => {
     if (emailFromParams) {
       setEmail(emailFromParams);
@@ -41,27 +46,26 @@ export default function ConfirmEmail() {
   };
 
   const handleRegister = async () => {
-    // Log dữ liệu đầu vào
-    console.log("Input data:", {
-      fullName,
-      email,
-      password,
-      confirmPassword,
-      otpCode: otpCodeFromParams,
-    });
-
     // Kiểm tra trường bắt buộc
-    if (!fullName || !password || !confirmPassword) {
+    if (!fullName || !email || !password || !confirmPassword || !code) {
+      setErrorMessage("Vui lòng nhập đầy đủ thông tin");
       showToast({
         type: "error",
         message: "Vui lòng nhập đầy đủ thông tin",
       });
-      console.log("Validation failed: Missing required fields");
+      console.log("Validation failed: Missing required fields", {
+        fullName,
+        email,
+        password,
+        confirmPassword,
+        code,
+      });
       return;
     }
 
     // Kiểm tra mật khẩu khớp
     if (password !== confirmPassword) {
+      setErrorMessage("Mật khẩu xác nhận không khớp");
       showToast({
         type: "error",
         message: "Mật khẩu xác nhận không khớp",
@@ -70,14 +74,11 @@ export default function ConfirmEmail() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      // Lấy token thật
+      setLoading(true);
       const token = await AsyncStorage.getItem("registerToken");
-      console.log("Token retrieved:", token);
-
       if (!token) {
+        setErrorMessage("Không tìm thấy token xác minh");
         showToast({
           type: "error",
           message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
@@ -86,104 +87,55 @@ export default function ConfirmEmail() {
         return;
       }
 
-      // Giả lập đăng ký thành công trong giai đoạn hardcode
-      const IS_HARDCODE_MODE = true;
+      // Gửi request API
+      const formData: RegisterTypeEmail = {
+        token,
+        fullName,
+        password,
+        confirmPassword,
+        code, // Đồng bộ với VerifyEmail
+      };
+      console.log("Sending API request with formData:", formData);
 
-      if (IS_HARDCODE_MODE) {
-        const token = await AsyncStorage.getItem("registerToken");
-        console.log("Token retrieved:", token);
+      const response = await api.post<ApiResponse>(
+        "/Accounts/ResgiterByCode", // Sửa lỗi chính tả
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } } // Đồng bộ với VerifyEmail
+      );
 
+      if (response.data?.status === "Success" && response.data?.data?.token) {
+        await AsyncStorage.setItem("token", response.data.data.token);
         await AsyncStorage.setItem(
           "data",
-          JSON.stringify({
-            token,
-            email,
-            fullName,
-            // Thêm các trường khác nếu cần
-          })
+          JSON.stringify({ token: response.data.data.token, email, fullName })
         );
-
-        console.log("Fake registration successful:", {
+        await AsyncStorage.removeItem("registerToken");
+        showToast({ type: "success", message: "Đăng ký thành công!" });
+        console.log("Registration successful:", {
           email,
           fullName,
-          authToken: token,
+          authToken: response.data.data.token,
         });
-
-        showToast({
-          type: "success",
-          message: "Đăng ký thành công (hardcode)!",
-        });
-
-        console.log("Navigating to /assistant");
         router.replace("/(tabs)/assistant");
       } else {
-        // Code gọi API thật để sử dụng sau này
-        const formData: RegisterTypeEmail = {
-          token,
-          fullName,
-          password,
-          confirmPassword,
-          // Loại bỏ confirmPassword và code nếu server không yêu cầu
-        };
-        console.log("Sending API request with formData:", formData);
-
-        const response: ApiResponse = await api.post(
-          "/Accounts/ResgiterByCode", // Sửa chính tả
-          formData,
-          { headers: { Authorization: `Bearer ${token}` } } // Thêm header nếu cần
+        setErrorMessage(response.data?.message || "Đăng ký thất bại");
+        showToast({
+          type: "error",
+          message: response.data?.message || "Đăng ký thất bại",
+        });
+        console.log(
+          "API error:",
+          response.data?.message || "Registration failed"
         );
-        console.log("API response:", response);
-        console.log("API response data:", response.data);
-
-        if (response.success) {
-          const authToken = response.data?.data?.token;
-
-          if (!authToken) {
-            showToast({
-              type: "error",
-              message: "Không lấy được token từ server.",
-            });
-            console.log("Error: No authToken in API response");
-            return;
-          }
-
-          await AsyncStorage.setItem("token", authToken);
-          await AsyncStorage.setItem(
-            "data",
-            JSON.stringify({ token: authToken, email, fullName })
-          );
-          await AsyncStorage.removeItem("registerToken"); // Xóa token tạm
-
-          console.log("Registration successful:", {
-            email,
-            fullName,
-            authToken,
-          });
-
-          showToast({
-            type: "success",
-            message: "Đăng ký thành công!",
-          });
-
-          console.log("Navigating to /assistant");
-          router.replace("/(tabs)/assistant");
-        } else {
-          showToast({
-            type: "error",
-            message: response.message || "Đăng ký thất bại",
-          });
-          console.log("API error:", response.message || "Registration failed");
-        }
       }
-    } catch (error: any) {
-      console.error("Error in handleRegister:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      showToast({
-        type: "error",
-        message:
-          error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại",
-      });
+    } catch (error) {
+      const err = error as any;
+      const errorMessage =
+        err?.response?.data?.message || "Có lỗi xảy ra khi đăng ký";
+      setErrorMessage(errorMessage);
+      showToast({ type: "error", message: errorMessage });
+      // console.error("Error in handleRegister:", error, {  });
+      console.error("Error response:", err?.response?.data);
     } finally {
       setLoading(false);
     }
@@ -198,12 +150,21 @@ export default function ConfirmEmail() {
         <View style={styles.logoContainer}>
           <Image
             source={require("../../../../assets/images/imagLogo.png")}
+            style={styles.logo}
             resizeMode="contain"
           />
         </View>
 
         <View style={styles.formContainer}>
           <Text style={styles.title}>Hoàn tất đăng ký</Text>
+
+          {/* Hiển thị lỗi nếu có */}
+          {errorMessage && (
+            <View style={styles.errorContainer}>
+              <AntDesign name="exclamationcircleo" size={16} color="#FF4D4F" />
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          )}
 
           {/* Họ và tên */}
           <Text style={styles.label}>
@@ -213,7 +174,7 @@ export default function ConfirmEmail() {
             style={styles.input}
             placeholder="Nhập tên của bạn"
             value={fullName}
-            onChangeText={(text) => setUserName(text)}
+            onChangeText={(text) => setFullName(text)}
           />
 
           {/* Email */}
@@ -225,8 +186,7 @@ export default function ConfirmEmail() {
             placeholder="Email của bạn"
             keyboardType="email-address"
             value={email}
-            editable={false} // Khóa input email
-            onChangeText={(text) => setEmail(text)}
+            editable={false}
           />
 
           {/* Mật khẩu */}
@@ -281,7 +241,7 @@ export default function ConfirmEmail() {
           <CustomButtonRN
             title={loading ? "Đang đăng ký..." : "Tiếp tục"}
             onPress={handleRegister}
-            // disabled={loading}
+            disabled={loading}
           />
 
           {/* Chính sách */}

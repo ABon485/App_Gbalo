@@ -22,6 +22,8 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#000",
+    marginBottom: 12,
+    lineHeight: 20,
   },
 
   modalCloseIcon: {

@@ -16,6 +16,10 @@ const styles = StyleSheet.create({
     marginBottom: "auto",
     marginTop: 90,
   },
+   logo: {
+    width: 120,
+    height: 120,
+  },
   formContainer: {
     backgroundColor: "white",
     borderTopLeftRadius: 30,
@@ -60,6 +64,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     borderRadius: 8,
+  },
+   otpInputError: {
+    borderColor: "#FF4D4F",
+    borderWidth: 1,
+  },
+    errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: "#FFF1F0",
+    borderRadius: 6,
+    padding: 8,
   },
   disabledButton: {
     backgroundColor: "#cccccc", 

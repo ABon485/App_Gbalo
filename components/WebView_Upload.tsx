@@ -75,7 +75,6 @@ const FileUploadWebView: React.FC<FileUploadWebViewProps> = ({
             onClose();
             return;
           }
-          // Xử lý thông điệp đóng (nếu có)
           if (
             data.action === "close" ||
             data === null ||
@@ -85,26 +84,29 @@ const FileUploadWebView: React.FC<FileUploadWebViewProps> = ({
             onClose();
             return;
           }
-          // Xử lý URL file
+          let fileUrl = "";
           if (typeof data === "string" && data.trim()) {
-            console.log("Nhận URL string:", data);
-            onFileSelected(data);
-            onClose();
+            fileUrl = data;
+            console.log("Nhận URL string:", fileUrl);
           } else if (data && data.Path && data.Path.trim()) {
-            console.log("Nhận object có Path:", data.Path);
-            onFileSelected(data.Path);
-            onClose();
+            fileUrl = data.Path;
+            console.log("Nhận object có Path:", fileUrl);
           } else {
             console.warn("Dữ liệu không hợp lệ:", data);
             onClose();
+            return;
+          }
+          // Kiểm tra URL hợp lệ
+          if (fileUrl.startsWith("http")) {
+            console.log("URL hợp lệ, gọi onFileSelected:", fileUrl);
+            onFileSelected(fileUrl);
+            onClose();
+          } else {
+            console.error("URL avatar không hợp lệ:", fileUrl);
+            onClose();
           }
         } catch (err) {
-          if (err instanceof Error) {
-            console.error("Lỗi phân tích dữ liệu WebView:", err.message);
-          } else {
-            console.error("Lỗi phân tích dữ liệu WebView:", err);
-          }
-          // Nếu dữ liệu không phải JSON, kiểm tra nếu là chuỗi URL hợp lệ
+          console.error("Lỗi phân tích dữ liệu WebView:", err);
           const rawData = event.nativeEvent.data;
           if (
             typeof rawData === "string" &&
@@ -132,7 +134,7 @@ const FileUploadWebView: React.FC<FileUploadWebViewProps> = ({
 const styles = StyleSheet.create({
   webview: {
     flex: 1,
-    backgroundColor: "#f5f5f5", // Tránh màn hình trắng
+    backgroundColor: "#f5f5f5",
   },
 });
 

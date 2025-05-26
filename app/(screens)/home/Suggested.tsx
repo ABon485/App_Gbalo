@@ -54,7 +54,6 @@ const TourListScreen = () => {
             fromPrice: item.fromPrice || 0,
             isFavorite: false,
             tourExtraServices: [],
-
           })
         );
 
@@ -64,8 +63,12 @@ const TourListScreen = () => {
       }
 
       setTours(allTours);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch tours");
+    } catch (err) {
+      setError(
+        typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message?: string }).message)
+          : "Failed to fetch tours"
+      );
     } finally {
       setLoading(false);
     }
@@ -132,7 +135,15 @@ const TourListScreen = () => {
         />
         <Text style={styles.reviews}>{item.vote}</Text>
       </View>
-      <Text style={styles.price}>Từ {formatPrice(item.fromPrice)}đ/Người</Text>
+      <View>
+        <Text style={styles.price}>
+          Từ{" "}
+          <Text style={styles.priceHighlight}>
+            {formatPrice(item.fromPrice)}/đ
+          </Text>
+          người
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -161,24 +172,23 @@ const TourListScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <FlatList
-  data={showAll ? tours : tours.slice(0,6)}
-  renderItem={renderTourItem}
-  keyExtractor={(item) => item.id}
-  numColumns={2}
-  contentContainerStyle={styles.listContainer}
-  columnWrapperStyle={styles.columnWrapper} // ✅ Thêm dòng này
-  ListFooterComponent={
-    !showAll && tours.length > 6 ? (
-      <TouchableOpacity
-        style={styles.loadMoreButton}
-        onPress={() => setShowAll(true)}
-      >
-        <Text style={styles.loadMoreText}>Xem thêm</Text>
-      </TouchableOpacity>
-    ) : null
-  }
-/>
-
+        data={showAll ? tours : tours.slice(0, 6)}
+        renderItem={renderTourItem}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.listContainer}
+        columnWrapperStyle={styles.columnWrapper} // ✅ Thêm dòng này
+        ListFooterComponent={
+          !showAll && tours.length > 6 ? (
+            <TouchableOpacity
+              style={styles.loadMoreButton}
+              onPress={() => setShowAll(true)}
+            >
+              <Text style={styles.loadMoreText}>Xem thêm</Text>
+            </TouchableOpacity>
+          ) : null
+        }
+      />
     </SafeAreaView>
   );
 };
@@ -190,11 +200,11 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 10,
-      paddingHorizontal: 10,
+    paddingHorizontal: 10,
   },
   columnWrapper: {
     paddingLeft: 10,
-},
+  },
 
   itemContainer: {
     width: itemWidth,
@@ -241,6 +251,10 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 12,
     color: "#333",
+    fontFamily: "Inter-Medium",
+  },
+  priceHighlight: {
+    fontWeight: "bold",
     fontFamily: "Inter-Medium",
   },
   loadingText: {

@@ -119,12 +119,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontFamily: "Inter-Medium",
   },
+
   sectionTitle: {
+    borderTopWidth: 1,
+    borderTopColor: "#ccc",
+    paddingTop: 16,
     fontWeight: "bold",
     marginTop: 20,
     fontSize: 16,
     fontFamily: "Inter-Medium",
   },
+
   section1: {
     marginLeft: 18,
     fontWeight: "bold",
@@ -195,7 +200,7 @@ const styles = StyleSheet.create({
   },
   showMoreButton: {
     flexDirection: "row",
-    paddingVertical: 8,
+    paddingVertical: 4,
   },
   showMoreText: {
     fontSize: 14,
