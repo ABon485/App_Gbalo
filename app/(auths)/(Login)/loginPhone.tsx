@@ -97,21 +97,17 @@ const LoginScreen = () => {
     try {
       const sendCodePayload: SendCodeLogin = {
         sendType: "phone",
-        phone: fullPhoneNumber,
+        phone: phoneNumber,
         email: "",
       };
-
       const response = await authApi.loginSendCode(sendCodePayload);
-
       if (response.data?.success || response.data?.status === "Success") {
         const publicKey = response.data.data?.publicKey || "";
         await AsyncStorage.setItem("loginToken", publicKey);
-
         showToast({
           type: "success",
           message: "Mã xác nhận đã được gửi. Trong môi trường phát triển, sử dụng mã OTP: 123456",
         });
-
         router.push({
           pathname: "/(auths)/(Login)/verify-phone",
           params: { phoneNumber: fullPhoneNumber },
