@@ -18,7 +18,7 @@ type Props = {
   content: string;
   title: string;
   onUpdateEmail: (newEmail: string) => void;
-  fetchProfile: () => Promise<void>; // Thêm prop fetchProfile
+  fetchProfile: () => Promise<void>;
 };
 
 const EmailModal = ({
@@ -39,35 +39,54 @@ const EmailModal = ({
   };
 
   const updateProfile = async () => {
-  try {
-    setIsSaving(true);
-    if (!isValidEmail(email)) {
-      showToast({ message: "Vui lòng nhập email hợp lệ", type: "error" });
+    try {
+      setIsSaving(true);
+      if (!isValidEmail(email)) {
+        showToast({ message: "Vui lòng nhập email hợp lệ", type: "error" });
+        return false;
+      }
+
+      const response = await api.post("/Accounts/ChangeEmail", {
+        email: email,
+      });
+      console.log("Cập nhật email thành công:", response.data.data);
+      onUpdateEmail(email);
+      await fetchProfile();
+
+      // Cập nhật AsyncStorage
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        parsedData.email = email;
+        await AsyncStorage.setItem("data", JSON.stringify(parsedData));
+      }
+
+      showToast({ message: "Cập nhật email thành công", type: "success" });
+      return true;
+    } catch (error) {
+      if ((error as any).response?.status === 401) {
+        showToast({
+          message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
+          type: "error",
+        });
+      } else if ((error as any).response?.status === 400) {
+        showToast({
+          message:
+            (error as any).response?.data?.message ||
+            "Email không hợp lệ hoặc đã tồn tại.",
+          type: "error",
+        });
+      } else {
+        showToast({
+          message: "Cập nhật email thất bại. Vui lòng thử lại.",
+          type: "error",
+        });
+      }
       return false;
+    } finally {
+      setIsSaving(false);
     }
-
-    const response = await api.post("/Accounts/ChangeEmail", {
-      email: email,
-    });
-    onUpdateEmail(email);
-    await fetchProfile();
-
-    // Cập nhật AsyncStorage
-    const data = await AsyncStorage.getItem("data");
-    if (data) {
-      const parsedData = JSON.parse(data);
-      parsedData.email = email;
-      await AsyncStorage.setItem("data", JSON.stringify(parsedData));
-    }
-
-    showToast({ message: "Cập nhật email thành công", type: "success" });
-    return true;
-  } catch (error) {
-    // ... xử lý lỗi
-  } finally {
-    setIsSaving(false);
-  }
-};
+  };
 
   const onSave = async () => {
     const success = await updateProfile();

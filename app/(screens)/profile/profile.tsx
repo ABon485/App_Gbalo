@@ -38,7 +38,37 @@ const ProfileUpdateScreen = () => {
 
   const fetchProfile = async () => {
     try {
-      // Ưu tiên lấy từ query params nếu có
+      if (!params.id) {
+        const dataFromStorage = await AsyncStorage.getItem("data");
+        if (dataFromStorage) {
+          const parsedData = JSON.parse(dataFromStorage);
+          const token = parsedData?.token;
+          if (!token) throw new Error("Token không tồn tại");
+
+          const response = await api.get("/Accounts/Profile", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const profileData = response.data.data;
+
+          const updatedProfileData = {
+            ...profileData,
+            fullName:
+              profileData.fullName ||
+              parsedData.fullName ||
+              profile?.fullName ||
+              "",
+            avatar: profileData.avatar || parsedData.avatar || "",
+          };
+
+          const updatedStorage = { ...parsedData, ...updatedProfileData };
+          await AsyncStorage.setItem("data", JSON.stringify(updatedStorage));
+
+          setProfile(updatedProfileData);
+          setLoading(false);
+          return;
+        }
+      }
+
       if (params.id) {
         setProfile({
           id: params.id as string,
@@ -61,41 +91,6 @@ const ProfileUpdateScreen = () => {
         return;
       }
 
-      // Nếu không có params, lấy từ AsyncStorage
-      const data = await AsyncStorage.getItem("data");
-      if (data) {
-        const parsedData = JSON.parse(data);
-        setProfile({
-          id: parsedData.id || "",
-          fullName: parsedData.fullName || "",
-          email: parsedData.email || "",
-          phone: parsedData.phone || "",
-          avatar: parsedData.avatar || "",
-          address: parsedData.address || "",
-          userName: parsedData.userName || "",
-          createDate: parsedData.createDate || "",
-          roles: parsedData.roles || [],
-          permissions: parsedData.permissions || [],
-          language: parsedData.language || "",
-          nationality: parsedData.nationality || "",
-          dateOfBirth: parsedData.dateOfBirth
-            ? new Date(parsedData.dateOfBirth)
-            : new Date(),
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Nếu không có trong AsyncStorage, gọi API (nếu muốn)
-      const dataFromStorage = await AsyncStorage.getItem("data");
-      const parsedData = dataFromStorage ? JSON.parse(dataFromStorage) : null;
-      const token = parsedData?.token;
-      if (!token) throw new Error("Token không tồn tại");
-      const response = await api.get("/Accounts/Profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProfile(response.data.data);
-
       throw new Error("Không tìm thấy dữ liệu người dùng");
     } catch (error) {
       console.error("Lỗi khi lấy thông tin:", error);
@@ -117,9 +112,18 @@ const ProfileUpdateScreen = () => {
 
       const response = await api.post(
         "/Accounts/ChangeProfile",
-        { avatar: fileUrl },
+        {
+          avatar: fileUrl,
+          fullName: parsedData.fullName || profile?.fullName || "",
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log("API /Accounts/ChangeProfile response:", response.data);
+
+      parsedData.avatar = fileUrl;
+      parsedData.fullName = parsedData.fullName || profile?.fullName || "";
+      await AsyncStorage.setItem("data", JSON.stringify(parsedData));
+      console.log("AsyncStorage updated with avatar and fullName:", parsedData);
 
       await fetchProfile();
       showToast({
@@ -139,7 +143,10 @@ const ProfileUpdateScreen = () => {
   const handleEmailUpdated = (newEmail: string) => {
     if (profile) {
       setProfile({ ...profile, email: newEmail });
-      console.log("Updated profile:", { ...profile, email: newEmail });
+      console.log("Updated profile with email:", {
+        ...profile,
+        email: newEmail,
+      });
     }
   };
 

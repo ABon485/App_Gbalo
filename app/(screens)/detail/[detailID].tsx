@@ -23,11 +23,14 @@ import Order from "@/components/booking/order";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SimilarTour from "@/app/(screens)/detail/similarTour";
 import Rating from "./rating";
-import ImageSlider from 'react-native-image-slider';
-
+import ImageSlider from "react-native-image-slider";
+import ImageViewing from "react-native-image-viewing";
+import { FlatList } from "react-native";
+import { useMemo } from "react";
+import FastImage from "react-native-fast-image";
 
 const formatPrice = (price: number): string =>
-  price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VNĐ";
+  price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " vnđ";
 
 export default function Detail() {
   const { width } = useWindowDimensions();
@@ -43,6 +46,12 @@ export default function Detail() {
   const tourId = params?.detailID;
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [imageList, setImageList] = useState<string[]>([]);
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const formattedImages = useMemo(
+    () => imageList.map((img) => ({ uri: img })),
+    [imageList]
+  );
 
   const provinceIds = params?.provinceIds
     ? JSON.parse(params.provinceIds as string)
@@ -67,7 +76,7 @@ export default function Detail() {
           const data = await response.json();
           if (data.status === "Success" && data.data?.length > 0) {
             setImageList(data.data);
-            // setImageUrl(data.data[0]); // vẫn giữ cái này nếu bạn cần truyền ảnh đơn cho Order
+            setImageUrl(data.data[0]);
           } else {
             setImageList([]);
           }
@@ -93,15 +102,18 @@ export default function Detail() {
     }, [tourId])
   );
 
-  const truncateHTML = (html: string | null, maxLength: number): string => {
-    if (!html) return "<p></p>";
-    const plainText = html.replace(/<[^>]*>/g, "");
-    const shortText =
-      plainText.length > maxLength
-        ? plainText.substring(0, maxLength).trim() + "..."
-        : plainText;
-    return `<p>${shortText}</p>`;
-  };
+  function cleanAndTruncateSchedule(
+    html: string | null | undefined,
+    maxBlocks = 2
+  ) {
+    if (!html || typeof html !== "string") {
+      return ""; // Return an empty string or fallback content if html is null/undefined
+    }
+    const blocks = html.match(/<p[\s\S]*?<\/p>/gi);
+    const cleanedHtml = html.replace(/<p>\s*<\/p>/gi, "");
+    if (!blocks || blocks.length <= maxBlocks) return cleanedHtml;
+    return blocks.slice(0, maxBlocks).join("");
+  }
 
   const toggleFavorite = () => setIsFavorite(!isFavorite);
 
@@ -163,11 +175,60 @@ export default function Detail() {
           </View>
 
           {/* Image */}
-          {imageList.length > 0 ? (
-            <ImageSlider
-              images={imageList}
-              autoPlayWithInterval={3000}
-              style={{ height: 250, width: "100%" }}
+          {imageList.length > 0 && width > 0 ? (
+            <FlatList
+              data={imageList}
+              keyExtractor={(item, index) => index.toString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              initialNumToRender={1}
+              maxToRenderPerBatch={1}
+              windowSize={2}
+              removeClippedSubviews={true}
+              getItemLayout={(data, index) => ({
+                length: width,
+                offset: width * index,
+                index,
+              })}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.floor(
+                  event.nativeEvent.contentOffset.x / width
+                );
+                setSelectedImageIndex(index);
+              }}
+              renderItem={({ item, index }) => (
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    setSelectedImageIndex(index);
+                    setIsImageViewerVisible(true);
+                  }}
+                >
+                  <View>
+                    <Image
+                      source={{ uri: item }}
+                      style={{ width, height: 250 }}
+                      resizeMode="cover"
+                    />
+                    <View
+                      style={{
+                        position: "absolute",
+                        bottom: 10,
+                        right: 20,
+                        backgroundColor: "rgba(0, 0, 0, 0.99)",
+                        borderRadius: 5,
+                        paddingHorizontal: 15,
+                        paddingVertical: 4,
+                      }}
+                    >
+                      <Text style={{ color: "#fff", fontSize: 12 }}>
+                        {index + 1}/{imageList.length}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              )}
             />
           ) : (
             <Image
@@ -176,6 +237,40 @@ export default function Detail() {
               resizeMode="cover"
             />
           )}
+          <ImageViewing
+            images={formattedImages}
+            imageIndex={selectedImageIndex}
+            visible={isImageViewerVisible}
+            onRequestClose={() => setIsImageViewerVisible(false)}
+            presentationStyle="fullScreen"
+            onImageIndexChange={(index) => setSelectedImageIndex(index)}
+            HeaderComponent={() => (
+              <View
+                style={{
+                  position: "absolute",
+                  top: 40,
+                  left: 20,
+                  right: 20,
+                  zIndex: 10,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => setIsImageViewerVisible(false)}
+                >
+                  <Ionicons name="arrow-back" size={26} color="#fff" />
+                </TouchableOpacity>
+
+                <Text style={{ color: "#fff", fontSize: 16 }}>
+                  {selectedImageIndex + 1}/{formattedImages.length}
+                </Text>
+
+                <View style={{ width: 26 }} />
+              </View>
+            )}
+          />
 
           {/* Content */}
           <View style={styles.content}>
@@ -200,8 +295,15 @@ export default function Detail() {
             <Text style={styles.sectionTitle}>Giới thiệu về tour</Text>
             <RenderHtml
               contentWidth={width}
-              source={{ html: truncateHTML(tour.description, 550) }}
+              source={{ html: cleanAndTruncateSchedule(tour.description, 2) }}
+              tagsStyles={{
+                p: {
+                  marginBottom: 12,
+                  lineHeight: 20,
+                },
+              }}
             />
+
             <TouchableOpacity
               style={styles.showMoreButton}
               onPress={() => setShowIntroModal(true)}
@@ -222,10 +324,22 @@ export default function Detail() {
             />
 
             <Text style={styles.sectionTitle}>Lịch trình chi tiết</Text>
+
             <RenderHtml
               contentWidth={width}
-              source={{ html: truncateHTML(tour.schedule, 550) }}
+              source={{ html: cleanAndTruncateSchedule(tour.schedule, 2) }}
+              tagsStyles={{
+                p: {
+                  // marginTop: 0,
+                  marginBottom: 10,
+                  lineHeight: 20,
+                },
+              }}
+              baseStyle={{
+                marginTop: 0,
+              }}
             />
+
             <TouchableOpacity
               style={styles.showMoreButton}
               onPress={() => setShowScheduleModal(true)}
@@ -243,7 +357,7 @@ export default function Detail() {
             <Text style={styles.sectionTitle}>Những yêu cầu đối với khách</Text>
             <RenderHtml
               contentWidth={width}
-              source={{ html: truncateHTML(tour.policies, 550) }}
+              source={{ html: cleanAndTruncateSchedule(tour.policies, 2) }}
             />
             <ExtraUserModal
               visible={showExtraUserModal}
@@ -256,7 +370,7 @@ export default function Detail() {
           <Rating />
 
           {/* Các tour tương tự */}
-          <Text style={styles.section1}>Các tour tương tự</Text>
+          <Text style={styles.section1}>Tour tương tự</Text>
           <SimilarTour provinceIds={provinceIds} tourId={Number(tourId) || 0} />
         </View>
       </ScrollView>

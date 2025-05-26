@@ -30,6 +30,7 @@ import { ProfileResponse } from "@/types/user";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import DeleteAccountModal from "@/components/profile/deleteAcount";
 import ConfirmLogoutModal from "@/components/profile/confirmlogout";
+import styles from "@/styles/profile/profile";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -134,13 +135,13 @@ export default function ProfileScreen() {
                 console.warn("No user data in API response");
                 throw new Error("No user data in API response");
               }
-            } catch (error: any) {
+            } catch (error) {
               attempt++;
               console.error("API Error (Attempt", attempt, "):", {
-                message: error.message,
-                code: error.code,
-                response: error.response?.data,
-                status: error.response?.status,
+                message: (error as any)?.message,
+                code: (error as any)?.code,
+                response: (error as any)?.response?.data,
+                status: (error as any)?.response?.status,
               });
 
               if (attempt === maxRetries) {
@@ -175,16 +176,20 @@ export default function ProfileScreen() {
                   userData
                 );
               } else {
-                await new Promise((resolve) => setTimeout(resolve, 1000)); // Đợi 1 giây trước khi thử lại
+                await new Promise((resolve) => setTimeout(resolve, 1000)); 
               }
             }
           }
         }
-      } catch (error: any) {
-        console.error("Error in fetchProfile:", {
-          message: error.message,
-          stack: error.stack,
-        });
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("Error in fetchProfile:", {
+            message: error.message,
+            stack: error.stack,
+          });
+        } else {
+          console.error("Error in fetchProfile:", error);
+        }
         showToast({
           type: "error",
           heading: "Lỗi",
@@ -218,7 +223,7 @@ export default function ProfileScreen() {
         message: "Đăng xuất thành công!",
       });
       router.replace("/(auths)/(Login)/login");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error in handleLogout:", error);
       showToast({
         type: "error",
@@ -299,31 +304,44 @@ export default function ProfileScreen() {
                 />
                 <View style={styles.userDetails}>
                   <Text style={styles.userName}>{user.fullName}</Text>
-                  <Text style={styles.userEmail}>{user.email}</Text>
                   <TouchableOpacity
                     onPress={handleUpdateProfile}
                     style={styles.updateProfileButton}
                   >
-                    <Text style={styles.updateProfileText}>
-                      Cập nhật thông tin cá nhân
-                    </Text>
-                    <AntDesign
-                      name="right"
-                      size={14}
-                      color="#007BFF"
-                      style={{ marginLeft: 10 }}
-                    />
+                    <View style={styles.updateProfileButtonContent}>
+                      <Text style={styles.updateProfileText}>
+                        Cập nhật thông tin cá nhân
+                      </Text>
+                      <AntDesign
+                        name="right"
+                        size={16}
+                        color="#007BFF"
+                        style={{ marginLeft: 14, marginTop: 2 }}
+                      />
+                    </View>
                   </TouchableOpacity>
                 </View>
               </View>
 
               <View style={styles.pointsInfo}>
                 <Text style={styles.pointsText}>
-                  Bạn đang là thành viên bạc{"\n"}Cần 120 điểm nữa để đạt hạng
-                  Vàng
+                  <Text style={{ color: "black", fontWeight: "bold" }}>
+                    Bạn đang là thành viên bạc{"\n"}
+                  </Text>
+                  <Text>
+                    Cần{" "}
+                    <Text style={{ color: "red", fontWeight: "bold" }}>
+                      120
+                    </Text>{" "}
+                    điểm nữa để đạt hạng Vàng
+                  </Text>
                 </Text>
+
                 <View style={styles.iconWrapper}>
-                  <FontAwesome6 name="medal" size={24} color="gray" />
+                  <Image
+                    source={require("@/assets/images/home/level.png")}
+                    resizeMode="contain"
+                  />
                 </View>
               </View>
             </View>
@@ -422,175 +440,3 @@ export default function ProfileScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  profileContainer: {
-    backgroundColor: "white",
-    borderRadius: 30,
-    marginHorizontal: 16,
-    padding: 20,
-    marginTop: 35,
-  },
-  profileHeader: {
-    fontSize: 24,
-    color: "#000",
-    marginBottom: 5,
-    fontFamily: "Inter-Medium",
-  },
-  userInfo: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  userAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginRight: 16,
-  },
-  userDetails: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-    fontFamily: "Inter-Medium",
-  },
-  userEmail: {
-    fontSize: 14,
-    color: "#757575",
-    fontFamily: "Inter",
-    marginTop: 4,
-  },
-  updateProfileButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#E4EFE7",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  updateProfileText: {
-    fontSize: 14,
-    color: "#007BFF",
-    fontFamily: "Inter",
-  },
-  pointsInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  pointsText: {
-    color: "#757575",
-    fontSize: 12,
-    flex: 1,
-    lineHeight: 18,
-    fontFamily: "Inter-Medium",
-  },
-  iconWrapper: {
-    marginLeft: 10,
-  },
-  loginInfo: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  defaultAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#e0e0e0",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  loginButtons: {
-    flexDirection: "row",
-    flex: 1,
-    justifyContent: "flex-end",
-    marginTop: 18,
-  },
-  loginButton: {
-    backgroundColor: "#FF5722",
-    paddingVertical: 5,
-    paddingHorizontal: 16,
-    borderRadius: 50,
-    marginRight: 3,
-    height: 30,
-    width: 100,
-  },
-  registerButton: {
-    backgroundColor: "white",
-    paddingVertical: 5,
-    paddingHorizontal: 20,
-    borderRadius: 50,
-    borderColor: "#FF5722",
-    borderWidth: 1,
-    height: 30,
-    width: 100,
-  },
-  loginButtonText: {
-    color: "white",
-    fontSize: 13,
-    fontFamily: "Inter-Medium",
-  },
-  registerButtonText: {
-    color: "#FF5722",
-    fontSize: 13,
-    fontFamily: "Inter-Medium",
-  },
-  menuContainer: {
-    backgroundColor: "white",
-    borderRadius: 30,
-    marginHorizontal: 16,
-    marginTop: 16,
-    overflow: "hidden",
-  },
-  menuItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-  },
-  menuItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  menuItemContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  menuItemText: {
-    marginLeft: 12,
-    fontSize: 14,
-    color: "#333",
-    fontFamily: "Inter-Medium",
-  },
-  logoutButton: {
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  logoutButtonText: {
-    fontSize: 14,
-    fontFamily: "Inter-Medium",
-    textDecorationLine: "underline",
-  },
-  DeleteButton: {
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-    textAlign: "center",
-    justifyContent: "center",
-  },
-  DeleteAcount: {
-    color: "#FF5722",
-    fontSize: 14,
-    fontFamily: "Inter",
-    textDecorationLine: "underline",
-  },
-});
