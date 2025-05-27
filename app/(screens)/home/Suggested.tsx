@@ -17,6 +17,7 @@ import { TourItem, TourListResponse } from "@/types/tour";
 import tourApi from "@/services/tour";
 import { AntDesign } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Get screen width to calculate item width
 const { width } = Dimensions.get("window");
@@ -37,12 +38,33 @@ const TourListScreen = () => {
   const fetchTours = async () => {
     try {
       setLoading(true);
+
+      // Lấy userId từ AsyncStorage
+      const user = await AsyncStorage.getItem("user");
+      let userId: string | null = null;
+      if (user) {
+        userId = JSON.parse(user).id;
+      }
+
+      // Lấy danh sách tour yêu thích của người dùng
+      let favoriteTourIds: string[] = [];
+      if (userId) {
+        const favoriteRes = await tourApi.getFavorite(Number(userId));
+        favoriteTourIds = favoriteRes.data.datas.map((tour: any) =>
+          String(tour.id)
+        );
+      }
+
+      // Lấy danh sách tour
       let allTours: TourItem[] = [];
-      let currentPage = 10;
-      let totalPages = 100;
+      let currentPage = 1; // Sửa lại từ 10 để lấy từ trang đầu tiên
+      let totalPages = 1;
 
       while (currentPage <= totalPages) {
-        const response: TourListResponse = await tourApi.ListTour();
+        const response: TourListResponse = await tourApi.ListTour(
+          currentPage,
+          20
+        );
         const fetchedTours: TourItem[] = response.data.datas.map(
           (item: any) => ({
             id: item.id.toString(),
@@ -52,7 +74,7 @@ const TourListScreen = () => {
             provinceIds: item.provinceIds,
             vote: item.vote || 0,
             fromPrice: item.fromPrice || 0,
-            isFavorite: false,
+            isFavorite: favoriteTourIds.includes(String(item.id)), 
             tourExtraServices: [],
           })
         );
@@ -78,12 +100,39 @@ const TourListScreen = () => {
     fetchTours();
   }, []);
 
-  const toggleFavorite = (id: string) => {
-    setTours(
-      tours.map((tour) =>
-        tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour
-      )
-    );
+  const toggleFavorite = async (id: string) => {
+    try {
+      const user = await AsyncStorage.getItem("user");
+      console.log("User data:", user);
+      if (!user) return;
+      const userId = JSON.parse(user).id;
+
+      // Kiểm tra trạng thái yêu thích hiện tại
+      const isCurrentlyFavorite = tours.find((tour) => tour.id === id)
+        ?.isFavorite;
+
+      // Cập nhật UI trước
+      setTours((prev) =>
+        prev.map((tour) =>
+          tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour
+        )
+      );
+
+      // Gọi API tương ứng
+      if (isCurrentlyFavorite) {
+        await tourApi.deleteFavorite(userId, Number(id));
+      } else {
+        await tourApi.postFavorite(userId, Number(id));
+      }
+    } catch (err) {
+      console.error("Lỗi khi lưu yêu thích:", err);
+      // Khôi phục trạng thái nếu API thất bại
+      setTours((prev) =>
+        prev.map((tour) =>
+          tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour
+        )
+      );
+    }
   };
 
   const handleCardPress = (id: string) => {
