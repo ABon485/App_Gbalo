@@ -109,4 +109,14 @@ export type TourGroupType ={
   id: number;
   name: string;
 }
+export type Order = {
+  id: string;
+  title: string;
+  date: string;
+  status: 'pending' | 'paid' | 'completed';
+  price: string;
+  image: string;
+  countdown?: string;
+}
+export type TabType = 'all' | 'pending' | 'paid' | 'completed';
 

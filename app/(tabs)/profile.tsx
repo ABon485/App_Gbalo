@@ -239,7 +239,7 @@ export default function ProfileScreen() {
       id: 1,
       title: "Đơn hàng",
       icon: <FileText size={20} color="#333" />,
-      action: () => router.push("/"),
+      action: () => router.push("/(screens)/tourOder/page"),
     },
     {
       id: 2,
