@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-
+import { useRouter } from 'expo-router';
 const TourPaid = () => {
+      const router = useRouter();
     const tours = [
         {
             id: 1,
@@ -45,7 +46,7 @@ const TourPaid = () => {
                             <Text style={styles.tourDate}>{tour.date}</Text>
                             <Text style={styles.tourPrice}>{tour.price}</Text>
                             <Text style={styles.tourTotal}>{tour.total}</Text>
-                            <Text style={styles.tourBalance}>{tour.balance}</Text>
+                            <Text style={styles.tourBalance}onPress={() => router.push('/(screens)/tourOder/oderDetail')}>{tour.balance}</Text>
                         </View>
                     </View>
                 ))}

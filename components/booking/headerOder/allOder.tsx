@@ -1,9 +1,9 @@
-"use client";
-
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const TourListScreen = () => {
+  const router = useRouter();
 
   const tours = [
     {
@@ -11,8 +11,9 @@ const TourListScreen = () => {
       image: require('@/assets/images/BackGroud.png'),
       title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
       date: 'Ngày khởi hành: 15/03/2025',
-      price: 'Trạng thái: Đã thanh toán',
+      price: '2 x 1.988.000VND',
       total: 'Tổng số: 1.234.556 đ',
+      status: 'Trạng thái: Đã thanh toán',
       balance: 'Hiển thị chi tiết',
     },
     {
@@ -20,8 +21,9 @@ const TourListScreen = () => {
       image: require('@/assets/images/BackGroud.png'),
       title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
       date: '15/03/2025',
-      price: 'Trạng thái: Đang chờ thanh toán 01:48:17',
+      price: '1 x 988.000VND',
       total: 'Tổng số: 1.234.556 đ',
+      status: 'Trạng thái: Đang chờ thanh toán 01:48:17',
       balance: 'Hiển thị chi tiết',
       buttonText: 'Thanh toán',
     },
@@ -30,8 +32,9 @@ const TourListScreen = () => {
       image: require('@/assets/images/BackGroud.png'),
       title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
       date: 'Ngày khởi hành: 15/03/2025',
-      price: 'Trạng thái: Đã thanh toán',
+      price: '2 x 1.988.000VND',
       total: 'Tổng số: 5.434.556 đ',
+      status: 'Trạng thái: Đã thanh toán',
       balance: 'Hiển thị chi tiết',
       cancelText: 'Xem đơn hàng',
     },
@@ -40,8 +43,9 @@ const TourListScreen = () => {
       image: require('@/assets/images/BackGroud.png'),
       title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
       date: 'Ngày khởi hành: 15/03/2025',
-      price: 'Trạng thái: Đã thanh toán',
+      price: '1 x 988.000VND',
       total: 'Tổng số: 1.234.556 đ',
+      status: 'Trạng thái: Đã thanh toán',
       balance: 'Hiển thị chi tiết',
       buttonText: 'Đặt lại',
     },
@@ -50,42 +54,42 @@ const TourListScreen = () => {
       image: require('@/assets/images/BackGroud.png'),
       title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
       date: '15/03/2025',
-      price: 'Trạng thái: Đang chờ thanh toán 01:48:17',
+      price: '1 x 988.000VND',
       total: 'Tổng số: 1.234.556 đ',
+      status: 'Trạng thái: Đang chờ thanh toán 01:48:17',
       balance: 'Hiển thị chi tiết',
       buttonText: 'Thanh toán',
     },
   ];
 
   return (
-    <View style={styles.container}>
-
-      {/* Conditional Rendering Based on Active Tab */}
-        <ScrollView style={styles.listContainer}>
-          {tours.map((tour) => (
-            <View key={tour.id} style={styles.tourItem}>
-              <Image source={tour.image} style={styles.tourImage} />
-              <View style={styles.tourDetails}>
-                <Text style={styles.tourTitle}>{tour.title}</Text>
-                <Text style={styles.tourDate}>{tour.date}</Text>
-                <Text style={styles.tourPrice}>{tour.price}</Text>
-                <Text style={styles.tourTotal}>{tour.total}</Text>
-                <Text style={styles.tourBalance}>{tour.balance}</Text>
-                {tour.buttonText && (
-                  <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText}>{tour.buttonText}</Text>
-                  </TouchableOpacity>
-                )}
-                {tour.cancelText && (
-                  <TouchableOpacity style={styles.cancelButton}>
-                    <Text style={styles.cancelButtonText}>{tour.cancelText}</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-    </View>
+    <ScrollView style={styles.container}>
+      {tours.map((tour) => (
+        <View key={tour.id} style={styles.tourItem}>
+          <Image source={tour.image} style={styles.tourImage} />
+          <View style={styles.tourDetails}>
+            <Text style={styles.tourTitle}>{tour.title}</Text>
+            <Text style={styles.tourDate}>{tour.date}</Text>
+            <Text style={styles.tourPrice}>{tour.price}</Text>
+            <Text style={styles.tourStatus}>{tour.status}</Text>
+            <Text style={styles.tourTotal}>{tour.total}</Text>
+            <TouchableOpacity onPress={() => router.push('/(screens)/tourOder/oderDetail')}>
+              <Text style={styles.tourBalance}>{tour.balance}</Text>
+            </TouchableOpacity>
+            {tour.buttonText && (
+              <TouchableOpacity style={styles.button}>
+                <Text style={styles.buttonText}>{tour.buttonText}</Text>
+              </TouchableOpacity>
+            )}
+            {tour.cancelText && (
+              <TouchableOpacity style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>{tour.cancelText}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      ))}
+    </ScrollView>
   );
 };
 
@@ -94,50 +98,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     marginTop: 10,
-  },
-  header: {
-    height: 60,
-    backgroundColor: '#fff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    marginTop: 15,
-  },
-  backButton: {
-    padding: 10,
-  },
-  backButtonText: {
-    fontSize: 20,
-    color: '#000',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  tab: {
-    paddingHorizontal: 10,
-  },
-  tabText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  activeTabText: {
-    fontWeight: 'bold',
-    color: '#ff4500',
-  },
-  listContainer: {
-    flex: 1,
   },
   tourItem: {
     flexDirection: 'row',
@@ -168,6 +128,10 @@ const styles = StyleSheet.create({
   tourPrice: {
     fontSize: 14,
     color: '#666',
+  },
+  tourStatus: {
+    fontSize: 14,
+    color: '#ff4500',
   },
   tourTotal: {
     fontSize: 14,
