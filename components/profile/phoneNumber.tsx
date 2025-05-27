@@ -10,30 +10,42 @@ import {
 import { AntDesign } from "@expo/vector-icons";
 import api from "@/config/api";
 import { useToast } from "@/context/ToastContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   content: string;
   title: string;
-  onUpdatePhone: (newPhone: string) => void; 
+  onUpdatePhone: (newPhone: string) => void;
+  fetchProfile: () => Promise<void>; // Thêm prop fetchProfile
 };
 
-const PhoneNumberModal = ({ visible, onClose, content, title, onUpdatePhone }: Props) => {
+const PhoneNumberModal = ({
+  visible,
+  onClose,
+  content,
+  title,
+  onUpdatePhone,
+  fetchProfile,
+}: Props) => {
   const [phone, setPhone] = useState(content || "");
   const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useToast();
 
   const isValidPhone = (phone: string) => {
-    const regex = /^\d{10,12}$/; 
+    const regex = /^\d{10,12}$/;
     return regex.test(phone);
   };
 
-  const fetchProfile = async () => {
+  const updateProfile = async () => {
     try {
       setIsSaving(true);
       if (!isValidPhone(phone)) {
-        showToast({ message: "Vui lòng nhập số điện thoại hợp lệ (10-12 chữ số)", type: "error" });
+        showToast({
+          message: "Vui lòng nhập số điện thoại hợp lệ (10-12 chữ số)",
+          type: "error",
+        });
         return false;
       }
 
@@ -41,19 +53,40 @@ const PhoneNumberModal = ({ visible, onClose, content, title, onUpdatePhone }: P
         phone: phone,
       });
       console.log("Cập nhật số điện thoại thành công:", response.data.data);
-      onUpdatePhone(phone); // Cập nhật số điện thoại trong component cha
-      showToast({ message: "Cập nhật số điện thoại thành công", type: "success" });
+      onUpdatePhone(phone); // Cập nhật state cục bộ
+      await fetchProfile(); // Gọi lại để đồng bộ dữ liệu từ server
+
+      // Cập nhật AsyncStorage
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        parsedData.phone = phone;
+        await AsyncStorage.setItem("data", JSON.stringify(parsedData));
+      }
+
+      showToast({
+        message: "Cập nhật số điện thoại thành công",
+        type: "success",
+      });
       return true;
     } catch (error) {
       if ((error as any).response?.status === 401) {
-        showToast({ message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", type: "error" });
+        showToast({
+          message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
+          type: "error",
+        });
       } else if ((error as any).response?.status === 400) {
         showToast({
-          message: (error as any).response?.data?.message || "Số điện thoại không hợp lệ hoặc đã tồn tại.",
+          message:
+            (error as any).response?.data?.message ||
+            "Số điện thoại không hợp lệ hoặc đã tồn tại.",
           type: "error",
         });
       } else {
-        showToast({ message: "Cập nhật số điện thoại thất bại. Vui lòng thử lại.", type: "error" });
+        showToast({
+          message: "Cập nhật số điện thoại thất bại. Vui lòng thử lại.",
+          type: "error",
+        });
       }
       return false;
     } finally {
@@ -62,7 +95,7 @@ const PhoneNumberModal = ({ visible, onClose, content, title, onUpdatePhone }: P
   };
 
   const onSave = async () => {
-    const success = await fetchProfile();
+    const success = await updateProfile();
     if (success) {
       onClose(); // Chỉ đóng modal khi thành công
     }
@@ -102,7 +135,9 @@ const PhoneNumberModal = ({ visible, onClose, content, title, onUpdatePhone }: P
             onPress={onSave}
             disabled={isSaving}
           >
-            <Text style={styles.saveButtonText}>{isSaving ? "Đang lưu..." : "Lưu"}</Text>
+            <Text style={styles.saveButtonText}>
+              {isSaving ? "Đang lưu..." : "Lưu"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

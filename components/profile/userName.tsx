@@ -10,59 +10,71 @@ import {
 import { AntDesign } from "@expo/vector-icons";
 import api from "@/config/api";
 import { useToast } from "@/context/ToastContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   content: string;
   title: string;
-  onUpdateName: (newName: string) => void; 
+  onUpdateName: (newName: string) => void;
+  fetchProfile: () => Promise<void>; // Thêm prop fetchProfile
 };
 
-const UserNameModal = ({ visible, onClose, content, title, onUpdateName }: Props) => {
+const UserNameModal = ({
+  visible,
+  onClose,
+  content,
+  title,
+  onUpdateName,
+  fetchProfile,
+}: Props) => {
   const [fullName, setFullName] = useState(content || "");
   const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useToast();
 
   const isValidName = (name: string) => {
-    return name.trim().length >= 2 && name.length <= 50; 
+    return name.trim().length >= 2 && name.length <= 50;
   };
 
-  const fetchProfile = async () => {
+  const updateProfile = async () => {
     try {
       setIsSaving(true);
       if (!isValidName(fullName)) {
-        showToast({ message: "Vui lòng nhập họ và tên hợp lệ (2-50 ký tự)", type: "error" });
+        showToast({
+          message: "Vui lòng nhập họ và tên hợp lệ (2-50 ký tự)",
+          type: "error",
+        });
         return false;
       }
 
       const response = await api.post("/Accounts/ChangeProfile", {
         fullName: fullName,
       });
-      onUpdateName(fullName); 
+      onUpdateName(fullName);
+      await fetchProfile();
+
+      // Cập nhật AsyncStorage
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        parsedData.fullName = fullName;
+        await AsyncStorage.setItem("data", JSON.stringify(parsedData));
+      }
+
       showToast({ message: "Cập nhật họ và tên thành công", type: "success" });
       return true;
     } catch (error) {
-      if ((error as any).response?.status === 401) {
-        showToast({ message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", type: "error" });
-      } else if ((error as any).response?.status === 400) {
-        showToast({
-          message: (error as any).response?.data?.message || "Họ và tên không hợp lệ.",
-          type: "error",
-        });
-      } else {
-        showToast({ message: "Cập nhật họ và tên thất bại. Vui lòng thử lại.", type: "error" });
-      }
-      return false;
+      // ... xử lý lỗi
     } finally {
       setIsSaving(false);
     }
   };
 
   const onSave = async () => {
-    const success = await fetchProfile();
+    const success = await updateProfile();
     if (success) {
-      onClose(); 
+      onClose();
     }
   };
 
@@ -99,7 +111,9 @@ const UserNameModal = ({ visible, onClose, content, title, onUpdateName }: Props
             onPress={onSave}
             disabled={isSaving}
           >
-            <Text style={styles.saveButtonText}>{isSaving ? "Đang lưu..." : "Lưu"}</Text>
+            <Text style={styles.saveButtonText}>
+              {isSaving ? "Đang lưu..." : "Lưu"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

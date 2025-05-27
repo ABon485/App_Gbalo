@@ -16,6 +16,10 @@ const styles = StyleSheet.create({
     marginBottom: "auto",
     marginTop: 24,
   },
+  logo: {
+    width: 120,
+    height: 120,
+  },
   formContainer: {
     backgroundColor: "white",
     borderTopLeftRadius: 30,
@@ -33,6 +37,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "black",
     marginBottom: 24,
+  },
+  errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF1F0",
+    borderRadius: 6,
+    padding: 8,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  errorText: {
+    color: "#FF4D4F",
+    fontSize: 14,
+    marginLeft: 6,
+    flex: 1,
+    flexWrap: "wrap",
   },
   label: {
     fontFamily: "Inter-Medium",
