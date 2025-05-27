@@ -82,6 +82,9 @@ function RootLayoutNav() {
           <Stack.Screen name="(screens)/notification/notification" options={{ headerShown: false }} />
           <Stack.Screen name="(screens)/notification/detailNotification" options={{ headerShown: false }} />
           <Stack.Screen name="(screens)/cart/cart" options={{ headerShown: false }} />
+          <Stack.Screen name="(screens)/tourOder/page"options={{ headerShown: false }} />
+          <Stack.Screen name="(screens)/tourOder/oderDetail"options={{ headerShown: false }} />
+
 
 
         </Stack>
