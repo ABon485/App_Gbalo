@@ -89,16 +89,6 @@ export default function VerifyEmail() {
     }
 
     console.log("OTP code before check:", code);
-    if (code !== "123456") {
-      setErrorMessage(
-        "Mã xác nhận không đúng. Vui lòng nhập 123456 (cho testing)."
-      );
-      showToast({
-        type: "error",
-        message: "Mã xác nhận không đúng. Vui lòng nhập 123456 (cho testing).",
-      });
-      return;
-    }
 
     try {
       setLoading(true);

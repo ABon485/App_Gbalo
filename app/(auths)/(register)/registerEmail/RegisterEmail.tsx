@@ -37,7 +37,7 @@ export default function RegisterEmail() {
       return;
     }
 
-    const emailRegex = /^[a-zA-Z0 rz0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       showToast({ type: "error", message: "Email không hợp lệ" });
       return;
@@ -47,7 +47,10 @@ export default function RegisterEmail() {
       setLoading(true);
       const response = await api.post<ApiResponse<RegistercodeByEmail>>(
         "/Accounts/SendResgiterCode",
-        { email }
+        {
+          type: "Email",
+          email
+        }
       );
       console.log("Full response:", response.data);
 
@@ -70,7 +73,12 @@ export default function RegisterEmail() {
         });
       }
     } catch (error) {
-      if (typeof error === "object" && error !== null && "response" in error && typeof (error as any).response === "object") {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as any).response === "object"
+      ) {
         console.error(
           "SendResgiterCode error:",
           (error as any).response?.data || (error as any).message

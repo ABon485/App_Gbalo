@@ -14,10 +14,11 @@ import {
 } from "react-native";
 import { Heart } from "lucide-react-native";
 import { TourItem, TourListResponse } from "@/types/tour";
-import tourApi from "@/services/tour";
+import tourApi from "@/services/tour"; // Cập nhật import nếu cần
 import { AntDesign } from "@expo/vector-icons";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useToast } from "@/context/ToastContext";
 
 // Get screen width to calculate item width
 const { width } = Dimensions.get("window");
@@ -34,21 +35,25 @@ const TourListScreen = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState<boolean>(false);
+  const { showToast } = useToast();
 
   const fetchTours = async () => {
     try {
       setLoading(true);
 
       // Lấy userId từ AsyncStorage
-      const user = await AsyncStorage.getItem("user");
+      const storedData = await AsyncStorage.getItem("data");
       let userId: string | null = null;
-      if (user) {
-        userId = JSON.parse(user).id;
+      let token: string | null = null;
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        userId = parsedData.profile?.id || parsedData.id;
+        token = parsedData.token;
       }
 
       // Lấy danh sách tour yêu thích của người dùng
       let favoriteTourIds: string[] = [];
-      if (userId) {
+      if (userId && token) {
         const favoriteRes = await tourApi.getFavorite(Number(userId));
         favoriteTourIds = favoriteRes.data.datas.map((tour: any) =>
           String(tour.id)
@@ -57,7 +62,7 @@ const TourListScreen = () => {
 
       // Lấy danh sách tour
       let allTours: TourItem[] = [];
-      let currentPage = 1; // Sửa lại từ 10 để lấy từ trang đầu tiên
+      let currentPage = 1;
       let totalPages = 1;
 
       while (currentPage <= totalPages) {
@@ -72,9 +77,10 @@ const TourListScreen = () => {
             slug: item.slug,
             featuredImageUrl: item.featuredImageUrl,
             provinceIds: item.provinceIds,
+            provinceName: item.provinceName || "Khác",
             vote: item.vote || 0,
             fromPrice: item.fromPrice || 0,
-            isFavorite: favoriteTourIds.includes(String(item.id)), 
+            isFavorite: favoriteTourIds.includes(String(item.id)),
             tourExtraServices: [],
           })
         );
@@ -86,11 +92,12 @@ const TourListScreen = () => {
 
       setTours(allTours);
     } catch (err) {
-      setError(
+      const errorMessage =
         typeof err === "object" && err !== null && "message" in err
           ? String((err as { message?: string }).message)
-          : "Failed to fetch tours"
-      );
+          : "Không thể tải danh sách tour.";
+      setError(errorMessage);
+      showToast({ type: "error", message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -102,10 +109,29 @@ const TourListScreen = () => {
 
   const toggleFavorite = async (id: string) => {
     try {
-      const user = await AsyncStorage.getItem("user");
-      console.log("User data:", user);
-      if (!user) return;
-      const userId = JSON.parse(user).id;
+      const storedData = await AsyncStorage.getItem("data");
+      if (!storedData) {
+        showToast({
+          type: "error",
+          message: "Vui lòng đăng nhập để lưu tour yêu thích.",
+        });
+        router.push("/(auths)/(Login)/login");
+        return;
+      }
+
+      const parsedData = JSON.parse(storedData);
+      const userId = parsedData.profile?.id || parsedData.id;
+      const token = parsedData.token;
+
+      if (!userId || !token) {
+        showToast({
+          type: "error",
+          message:
+            "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+        });
+        router.push("/(auths)/(Login)/login");
+        return;
+      }
 
       // Kiểm tra trạng thái yêu thích hiện tại
       const isCurrentlyFavorite = tours.find((tour) => tour.id === id)
@@ -126,6 +152,10 @@ const TourListScreen = () => {
       }
     } catch (err) {
       console.error("Lỗi khi lưu yêu thích:", err);
+      showToast({
+        type: "error",
+        message: "Không thể cập nhật tour yêu thích. Vui lòng thử lại.",
+      });
       // Khôi phục trạng thái nếu API thất bại
       setTours((prev) =>
         prev.map((tour) =>
@@ -140,7 +170,6 @@ const TourListScreen = () => {
       pathname: "/(screens)/detail/[detailID]",
       params: { detailID: id },
     });
-    console.log("Card pressed:", id);
   };
 
   const renderTourItem = ({ item }: { item: TourItem }) => (
@@ -183,36 +212,24 @@ const TourListScreen = () => {
           color={item.vote > 0 ? "#FF9500" : "#999999"}
         />
         <Text style={styles.reviews}>{item.vote}</Text>
+        <Text style={styles.reviews}>{item.provinceName }</Text>
       </View>
       <View>
         <Text style={styles.price}>
           Từ{" "}
           <Text style={styles.priceHighlight}>
             {formatPrice(item.fromPrice)}/đ
-          </Text>
+          </Text>{" "}
           người
         </Text>
       </View>
     </TouchableOpacity>
   );
 
-  // Loading state
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.loadingText}>Loading...</Text>
-      </SafeAreaView>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity onPress={fetchTours} style={styles.retryButton}>
-          <Text style={styles.retryText}>Thử lại</Text>
-        </TouchableOpacity>
+        <Text style={styles.loadingText}>Đang tải...</Text>
       </SafeAreaView>
     );
   }
@@ -226,7 +243,7 @@ const TourListScreen = () => {
         keyExtractor={(item) => item.id}
         numColumns={2}
         contentContainerStyle={styles.listContainer}
-        columnWrapperStyle={styles.columnWrapper} // ✅ Thêm dòng này
+        columnWrapperStyle={styles.columnWrapper}
         ListFooterComponent={
           !showAll && tours.length > 6 ? (
             <TouchableOpacity
@@ -254,7 +271,6 @@ const styles = StyleSheet.create({
   columnWrapper: {
     paddingLeft: 10,
   },
-
   itemContainer: {
     width: itemWidth,
     margin: 5,

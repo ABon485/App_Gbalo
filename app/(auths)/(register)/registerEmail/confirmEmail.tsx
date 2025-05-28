@@ -26,7 +26,7 @@ export default function ConfirmEmail() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // Thêm để hiển thị lỗi
+  const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const { email: emailFromParams, code } = useLocalSearchParams<{
     email: string;
@@ -34,7 +34,6 @@ export default function ConfirmEmail() {
   }>();
   const { showToast } = useToast();
 
-  // Cập nhật email từ params
   useEffect(() => {
     if (emailFromParams) {
       setEmail(emailFromParams);
@@ -45,8 +44,24 @@ export default function ConfirmEmail() {
     router.push("/(auths)/(Login)/login");
   };
 
+  const validatePassword = (password: string) => {
+    const minLength = password.length >= 8;
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!minLength) {
+      return "Mật khẩu phải có ít nhất 8 ký tự";
+    }
+    if (!hasNumber) {
+      return "Mật khẩu phải chứa ít nhất một số";
+    }
+    if (!hasSpecialChar) {
+      return "Mật khẩu phải chứa ít nhất một ký tự đặc biệt";
+    }
+    return "";
+  };
+
   const handleRegister = async () => {
-    // Kiểm tra trường bắt buộc
     if (!fullName || !email || !password || !confirmPassword || !code) {
       setErrorMessage("Vui lòng nhập đầy đủ thông tin");
       showToast({
@@ -63,6 +78,17 @@ export default function ConfirmEmail() {
       return;
     }
 
+    // Kiểm tra mật khẩu hợp lệ
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setErrorMessage(passwordError);
+      showToast({
+        type: "error",
+        message: passwordError,
+      });
+      return;
+    }
+
     // Kiểm tra mật khẩu khớp
     if (password !== confirmPassword) {
       setErrorMessage("Mật khẩu xác nhận không khớp");
@@ -70,71 +96,71 @@ export default function ConfirmEmail() {
         type: "error",
         message: "Mật khẩu xác nhận không khớp",
       });
-      console.log("Validation failed: Passwords do not match");
       return;
     }
 
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem("registerToken");
-      if (!token) {
+      const registerToken = await AsyncStorage.getItem("registerToken");
+      if (!registerToken) {
         setErrorMessage("Không tìm thấy token xác minh");
         showToast({
           type: "error",
           message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
         });
-        console.log("Error: No registerToken found in AsyncStorage");
         return;
       }
 
-      // Gửi request API
+      // Gửi request đăng ký
       const formData: RegisterTypeEmail = {
-        token,
+        token: registerToken,
         fullName,
         password,
         confirmPassword,
-        code, // Đồng bộ với VerifyEmail
+        code,
       };
-      console.log("Sending API request with formData:", formData);
 
       const response = await api.post<ApiResponse>(
-        "/Accounts/ResgiterByCode", // Sửa lỗi chính tả
+        "/Accounts/ResgiterByCode",
         formData,
-        { headers: { Authorization: `Bearer ${token}` } } // Đồng bộ với VerifyEmail
+        { headers: { Authorization: `Bearer ${registerToken}` } }
       );
 
-      if (response.data?.status === "Success" && response.data?.data?.token) {
-        await AsyncStorage.setItem("token", response.data.data.token);
+      const isSuccess = response.data?.status === "Success";
+      const accessToken = response.data?.data?.token;
+
+      if (isSuccess && accessToken) {
+        const profileResponse = await api.get("/Accounts/Profile", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        console.log("Profile response:", profileResponse.data);
+
+        await AsyncStorage.setItem("token", accessToken);
         await AsyncStorage.setItem(
           "data",
-          JSON.stringify({ token: response.data.data.token, email, fullName })
+          JSON.stringify({
+            token: accessToken,
+            email,
+            fullName,
+            profile: profileResponse.data?.data || null,
+          })
         );
         await AsyncStorage.removeItem("registerToken");
+
         showToast({ type: "success", message: "Đăng ký thành công!" });
-        console.log("Registration successful:", {
-          email,
-          fullName,
-          authToken: response.data.data.token,
-        });
         router.replace("/(tabs)/assistant");
       } else {
-        setErrorMessage(response.data?.message || "Đăng ký thất bại");
-        showToast({
-          type: "error",
-          message: response.data?.message || "Đăng ký thất bại",
-        });
-        console.log(
-          "API error:",
-          response.data?.message || "Registration failed"
-        );
+        const msg = response.data?.message || "Đăng ký thất bại";
+        setErrorMessage(msg);
+        showToast({ type: "error", message: msg });
       }
     } catch (error) {
       const err = error as any;
-      const errorMessage =
-        err?.response?.data?.message || "Có lỗi xảy ra khi đăng ký";
-      setErrorMessage(errorMessage);
-      showToast({ type: "error", message: errorMessage });
-      // console.error("Error in handleRegister:", error, {  });
+      const msg = err?.response?.data?.message || "Có lỗi xảy ra khi đăng ký";
+      setErrorMessage(msg);
+      showToast({ type: "error", message: msg });
       console.error("Error response:", err?.response?.data);
     } finally {
       setLoading(false);

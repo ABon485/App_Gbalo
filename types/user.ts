@@ -60,7 +60,7 @@ export type ProfileResponse = {
     language: string;
     address: string;
     nationality: string;
-    dateOfBirth: string; // ISO 8601 format (only date)
+    dateOfBirth: Date; // ISO 8601 format (only date)
     lastChangePassDate: string;
   };
   status?: string;
