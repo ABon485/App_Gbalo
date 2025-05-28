@@ -104,7 +104,6 @@ const handleConfirm = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text>11:04 AM, 21/05/2025</Text>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{title}</Text>
               <TouchableOpacity onPress={onClose}>
