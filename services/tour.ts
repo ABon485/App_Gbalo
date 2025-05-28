@@ -9,6 +9,11 @@ import {
   TourItem,
   FavoriteTour,
   FavoriteTourAPIResponse,
+  UserProfile,
+  UserProfileResponse
+
+
+
 } from "@/types/tour";
 
 const tourApi = {
@@ -152,6 +157,15 @@ const tourApi = {
       return response.data;
     } catch (error) {
       console.error("Error getting favorite tours:", error);
+      throw error;
+    }
+  },
+  getUserProfile: async (): Promise<UserProfile> => {
+    try {
+      const response = await api.get<UserProfileResponse>("/Accounts/Profile");
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
       throw error;
     }
   },

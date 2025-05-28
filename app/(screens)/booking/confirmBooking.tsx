@@ -37,6 +37,27 @@ export default function ConfirmBooking() {
     phone?: string;
     email?: string;
   } | null>(null);
+  const [contactErrors, setContactErrors] = useState<{
+    fullName?: string;
+    phone?: string;
+    email?: string;
+  }>({});
+  const updateUserInfo = (field: keyof typeof userInfo, value: string) => {
+    setUserInfo(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    // Nếu dữ liệu hợp lệ thì xóa lỗi tương ứng
+    setContactErrors(prevErrors => {
+      const newErrors = { ...prevErrors };
+      if (value.trim() !== "") {
+        delete newErrors[field];
+      }
+      return newErrors;
+    });
+  };
+
   const prepayment = Math.round(totalPrice * 0.3);
 
   const params = useLocalSearchParams();
@@ -74,7 +95,7 @@ export default function ConfirmBooking() {
   }, [tourId]);
 
   useEffect(() => {
-    // Chỉ cập nhật nếu giá trị hợp lệ
+    // Cập nhật dữ liệu ban đầu
     if (initialDate && initialDate !== "Chọn ngày") {
       setSelectedDate(initialDate);
     }
@@ -105,23 +126,34 @@ export default function ConfirmBooking() {
     setShowClientModal(false);
   };
 
-  const handleSavePersonalInfo = (personalInfo: {
-    fullName: string;
-    phone: string;
-    email: string;
-  }) => {
-    setUserInfo({
-      ...userInfo,
+  const handleSavePersonalInfo = (personalInfo: { fullName: string; phone: string; email: string; }) => {
+    setUserInfo(prev => ({
+      ...prev,
       fullName: personalInfo.fullName,
       phone: personalInfo.phone,
       email: personalInfo.email,
+    }));
+
+    setContactErrors(prevErrors => {
+      const newErrors = { ...prevErrors };
+      if (personalInfo.fullName.trim() !== "") {
+        delete newErrors.fullName;
+      }
+      if (personalInfo.phone.trim() !== "") {
+        delete newErrors.phone;
+      }
+      if (personalInfo.email.trim() !== "") {
+        delete newErrors.email;
+      }
+      return newErrors;
     });
+
     setShowEditPersonalModal(false);
   };
 
   const handleApplyDiscount = (code: string) => {
     console.log("Applied discount code:", code);
-    // Add your discount application logic here
+    // Thêm logic giảm giá nếu cần
   };
 
   const renderCheckbox = (
@@ -138,7 +170,7 @@ export default function ConfirmBooking() {
   );
 
   const handlePayment = () => {
-    // Kiểm tra validate chặt chẽ hơn
+    // Validate ngày khởi hành
     if (
       !selectedDate ||
       selectedDate === "Chưa chọn" ||
@@ -148,9 +180,10 @@ export default function ConfirmBooking() {
         type: "error",
         message: "Vui lòng chọn ngày khởi hành trước khi thanh toán.",
       });
-
       return;
     }
+
+    // Validate số khách
     if (
       !selectedGuests ||
       selectedGuests === "Chưa chọn" ||
@@ -160,21 +193,44 @@ export default function ConfirmBooking() {
         type: "error",
         message: "Vui lòng chọn số lượng khách trước khi thanh toán.",
       });
+      return;
+    }
 
+    // Validate contact info
+    const errors: typeof contactErrors = {};
+    if (!userInfo?.fullName || userInfo.fullName.trim() === "") {
+      errors.fullName = "Vui lòng điền tên của bạn.";
+    }
+    if (!userInfo?.phone || userInfo.phone.trim() === "") {
+      errors.phone = "Vui lòng điền số điện thoại của bạn.";
+    }
+    if (!userInfo?.email || userInfo.email.trim() === "") {
+      errors.email = "Vui lòng điền email của bạn.";
+    }
+    setContactErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      // Có lỗi, không cho tiếp tục
       return;
     }
-    if (!userInfo) {
-      router.push("/(auths)/(Login)/login");
-      return;
-    }
+
+    // Kiểm tra checkbox
     if (!checkbox) {
       showToast({
         type: "error",
         message:
-          "Vui lòng đồng ý với Điều khoản sử dụng và Chính sách hoàn hủy trước khi thanh toán.",
+          "Vui lòng đồng ý với Điều khoản sử dụng và Chính sách hoàn hủy.",
       });
       return;
     }
+
+    // Kiểm tra đăng nhập
+    if (!userInfo) {
+      router.push("/(auths)/(Login)/login");
+      return;
+    }
+
+    // Thành công
     router.push({
       pathname: "/booking/successBooking",
       params: {
@@ -249,7 +305,7 @@ export default function ConfirmBooking() {
           <Text style={styles.sectionTitle}>Thời gian chuyến đi</Text>
           <View style={styles.scheduleRow}>
             <View style={styles.labelValueBlock}>
-              <Text style={styles.label}>Ngày:</Text>
+              <Text style={styles.label}>Ngày khởi hành:</Text>
               <Text style={styles.value}>{selectedDate || "Chưa chọn"}</Text>
             </View>
             <TouchableOpacity onPress={() => setShowScheduleModal(true)}>
@@ -282,14 +338,25 @@ export default function ConfirmBooking() {
             Họ tên <Text style={styles.required}>*</Text>:{" "}
             {userInfo?.fullName || "Chưa cung cấp"}
           </Text>
+          {contactErrors.fullName && (
+            <Text style={styles.errorText}>{contactErrors.fullName}</Text>
+          )}
+
           <Text style={styles.contactText}>
             Số điện thoại <Text style={styles.required}>*</Text>:{" "}
             {userInfo?.phone || "Chưa cung cấp"}
           </Text>
+          {contactErrors.phone && (
+            <Text style={styles.errorText}>{contactErrors.phone}</Text>
+          )}
+
           <Text style={styles.contactText}>
             Email <Text style={styles.required}>*</Text>:{" "}
             {userInfo?.email || "Chưa cung cấp"}
           </Text>
+          {contactErrors.email && (
+            <Text style={styles.errorText}>{contactErrors.email}</Text>
+          )}
         </View>
 
         {/* Requirements */}
@@ -350,6 +417,7 @@ export default function ConfirmBooking() {
           </View>
         </View>
 
+        {/* Chính sách */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Chính sách</Text>
           <View style={styles.policyItem}>
@@ -390,6 +458,13 @@ export default function ConfirmBooking() {
               <Text style={styles.Newlink}>Chính sách hoàn hủy</Text>
             </Text>
           </View>
+          {!checkbox && (
+            <Text
+              style={{ color: "red", marginLeft: 20, marginTop: 5, fontSize: 13 }}
+            >
+              Vui lòng chọn vào nút đồng ý.
+            </Text>
+          )}
         </View>
 
         {/* Footer */}

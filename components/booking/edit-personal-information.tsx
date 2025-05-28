@@ -39,6 +39,7 @@ const EditPersonalInformation = ({
         onSave({ fullName, phone, email });
         onClose();
     };
+    
 
     return (
         <Modal
