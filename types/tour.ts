@@ -14,7 +14,8 @@ export type TourItem = {
   vote: number;
   fromPrice: number;
   isFavorite: boolean;
-  provinceIds: number[];
+  provinceIds: number;
+  provinceName: string;
   tourExtraServices: TourExtraService[];
 };
 
