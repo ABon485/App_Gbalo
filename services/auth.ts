@@ -52,6 +52,7 @@ const authApi = {
   updatePhone: (formData: UpdatePhone) => api.post("/Accounts/ChangePhone", formData),
 
   updatefullName: (formData: UpdateProfile) => api.post("/Accounts/ChangeProfile", formData),
+  
 };
 
 export default authApi;

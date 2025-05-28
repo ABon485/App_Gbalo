@@ -83,7 +83,7 @@ const ProfileUpdateScreen = () => {
           permissions: [],
           language: params.language as string,
           nationality: params.nationality as string,
-          dateOfBirth: params.dateOfBirth
+          dateOfBirth: params.dateOfBirth 
             ? new Date(params.dateOfBirth as string)
             : new Date(),
         });

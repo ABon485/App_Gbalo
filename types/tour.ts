@@ -147,43 +147,4 @@ export type Order = {
 export type TabType = 'all' | 'pending' | 'paid' | 'completed';
 
 
-export type Role= {
-  id: number;
-  name: string;
-  description: string;
-  sysCode: string;
-  isDefault: boolean;
-}
 
-export type Permission ={
-  id: number;
-  name: string;
-  description: string;
-}
-
-export type UserProfile = {
-  id: number;
-  userName: string;
-  isBanned: boolean;
-  isActive: boolean;
-  lastActivityDate: string;
-  isLockedOut: boolean;
-  lastLockoutDate: string;
-  email: string;
-  avatar: string;
-  createDate: string;
-  fullName: string;
-  roles: Role[];
-  permissions: Permission[];
-  phone: string;
-  language: string;
-  address: string;
-  nationality: string;
-  dateOfBirth: string;
-  lastChangePassDate: string;
-}
-
-export type UserProfileResponse= {
-  status: string;
-  data: UserProfile;
-}

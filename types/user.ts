@@ -46,16 +46,22 @@ export type ProfileResponse = {
     id: string;
     userName: string;
     fullName: string;
+    isBanned: boolean;
+    isActive: boolean;
+    lastActivityDate: string; // ISO 8601 format
+    isLockedOut: boolean;
+    lastLockoutDate: string;
     email: string;
     avatar: string;
     createDate: string;
-    roles: [];
-    permissions: [];
+    roles: Role[];
+    permissions: Permission[];
     phone: string;
     language: string;
     address: string;
     nationality: string;
-    dateOfBirth: Date;
+    dateOfBirth: string; // ISO 8601 format (only date)
+    lastChangePassDate: string;
   };
   status?: string;
   message?: string;
@@ -89,10 +95,10 @@ export type SendCodeLogin = {
   phone: string;
   email: string;
 }
-  export type VerifyCodeLogin = {
-    publicKey: string;
-    code: string;
-  }
+export type VerifyCodeLogin = {
+  publicKey: string;
+  code: string;
+}
 export type ChangePassByCodeType = {
   token: string;
   newPassword: string;
@@ -106,4 +112,22 @@ export type ChangePassCodeType = {
   type: 'email' | 'phone';
   phone?: string;
   email?: string;
+}
+export type Role = {
+  id: number;
+  name: string;
+  description: string;
+  sysCode: string;
+  isDefault: boolean;
+}
+
+export type Permission = {
+  id: number;
+  name: string;
+  description: string;
+}
+
+export type UserProfileResponse = {
+  status: string;
+  data: ProfileResponse;
 }
