@@ -101,20 +101,32 @@ const loginByPhone = () => {
       const isSuccess = response.data?.status === "Success";
       const token = response.data?.data?.token;
       if (isSuccess && token) {
-        let fullName = response.data?.data?.fullName;
-        if (!fullName) {
-          const profileResponse = await api.get("/Accounts/Profile", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        // Gọi API UserProfile để lấy thông tin user
+        const profileResponse = await api.get("/Accounts/Profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const user = profileResponse.data?.data;
+
+        if (!user) {
+          showToast({
+            type: "error",
+            heading: "Lỗi",
+            message: "Không thể lấy thông tin người dùng",
           });
-          fullName = profileResponse.data?.data?.fullName || "Khách hàng";
+          return;
         }
+
         const authData = {
           token,
           phone: trimmedPhone,
-          fullName,
+          fullName: user.fullName || "Khách hàng",
+          userId: user.id, // Lưu userId vào authData
         };
+      console.log(authData)
+
         await AsyncStorage.setItem("data", JSON.stringify(authData));
         showToast({
           type: "success",
@@ -144,7 +156,7 @@ const loginByPhone = () => {
       showToast({
         type: "error",
         heading: "Lỗi",
-        message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
+        message: error.response?.data?.message || error.message || "Có lỗi xảy ra, vui lòng thử lại",
       });
     } finally {
       setLoading(false);
