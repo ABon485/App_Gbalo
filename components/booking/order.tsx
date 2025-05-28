@@ -39,11 +39,21 @@ const OrderTourModal = ({
   imageUrl,
   tourName,
   tourSubName,
-  tourPrices, 
+  tourPrices,
   onConfirm,
 }: Props) => {
-  const [selectedDate, setSelectedDate] = useState("Chọn ngày");
-  const [selectedGuests, setSelectedGuests] = useState("0 khách");
+  const getCurrentFormattedDate = (): string => {
+    const today = new Date();
+    return today.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const [selectedDate, setSelectedDate] = useState(getCurrentFormattedDate());
+
+  const [selectedGuests, setSelectedGuests] = useState("1 khách");
   const [totalPrice, setTotalPrice] = useState(fromPrice);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
@@ -60,39 +70,37 @@ const OrderTourModal = ({
     setShowClientModal(false);
   };
 
-  // Trong Order.js
-const handleConfirm = () => {
-  if (!user) {
-    router.push("/(auths)/(Login)/login");
-    onClose();
-    return;
-  }
+  const handleConfirm = () => {
+    if (!user) {
+      router.push("/(auths)/(Login)/login");
+      onClose();
+      return;
+    }
 
-  // Kiểm tra validate
-  if (!selectedDate || selectedDate === "Chọn ngày") {
-    Alert.alert("Lỗi", "Vui lòng chọn ngày khởi hành trước khi tiếp tục.");
-    return;
-  }
-  if (!selectedGuests || selectedGuests === "1 khách") {
-    Alert.alert("Lỗi", "Vui lòng chọn số lượng khách trước khi tiếp tục.");
-    return;
-  }
+    if (!selectedDate || selectedDate === "Chọn ngày khởi hành") {
+      Alert.alert("Lỗi", "Vui lòng chọn ngày khởi hành trước khi tiếp tục.");
+      return;
+    }
+    if (!selectedGuests || selectedGuests === "1 khách") {
+      Alert.alert("Lỗi", "Vui lòng chọn số lượng khách trước khi tiếp tục.");
+      return;
+    }
 
-  onConfirm();
-  router.push({
-    pathname: "/booking/confirmBooking",
-    params: {
-      tourId: tourId.toString(),
-      selectedDate,
-      selectedGuests,
-      totalPrice: totalPrice.toString(),
-      user: JSON.stringify(user),
-      imageUrl: imageUrl || "",
-      tourName,
-      tourSubName,
-    },
-  });
-};
+    onConfirm();
+    router.push({
+      pathname: "/booking/confirmBooking",
+      params: {
+        tourId: tourId.toString(),
+        selectedDate,
+        selectedGuests,
+        totalPrice: totalPrice.toString(),
+        user: JSON.stringify(user),
+        imageUrl: imageUrl || "",
+        tourName,
+        tourSubName,
+      },
+    });
+  };
 
   return (
     <>
@@ -104,7 +112,6 @@ const handleConfirm = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text>11:04 AM, 21/05/2025</Text>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{title}</Text>
               <TouchableOpacity onPress={onClose}>
@@ -118,38 +125,44 @@ const handleConfirm = () => {
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
               <View style={styles.priceBox}>
                 <Text style={styles.priceText}>
-                  Tổng giá:{" "}
+                  Từ{" "}
                   <Text style={styles.priceHighlight}>
-                    {totalPrice.toLocaleString("vi-VN")}đ
+                    {fromPrice.toLocaleString("vi-VN")}đ /người
                   </Text>
                 </Text>
               </View>
 
               <View style={styles.formContainer}>
                 <View style={styles.row}>
-                  <View style={styles.column}>
+                  <View style={[styles.column, { flex: 2 }]}>
                     <Text style={styles.label}>Chọn ngày khởi hành</Text>
                     <TouchableOpacity
                       onPress={() => setShowScheduleModal(true)}
                       style={styles.pickerContainer}
                     >
-                      <Text style={{ padding: 12 }}>{selectedDate}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
+                        <Text style={{ flexShrink: 1 }}>{selectedDate}</Text>
+                        <AntDesign name="down" size={16} color="black" style={{ marginLeft: 6 }} />
+                      </View>
+
+
                     </TouchableOpacity>
                   </View>
 
-                  <View style={styles.column}>
+                  <View style={[styles.column, { flex: 1.5 }]}>
                     <Text style={styles.label}>Khách</Text>
                     <TouchableOpacity
                       onPress={() => setShowClientModal(true)}
                       style={styles.pickerContainer}
                     >
-                      <Text
-                        style={{ padding: 12 }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {selectedGuests}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
+                        <Text style={{ flexShrink: 1 }} numberOfLines={1} ellipsizeMode="tail">
+                          {selectedGuests}
+                        </Text>
+                        <AntDesign name="down" size={16} color="black" style={{ marginLeft: 6 }} />
+                      </View>
+
+
                     </TouchableOpacity>
                   </View>
                 </View>

@@ -4,7 +4,7 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onSave: (client: string, totalPrice: number) => void; // Cập nhật onSave để trả về tổng giá
+  onSave: (client: string, totalPrice: number) => void;
   tourPrices: Array<{
     id: number;
     guestTypeId: number;
@@ -13,7 +13,7 @@ type Props = {
     price: number;
     unitId: number;
     unitName: string | null;
-  }>; // Thêm tourPrices vào Props
+  }>;
 };
 
 export default function ClientModal({
@@ -22,11 +22,10 @@ export default function ClientModal({
   onSave,
   tourPrices,
 }: Props) {
-  const [adults, setAdults] = useState(0); // Mặc định 1 người lớn
+  const [adults, setAdults] = useState(0);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
 
-  // Tìm giá cho từng loại khách từ tourPrices
   const adultPrice =
     tourPrices.find((price) => price.guestType === "Người lớn")?.price || 0;
   const childPrice =
@@ -38,13 +37,11 @@ export default function ClientModal({
       (price) => price.guestType === "Trẻ em" && price.age === "Từ 2-5 tuổi"
     )?.price || 0;
 
-  // Tính tổng giá
   const calculateTotalPrice = () => {
     return adults * adultPrice + children * childPrice + infants * infantPrice;
   };
 
   const handleSave = () => {
-    // Tạo chuỗi mô tả khách
     const guestDescription =
       [
         adults > 0 ? `${adults} người lớn` : null,
@@ -52,12 +49,9 @@ export default function ClientModal({
         infants > 0 ? `${infants} em bé` : null,
       ]
         .filter(Boolean)
-        .join(", ") || "1 người lớn";
+        .join(", ") || "Không có khách";
 
-    // Tính tổng giá
     const totalPrice = calculateTotalPrice();
-
-    // Gọi onSave với chuỗi mô tả và tổng giá
     onSave(guestDescription, totalPrice);
     onClose();
   };
@@ -71,33 +65,36 @@ export default function ClientModal({
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Counter
-            label="Người lớn"
-            description={`Từ 13 tuổi trở lên - ${adultPrice.toLocaleString(
-              "vi-VN"
-            )}đ`}
-            value={adults}
-            onIncrease={() => setAdults(adults + 1)}
-            onDecrease={() => setAdults(Math.max(1, adults - 1))}
-          />
-          <Counter
-            label="Trẻ em"
-            description={`Từ 6-11 tuổi - ${childPrice.toLocaleString(
-              "vi-VN"
-            )}đ`}
-            value={children}
-            onIncrease={() => setChildren(children + 1)}
-            onDecrease={() => setChildren(Math.max(0, children - 1))}
-          />
-          <Counter
-            label="Em bé"
-            description={`Từ 2-5 tuổi - ${infantPrice.toLocaleString(
-              "vi-VN"
-            )}đ`}
-            value={infants}
-            onIncrease={() => setInfants(infants + 1)}
-            onDecrease={() => setInfants(Math.max(0, infants - 1))}
-          />
+          {adultPrice > 0 && (
+            <Counter
+              label="Người lớn"
+              price={`${adultPrice.toLocaleString("vi-VN")}đ`}
+              description="Từ 13 tuổi trở lên"
+              value={adults}
+              onIncrease={() => setAdults(adults + 1)}
+              onDecrease={() => setAdults(Math.max(0, adults - 1))}
+            />
+          )}
+          {childPrice > 0 && (
+            <Counter
+              label="Trẻ em"
+              price={`${childPrice.toLocaleString("vi-VN")}đ`}
+              description="Từ 6-11 tuổi"
+              value={children}
+              onIncrease={() => setChildren(children + 1)}
+              onDecrease={() => setChildren(Math.max(0, children - 1))}
+            />
+          )}
+          {infantPrice > 0 && (
+            <Counter
+              label="Em bé"
+              price={`${infantPrice.toLocaleString("vi-VN")}đ`}
+              description="Từ 2-5 tuổi"
+              value={infants}
+              onIncrease={() => setInfants(infants + 1)}
+              onDecrease={() => setInfants(Math.max(0, infants - 1))}
+            />
+          )}
 
           <View style={styles.footer}>
             <TouchableOpacity style={styles.deleteButton} onPress={onClose}>
@@ -113,15 +110,16 @@ export default function ClientModal({
   );
 }
 
-// Counter Component
 function Counter({
   label,
+  price,
   description,
   value,
   onIncrease,
   onDecrease,
 }: {
   label: string;
+  price: string;
   description: string;
   value: number;
   onIncrease: () => void;
@@ -130,7 +128,10 @@ function Counter({
   return (
     <View style={styles.counterContainer}>
       <View>
-        <Text style={styles.label}>{label}</Text>
+        <View style={styles.labelPriceContainer}>
+          <Text style={styles.label}>{label}</Text>
+          <Text style={styles.price}> {price}</Text>
+        </View>
         <Text style={styles.description}>{description}</Text>
       </View>
       <View style={styles.counterControls}>
@@ -164,13 +165,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 12,
   },
+  labelPriceContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
   label: {
     fontSize: 16,
     fontWeight: "bold",
+    color: "#333",
+  },
+  price: {
+    fontSize: 13,
+    color: "#FF5722",
+    marginLeft: 8, // Add some spacing between label and price
   },
   description: {
     fontSize: 12,
     color: "#888",
+    marginTop: 2,
   },
   counterControls: {
     flexDirection: "row",
@@ -195,7 +207,6 @@ const styles = StyleSheet.create({
     color: "#FF5722",
     fontWeight: "bold",
   },
-
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",

@@ -10,9 +10,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "red",
-    fontSize: 16,
-    textAlign: "center",
-    marginVertical: 10,
+    fontSize: 13,
+    marginBottom:5
   },
   headerRow: {
     flexDirection: "row",
@@ -127,7 +126,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   contactText: {
-    marginBottom: 10,
+    marginBottom: 5,
   },
   required: {
     color: "red",
