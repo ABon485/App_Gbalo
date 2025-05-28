@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 // Định nghĩa kiểu dữ liệu cho một đánh giá
 interface Review {
@@ -57,6 +58,7 @@ const fakeReviews: Review[] = [
 export default function Rating() {
   const [expandedReviews, setExpandedReviews] = useState<string[]>([]);
   const { width } = Dimensions.get("window");
+  const router = useRouter();
 
   const toggleExpand = (id: string) => {
     if (expandedReviews.includes(id)) {
@@ -146,7 +148,10 @@ export default function Rating() {
       />
 
       {/* Nút "Hiển thị tất cả đánh giá" */}
-      <TouchableOpacity style={styles.showAllButton}>
+      <TouchableOpacity
+        style={styles.showAllButton}
+        onPress={() => router.push("/rating/rating")}
+      >
         <Text style={styles.showAllText}>Hiển thị tất cả 648 đánh giá</Text>
       </TouchableOpacity>
     </View>

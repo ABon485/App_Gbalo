@@ -23,11 +23,9 @@ import Order from "@/components/booking/order";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SimilarTour from "@/app/(screens)/detail/similarTour";
 import Rating from "./rating";
-import ImageSlider from "react-native-image-slider";
-import ImageViewing from "react-native-image-viewing";
 import { FlatList } from "react-native";
 import { useMemo } from "react";
-import FastImage from "react-native-fast-image";
+import ImageGalleryModal from "@/components/rating/ImageGalleryModal";
 
 const formatPrice = (price: number): string =>
   price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " vnđ";
@@ -173,7 +171,6 @@ export default function Detail() {
               <FontAwesome5 name="share-square" size={20} color="#000000" />
             </TouchableOpacity>
           </View>
-
           {/* Image */}
           {imageList.length > 0 && width > 0 ? (
             <FlatList
@@ -237,41 +234,13 @@ export default function Detail() {
               resizeMode="cover"
             />
           )}
-          <ImageViewing
-            images={formattedImages}
-            imageIndex={selectedImageIndex}
+          // Gọi modal ImageGalleryModal ở cuối JSX trong Detail
+          <ImageGalleryModal
             visible={isImageViewerVisible}
-            onRequestClose={() => setIsImageViewerVisible(false)}
-            presentationStyle="fullScreen"
-            onImageIndexChange={(index) => setSelectedImageIndex(index)}
-            HeaderComponent={() => (
-              <View
-                style={{
-                  position: "absolute",
-                  top: 40,
-                  left: 20,
-                  right: 20,
-                  zIndex: 10,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => setIsImageViewerVisible(false)}
-                >
-                  <Ionicons name="arrow-back" size={26} color="#fff" />
-                </TouchableOpacity>
-
-                <Text style={{ color: "#fff", fontSize: 16 }}>
-                  {selectedImageIndex + 1}/{formattedImages.length}
-                </Text>
-
-                <View style={{ width: 26 }} />
-              </View>
-            )}
+            images={imageList}
+            index={selectedImageIndex}
+            onClose={() => setIsImageViewerVisible(false)}
           />
-
           {/* Content */}
           <View style={styles.content}>
             <Text style={styles.title}>{tour.name}</Text>
@@ -366,9 +335,7 @@ export default function Detail() {
               title="Yêu cầu đối với khách hàng"
             />
           </View>
-
           <Rating />
-
           {/* Các tour tương tự */}
           <Text style={styles.section1}>Tour tương tự</Text>
           <SimilarTour provinceIds={provinceIds} tourId={Number(tourId) || 0} />
