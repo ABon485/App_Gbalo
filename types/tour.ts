@@ -35,10 +35,10 @@ export type TourExtraService = {
   id: number;
   name: string;
 };
-export type groupType ={
-  id:number
-  name:string 
-}
+export type groupType = {
+  id: number;
+  name: string;
+};
 
 export type searchTourType = {
   fromPrice: number;
@@ -49,7 +49,7 @@ export type searchTourType = {
   guestQuantitys: {
     guestTypeId: number;
     quantity: number;
-  }[]; 
+  }[];
   page: number;
   pageSize: number;
 };
@@ -105,9 +105,35 @@ export type guestType = {
     age: string;
   }>;
 };
-export type TourGroupType ={
+export type TourGroupType = {
   id: number;
   name: string;
+};
+export type FavoriteTour = {
+  userId: number;
+  tourId: number;
+};
+export interface FavoriteTourAPIResponse {
+  data: {
+    datas: {
+      id: number;
+      name: string;
+      slug: string;
+      featuredImageUrl: string;
+      provinceId: number;
+      provinceName: string | null;
+      vote: number | null;
+      fromPrice: number;
+      isFavorite: boolean;
+      tourExtraServices: any[];
+    }[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    count: number;
+  };
+  status: string;
 }
 export type Order = {
   id: string;

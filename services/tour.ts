@@ -7,6 +7,8 @@ import {
   guestType,
   PaginationInfo,
   TourItem,
+  FavoriteTour,
+  FavoriteTourAPIResponse,
 } from "@/types/tour";
 
 const tourApi = {
@@ -26,12 +28,15 @@ const tourApi = {
 
   searchTour: async (formData: searchTourType): Promise<TourListResponse> => {
     try {
-      console.log('Gửi yêu cầu searchTour:', JSON.stringify(formData, null, 2));
+      console.log("Gửi yêu cầu searchTour:", JSON.stringify(formData, null, 2));
       const response = await apiTour.post("/tour/search", formData);
-      console.log('Phản hồi searchTour:', JSON.stringify(response.data, null, 2));
+      console.log(
+        "Phản hồi searchTour:",
+        JSON.stringify(response.data, null, 2)
+      );
       return response.data;
     } catch (error) {
-      console.error('Lỗi trong searchTour:', error);
+      console.error("Lỗi trong searchTour:", error);
       throw error;
     }
   },
@@ -99,7 +104,57 @@ const tourApi = {
       throw error;
     }
   },
+  Rating: async (id: number) => {
+    try {
+      const response = await apiTour.get(`/rating`);
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  // Thêm param đầu vào cho userId và tourId
 
+  postFavorite: async (
+    userId: number,
+    tourId: number
+  ): Promise<FavoriteTour> => {
+    try {
+      const response = await apiTour.post("/tour/favorite/create", {
+        userId,
+        tourId,
+      });
+      const data: FavoriteTour = response.data.data;
+      return data;
+    } catch (error) {
+      console.error("Error posting favorite tour:", error);
+      throw error;
+    }
+  },
+  deleteFavorite: async (userId: number, tourId: number): Promise<FavoriteTour> => {
+    try {
+      const response = await apiTour.post("/tour/favorite/delete", {
+        userId,
+        tourId,
+      });
+      const data: FavoriteTour = response.data.data;
+      return data;
+    } catch (error) {
+      console.error("Error deleting favorite tour:", error);
+      throw error;
+    }
+  },
+
+  getFavorite: async (userId: number): Promise<FavoriteTourAPIResponse> => {
+    try {
+      const response = await apiTour.get("/tour/favorite", {
+        params: { userId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting favorite tours:", error);
+      throw error;
+    }
+  },
 };
 
 export default tourApi;

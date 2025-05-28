@@ -1,80 +1,81 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { StyleSheet, View, Text, Image, TouchableOpacity, StatusBar, SafeAreaView, SectionList } from "react-native"
-import { Heart } from "lucide-react-native"
-import type { TourItem } from "@/types/tour"
-import { useRouter } from "expo-router"
+import { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StatusBar,
+  SafeAreaView,
+  SectionList,
+  StyleSheet,
+} from "react-native";
+import { Heart } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import tourApi from "@/services/tour";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Sample data grouped by location
-const wishlistData = [
-  {
-    location: "Đà Nẵng",
-    count: 2,
-    data: [
-      {
-        id: "1",
-        title: "Tour sớm đến đói BanaHill/Cầu vàng",
-        image: require("@/assets/images/home/Property1.png"),
-        rating: 4.95,
-        reviews: 648,
-        price: 1234567,
-        isFavorite: true,
-        location: "Đà Nẵng",
-      },
-      {
-        id: "2",
-        title: "Tour sớm đến đói BanaHill/Cầu vàng",
-        image: require("@/assets/images/home/Property1.png"),
-        rating: 4.95,
-        reviews: 648,
-        price: 1234567,
-        isFavorite: true,
-        location: "Đà Nẵng",
-      },
-    ],
-  },
-  {
-    location: "Hà Nội",
-    count: 2,
-    data: [
-      {
-        id: "3",
-        title: "Tour sớm đến đói BanaHill/Cầu vàng",
-        image: require("@/assets/images/home/Property1.png"),
-        rating: 4.95,
-        reviews: 648,
-        price: 1234567,
-        isFavorite: true,
-        location: "Hà Nội",
-      },
-      {
-        id: "4",
-        title: "Tour sớm đến đói BanaHill/Cầu vàng",
-        image: require("@/assets/images/home/Property1.png"),
-        rating: 4.95,
-        reviews: 648,
-        price: 1234567,
-        isFavorite: true,
-        location: "Hà Nội",
-      },
-    ],
-  },
-]
 
-// Format price with commas
 const formatPrice = (price: number): string => {
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-}
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
 
 const WishlistScreen = () => {
-  const [wishlistItems] = useState(wishlistData)
-  const router = useRouter()
+  const [wishlistItems, setWishlistItems] = useState<any[]>([]);
+  const router = useRouter();
 
-  const navigateToDetail = (itemId: string) => {
-    // Navigate to detail page with the item ID
-    // router.push(`/tour/${itemId}`)
-  }
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem("user");
+        if (!storedUser) return;
+
+        const parsedUser = JSON.parse(storedUser);
+        const userId = parsedUser.id;
+
+        const res = await tourApi.getFavorite(userId);
+        const rawTours = res.data.datas;
+
+        const grouped = rawTours.reduce((acc: any, tour: any) => {
+          const key = tour.provinceName || "Khác";
+          if (!acc[key]) acc[key] = [];
+          acc[key].push({
+            id: String(tour.id),
+            title: tour.name,
+            image: { uri: tour.featuredImageUrl },
+            rating: tour.vote ?? 4.5,
+            reviews: 100, // placeholder
+            price: tour.fromPrice,
+            isFavorite: tour.isFavorite,
+            location: key,
+          });
+          return acc;
+        }, {});
+
+        const sections = Object.entries(grouped).map(
+          ([province, data]) => ({
+            location: province,
+            count: (data as any[]).length,
+            data: data as any[],
+          })
+        );
+
+        setWishlistItems(sections);
+      } catch (err) {
+        console.error("Failed to fetch favorites:", err);
+      }
+    };
+
+    fetchFavorites();
+  }, []);
+
+  const navigateToDetail = (id: string) => {
+    router.push({
+          pathname: "/(screens)/detail/[detailID]",
+          params: { detailID: id },
+        });
+  };
 
   const renderSectionHeader = ({ section }: { section: any }) => (
     <View style={styles.sectionHeader}>
@@ -82,34 +83,36 @@ const WishlistScreen = () => {
         {section.location} ({section.count})
       </Text>
     </View>
-  )
+  );
 
-  const renderItem = ({ item }: { item: TourItem & { location: string }; index: number; section: any }) => {
-    return (
-      <TouchableOpacity style={styles.itemContainer} onPress={() => navigateToDetail(item.id)} activeOpacity={0.7}>
-        <View style={styles.itemContent}>
-          <View style={styles.itemInfo}>
-            <Text style={styles.title} numberOfLines={2}>
-              {item.title}
-            </Text>
-            <View style={styles.ratingContainer}>
-              <Text style={styles.ratingIcon}>★</Text>
-              <Text style={styles.rating}>{item.rating}/5</Text>
-              <Text style={styles.reviews}>({item.reviews})</Text>
-            </View>
-            <Text style={styles.location}>{item.location}</Text>
-            <Text style={styles.price}>Từ {formatPrice(item.price)}đ/ Người</Text>
+  const renderItem = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={() => navigateToDetail(item.id)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.itemContent}>
+        <View style={styles.itemInfo}>
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <View style={styles.ratingContainer}>
+            <Text style={styles.ratingIcon}>★</Text>
+            <Text style={styles.rating}>{item.rating}/5</Text>
+            <Text style={styles.reviews}>({item.reviews})</Text>
           </View>
-          <View style={styles.imageContainer}>
-            <Image source={item.image} style={styles.image} />
-            <View style={styles.favoriteButton}>
-              <Heart size={22} color="#fff" fill="#FF3B30" stroke="#FF3B30" />
-            </View>
+          <Text style={styles.location}>{item.location}</Text>
+          <Text style={styles.price}>Từ {formatPrice(item.price)}đ/ Người</Text>
+        </View>
+        <View style={styles.imageContainer}>
+          <Image source={item.image} style={styles.image} />
+          <View style={styles.favoriteButton}>
+            <Heart size={22} color="#fff" fill="#FF3B30" stroke="#FF3B30" />
           </View>
         </View>
-      </TouchableOpacity>
-    )
-  }
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -126,8 +129,8 @@ const WishlistScreen = () => {
         stickySectionHeadersEnabled={false}
       />
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -237,6 +240,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-})
+});
 
-export default WishlistScreen
+export default WishlistScreen;
