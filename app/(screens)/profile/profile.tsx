@@ -5,10 +5,11 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   ActivityIndicator,
   SafeAreaView,
+  Modal,
+  StyleSheet,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
@@ -22,7 +23,6 @@ import PhoneModal from "@/components/profile/phoneNumber";
 import AddressModal from "@/components/profile/address";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import FileUploadWebView from "@/components/WebView_Upload";
-import { Modal } from "react-native";
 
 const ProfileUpdateScreen = () => {
   const params = useLocalSearchParams();
@@ -38,79 +38,138 @@ const ProfileUpdateScreen = () => {
 
   const fetchProfile = async () => {
     try {
-      if (!params.id) {
-        const dataFromStorage = await AsyncStorage.getItem("data");
-        if (dataFromStorage) {
-          const parsedData = JSON.parse(dataFromStorage);
-          const token = parsedData?.token;
-          if (!token) throw new Error("Token không tồn tại");
-
-          const response = await api.get("/Accounts/Profile", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const profileData = response.data.data;
-
-          const updatedProfileData = {
-            ...profileData,
-            fullName:
-              profileData.fullName ||
-              parsedData.fullName ||
-              profile?.fullName ||
-              "",
-            avatar: profileData.avatar || parsedData.avatar || "",
-          };
-
-          const updatedStorage = { ...parsedData, ...updatedProfileData };
-          await AsyncStorage.setItem("data", JSON.stringify(updatedStorage));
-
-          setProfile(updatedProfileData);
-          setLoading(false);
-          return;
-        }
-      }
-
-      if (params.id) {
-        setProfile({
-          id: params.id as string,
-          fullName: params.fullName as string,
-          email: params.email as string,
-          phone: params.phone as string,
-          avatar: params.avatar as string,
-          address: params.address as string,
-          userName: params.userName as string,
-          createDate: params.createDate as string,
-          roles: [],
-          permissions: [],
-          language: params.language as string,
-          nationality: params.nationality as string,
-          dateOfBirth: params.dateOfBirth 
-            ? new Date(params.dateOfBirth as string)
-            : new Date(),
+      const data = await AsyncStorage.getItem("data");
+      if (!data) {
+        showToast({
+          type: "error",
+          message: "Không tìm thấy thông tin người dùng",
         });
         setLoading(false);
         return;
       }
 
-      throw new Error("Không tìm thấy dữ liệu người dùng");
+      const parsedData = JSON.parse(data);
+      const token = parsedData.token;
+      if (!token) {
+        showToast({ type: "error", message: "Không tìm thấy token" });
+        setLoading(false);
+        return;
+      }
+
+      const response = await api.get<ProfileResponse>("/Accounts/Profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data?.data) {
+        const profileData: ProfileResponse["data"] = {
+          id: response.data.data.id || parsedData.id || "",
+          userName: response.data.data.userName || parsedData.userName || "",
+          fullName:
+            response.data.data.fullName || parsedData.fullName || "Khách hàng",
+          isBanned: response.data.data.isBanned ?? parsedData.isBanned ?? false,
+          isActive: response.data.data.isActive ?? parsedData.isActive ?? true,
+          lastActivityDate:
+            response.data.data.lastActivityDate ||
+            parsedData.lastActivityDate ||
+            new Date().toISOString(),
+          isLockedOut:
+            response.data.data.isLockedOut ?? parsedData.isLockedOut ?? false,
+          lastLockoutDate:
+            response.data.data.lastLockoutDate ||
+            parsedData.lastLockoutDate ||
+            new Date().toISOString(),
+          email:
+            response.data.data.email || parsedData.email || "Không có email",
+          avatar: response.data.data.avatar || parsedData.avatar || "",
+          createDate:
+            response.data.data.createDate ||
+            parsedData.createDate ||
+            new Date().toISOString(),
+          roles: response.data.data.roles || parsedData.roles || [],
+          permissions:
+            response.data.data.permissions || parsedData.permissions || [],
+          phone: response.data.data.phone || parsedData.phone || "",
+          language: response.data.data.language || parsedData.language || "vi",
+          address: response.data.data.address || parsedData.address || "",
+          nationality:
+            response.data.data.nationality || parsedData.nationality || "",
+          dateOfBirth:
+            response.data.data.dateOfBirth ||
+            parsedData.dateOfBirth ||
+            new Date().toISOString(),
+          lastChangePassDate:
+            response.data.data.lastChangePassDate ||
+            parsedData.lastChangePassDate ||
+            new Date().toISOString(),
+        };
+
+        setProfile(profileData);
+        // Cập nhật AsyncStorage với dữ liệu mới
+        await AsyncStorage.setItem(
+          "data",
+          JSON.stringify({
+            ...parsedData,
+            ...profileData,
+            token,
+          })
+        );
+      } else {
+        throw new Error("Không có dữ liệu trả về từ API");
+      }
     } catch (error) {
-      console.error("Lỗi khi lấy thông tin:", error);
-      showToast({ message: "Không thể tải dữ liệu.", type: "error" });
+      console.error("Lỗi khi fetch profile:", error);
+      showToast({ type: "error", message: "Không thể tải hồ sơ" });
+
+      // Fallback to AsyncStorage data
+      const parsedData = JSON.parse(
+        (await AsyncStorage.getItem("data")) || "{}"
+      );
+      if (parsedData) {
+        const profileData: ProfileResponse["data"] = {
+          id: parsedData.id || "",
+          userName: parsedData.userName || "",
+          fullName: parsedData.fullName || "Khách hàng",
+          isBanned: parsedData.isBanned ?? false,
+          isActive: parsedData.isActive ?? true,
+          lastActivityDate:
+            parsedData.lastActivityDate || new Date().toISOString(),
+          isLockedOut: parsedData.isLockedOut ?? false,
+          lastLockoutDate:
+            parsedData.lastLockoutDate || new Date().toISOString(),
+          email: parsedData.email || "Không có email",
+          avatar: parsedData.avatar || "",
+          createDate: parsedData.createDate || new Date().toISOString(),
+          roles: parsedData.roles || [],
+          permissions: parsedData.permissions || [],
+          phone: parsedData.phone || "",
+          language: parsedData.language || "vi",
+          address: parsedData.address || "",
+          nationality: parsedData.nationality || "",
+          dateOfBirth: parsedData.dateOfBirth
+            ? typeof parsedData.dateOfBirth === "string"
+              ? parsedData.dateOfBirth
+              : new Date(parsedData.dateOfBirth).toISOString()
+            : new Date().toISOString(),
+          lastChangePassDate:
+            parsedData.lastChangePassDate || new Date().toISOString(),
+        };
+        setProfile(profileData);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const updateAvatarUrl = async (fileUrl: string) => {
-    console.log("Avatar URL nhận được:", fileUrl);
     try {
       const data = await AsyncStorage.getItem("data");
-      if (!data) throw new Error("Không tìm thấy dữ liệu người dùng");
+      if (!data) throw new Error("Không tìm thấy thông tin người dùng");
 
       const parsedData = JSON.parse(data);
-      const token = parsedData?.token;
+      const token = parsedData.token;
       if (!token) throw new Error("Token không tồn tại");
 
-      const response = await api.post(
+      await api.post(
         "/Accounts/ChangeProfile",
         {
           avatar: fileUrl,
@@ -118,51 +177,90 @@ const ProfileUpdateScreen = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log("API /Accounts/ChangeProfile response:", response.data);
 
-      parsedData.avatar = fileUrl;
-      parsedData.fullName = parsedData.fullName || profile?.fullName || "";
-      await AsyncStorage.setItem("data", JSON.stringify(parsedData));
-      console.log("AsyncStorage updated with avatar and fullName:", parsedData);
+      // Cập nhật profile state
+      if (profile) {
+        setProfile({ ...profile, avatar: fileUrl });
+      }
 
-      await fetchProfile();
+      // Cập nhật AsyncStorage
+      await AsyncStorage.setItem(
+        "data",
+        JSON.stringify({
+          ...parsedData,
+          avatar: fileUrl,
+        })
+      );
+
       showToast({
-        message: "Cập nhật ảnh đại diện thành công",
         type: "success",
+        message: "Cập nhật ảnh đại diện thành công",
       });
     } catch (error) {
       console.error("Lỗi cập nhật avatar:", error);
-      showToast({ message: "Cập nhật ảnh đại diện thất bại", type: "error" });
+      showToast({ type: "error", message: "Thất bại khi cập nhật avatar" });
     }
   };
 
   useEffect(() => {
     fetchProfile();
-  }, [params]);
+  }, []);
 
-  const handleEmailUpdated = (newEmail: string) => {
+  const handleEmailUpdated = async (newEmail: string) => {
     if (profile) {
       setProfile({ ...profile, email: newEmail });
-      console.log("Updated profile with email:", {
-        ...profile,
-        email: newEmail,
-      });
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        await AsyncStorage.setItem(
+          "data",
+          JSON.stringify({ ...parsedData, email: newEmail })
+        );
+      }
     }
   };
 
-  const handlePhoneUpdated = (newPhone: string) => {
+  const handlePhoneUpdated = async (newPhone: string) => {
     if (profile) {
       setProfile({ ...profile, phone: newPhone });
-      console.log("Updated profile:", { ...profile, phone: newPhone });
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        await AsyncStorage.setItem(
+          "data",
+          JSON.stringify({ ...parsedData, phone: newPhone })
+        );
+      }
     }
   };
 
-  const handleNameUpdated = (newName: string) => {
+  const handleNameUpdated = async (newName: string) => {
     if (profile) {
       setProfile({ ...profile, fullName: newName });
-      console.log("Updated profile:", { ...profile, fullName: newName });
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        await AsyncStorage.setItem(
+          "data",
+          JSON.stringify({ ...parsedData, fullName: newName })
+        );
+      }
     }
   };
+
+  // const handleAddressUpdated = async (newAddress: string) => {
+  //   if (profile) {
+  //     setProfile({ ...profile, address: newAddress });
+  //     const data = await AsyncStorage.getItem("data");
+  //     if (data) {
+  //       const parsedData = JSON.parse(data);
+  //       await AsyncStorage.setItem(
+  //         "data",
+  //         JSON.stringify({ ...parsedData, address: newAddress })
+  //       );
+  //     }
+  //   }
+  // };
 
   if (loading) {
     return (
@@ -181,137 +279,133 @@ const ProfileUpdateScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Icon name="arrow-back" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Cập nhật thông tin cá nhân</Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Icon name="arrow-back" size={24} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Cập nhật thông tin cá nhân</Text>
+          <View style={{ width: 24 }} />
+        </View>
 
-      <View style={styles.avatarContainer}>
-        <Image
-          source={{
-            uri:
-              profile.avatar ||
-              "https://t3.ftcdn.net/jpg/11/69/54/34/360_F_1169543439_7AxjAvV0GnwlEo3IIqlCGqiF3UFJfTAe.jpg",
-          }}
-          style={styles.avatar}
-        />
-        <TouchableOpacity
-          style={styles.avatarOverlay}
-          onPress={() => setShowWebView(true)}
-        >
-          <MaterialCommunityIcons
-            name="image-edit-outline"
-            size={24}
-            color="black"
+        <View style={styles.avatarContainer}>
+          <Image
+            source={{
+              uri:
+                profile.avatar ||
+                "https://t3.ftcdn.net/jpg/11/69/54/34/360_F_1169543439_7AxjAvV0GnwlEo3IIqlCGqiF3UFJfTAe.jpg",
+            }}
+            style={styles.avatar}
           />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.row}>
-        <View style={styles.rowLeft}>
-          <Text style={styles.label}>Họ và tên:</Text>
-          <Text style={styles.value}>
-            {profile.fullName || "Chưa cung cấp"}
-          </Text>
+          <TouchableOpacity
+            style={styles.avatarOverlay}
+            onPress={() => setShowWebView(true)}
+          >
+            <MaterialCommunityIcons
+              name="image-edit-outline"
+              size={24}
+              color="black"
+            />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => setShowUserNameModal(true)}>
-          <Text style={styles.editButton}>Chỉnh sửa</Text>
-        </TouchableOpacity>
-        <UserNameModal
-          visible={showUserNameModal}
-          onClose={() => setShowUserNameModal(false)}
-          title="Họ và tên"
-          content={profile.fullName || ""}
-          onUpdateName={handleNameUpdated}
-          fetchProfile={fetchProfile}
-        />
-      </View>
 
-      <View style={styles.row}>
-        <View style={styles.rowLeft}>
-          <Text style={styles.label}>Địa chỉ email:</Text>
-          <Text style={styles.value}>{profile.email || "Chưa cung cấp"}</Text>
-        </View>
-        <TouchableOpacity
-          disabled={!!profile.email}
-          onPress={() => setShowEmailModal(true)}
-          style={profile.email ? { display: "none" } : {}}
-        >
-          <Text style={[styles.editButton, profile.email && { color: "#999" }]}>
-            {profile.phone ? "Thêm" : "Không thể sửa"}
-          </Text>
-        </TouchableOpacity>
-        <EmailModal
-          visible={showEmailModal}
-          onClose={() => setShowEmailModal(false)}
-          title="Địa chỉ email"
-          content={profile.email || ""}
-          onUpdateEmail={handleEmailUpdated}
-          fetchProfile={fetchProfile}
-        />
-      </View>
-
-      <View style={styles.row}>
-        <View style={styles.rowLeft}>
-          <Text style={styles.label}>Số điện thoại:</Text>
-          <Text style={styles.value}>{profile.phone || "Chưa cung cấp"}</Text>
-        </View>
-        <TouchableOpacity
-          disabled={!!profile.phone}
-          onPress={() => setShowPhoneModal(true)}
-          style={profile.phone ? { display: "none" } : {}}
-        >
-          <Text style={[styles.editButton, profile.phone && { color: "#999" }]}>
-            {profile.email ? "Thêm" : "Không thể sửa"}
-          </Text>
-        </TouchableOpacity>
-        <PhoneModal
-          visible={showPhoneModal}
-          onClose={() => setShowPhoneModal(false)}
-          title="Số điện thoại"
-          content={profile.phone || ""}
-          onUpdatePhone={handlePhoneUpdated}
-          fetchProfile={fetchProfile}
-        />
-      </View>
-
-      <View style={styles.row}>
-        <View style={styles.rowLeft}>
-          <Text style={styles.label}>Địa chỉ:</Text>
-          <Text style={styles.value}>{profile.address || "Chưa cung cấp"}</Text>
-        </View>
-        <TouchableOpacity onPress={() => setShowAddressModal(true)}>
-          <Text style={styles.editButton}>Thêm</Text>
-        </TouchableOpacity>
-        <AddressModal
-          visible={showAddressModal}
-          onClose={() => setShowAddressModal(false)}
-          title="Địa chỉ"
-          content={profile.address || ""}
-        />
-      </View>
-
-      <Modal
-        visible={showWebView}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setShowWebView(false)}
-        statusBarTranslucent={true}
-        presentationStyle="fullScreen"
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <FileUploadWebView
-            token={`User${profile.id}`}
-            onFileSelected={(fileUrl) => updateAvatarUrl(fileUrl)}
-            onClose={() => setShowWebView(false)}
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.label}>Họ và tên:</Text>
+            <Text style={styles.value}>
+              {profile.fullName || "Chưa cung cấp"}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => setShowUserNameModal(true)}>
+            <Text style={styles.editButton}>Chỉnh sửa</Text>
+          </TouchableOpacity>
+          <UserNameModal
+            visible={showUserNameModal}
+            onClose={() => setShowUserNameModal(false)}
+            title="Họ và tên"
+            content={profile.fullName || ""}
+            onUpdateName={handleNameUpdated}
+            fetchProfile={fetchProfile}
           />
-        </SafeAreaView>
-      </Modal>
-    </ScrollView>
+        </View>
+
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.label}>Email:</Text>
+            <Text style={styles.value}>{profile.email || "Chưa cung cấp"}</Text>
+          </View>
+          {!profile.email && (
+            <TouchableOpacity onPress={() => setShowEmailModal(true)}>
+              <Text style={styles.editButton}>Thêm</Text>
+            </TouchableOpacity>
+          )}
+          <EmailModal
+            visible={showEmailModal}
+            onClose={() => setShowEmailModal(false)}
+            title="Email"
+            content={profile.email || ""}
+            onUpdateEmail={handleEmailUpdated}
+            fetchProfile={fetchProfile}
+          />
+        </View>
+
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.label}>Số điện thoại:</Text>
+            <Text style={styles.value}>{profile.phone || "Chưa cung cấp"}</Text>
+          </View>
+          {!profile.phone && (
+            <TouchableOpacity onPress={() => setShowPhoneModal(true)}>
+              <Text style={styles.editButton}>Thêm</Text>
+            </TouchableOpacity>
+          )}
+          <PhoneModal
+            visible={showPhoneModal}
+            onClose={() => setShowPhoneModal(false)}
+            title="Số điện thoại"
+            content={profile.phone || ""}
+            onUpdatePhone={handlePhoneUpdated}
+            fetchProfile={fetchProfile}
+          />
+        </View>
+
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.label}>Địa chỉ:</Text>
+            <Text style={styles.value}>
+              {profile.address || "Chưa cung cấp"}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => setShowAddressModal(true)}>
+            <Text style={styles.editButton}>Thêm</Text>
+          </TouchableOpacity>
+          {/* <AddressModal
+            visible={showAddressModal}
+            onClose={() => setShowAddressModal(false)}
+            title="Địa chỉ"
+            content={profile.address || ""}
+            onUpdateAddress={handleAddressUpdated}
+            fetchProfile={fetchProfile}
+          /> */}
+        </View>
+
+        <Modal
+          visible={showWebView}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={() => setShowWebView(false)}
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            <FileUploadWebView
+              token={`User${profile.id}`}
+              onFileSelected={updateAvatarUrl}
+              onClose={() => setShowWebView(false)}
+            />
+          </SafeAreaView>
+        </Modal>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -319,13 +413,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingHorizontal: 20,
-    paddingTop: 30,
+    paddingTop: 25,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 16,
+    paddingHorizontal: 20,
     justifyContent: "space-between",
   },
   headerTitle: {
@@ -354,6 +448,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 12,
+    paddingHorizontal: 20,
     borderBottomWidth: 0.5,
     borderBottomColor: "#ccc",
   },

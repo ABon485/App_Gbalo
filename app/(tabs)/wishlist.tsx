@@ -15,7 +15,7 @@ import { Heart } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import tourApi from "@/services/tour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { useToast } from "@/context/ToastContext";
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -23,47 +23,81 @@ const formatPrice = (price: number): string => {
 
 const WishlistScreen = () => {
   const [wishlistItems, setWishlistItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem("user");
-        if (!storedUser) return;
+        setLoading(true);
+        const storedData = await AsyncStorage.getItem("data");
+        if (!storedData) {
+          showToast({
+            type: "error",
+            message: "Vui lòng đăng nhập để xem danh sách yêu thích.",
+          });
+          router.push("/(auths)/(Login)/login");
+          return;
+        }
 
-        const parsedUser = JSON.parse(storedUser);
-        const userId = parsedUser.id;
+        const parsedData = JSON.parse(storedData);
+        const userId = parsedData.profile?.id || parsedData.id;
+
+        if (!userId) {
+          showToast({
+            type: "error",
+            message: "Không tìm thấy ID người dùng. Vui lòng đăng nhập lại.",
+          });
+          router.push("/(auths)/(Login)/login");
+          return;
+        }
 
         const res = await tourApi.getFavorite(userId);
+        console.log(
+          "Favorite API response:",
+          JSON.stringify(res.data.datas, null, 2)
+        );
         const rawTours = res.data.datas;
 
+        if (!rawTours || rawTours.length === 0) {
+          setWishlistItems([]);
+          setLoading(false);
+          return;
+        }
+
         const grouped = rawTours.reduce((acc: any, tour: any) => {
-          const key = tour.provinceName || "Khác";
-          if (!acc[key]) acc[key] = [];
-          acc[key].push({
+          const provinceName = tour.provinceName || "Không xác định";
+          if (!acc[provinceName]) acc[provinceName] = [];
+          acc[provinceName].push({
             id: String(tour.id),
             title: tour.name,
             image: { uri: tour.featuredImageUrl },
             rating: tour.vote ?? 4.5,
-            reviews: 100, // placeholder
+            reviews: 100,
+            provinceName: provinceName,
             price: tour.fromPrice,
             isFavorite: tour.isFavorite,
-            location: key,
+            location: provinceName,
           });
           return acc;
         }, {});
 
-        const sections = Object.entries(grouped).map(
-          ([province, data]) => ({
-            location: province,
-            count: (data as any[]).length,
-            data: data as any[],
-          })
-        );
+        const sections = Object.entries(grouped).map(([province, data]) => ({
+          location: province,
+          count: (data as any[]).length,
+          data: data as any[],
+        }));
 
         setWishlistItems(sections);
       } catch (err) {
         console.error("Failed to fetch favorites:", err);
+        showToast({
+          type: "error",
+          message: "Không thể tải danh sách yêu thích. Vui lòng thử lại.",
+        });
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -72,9 +106,9 @@ const WishlistScreen = () => {
 
   const navigateToDetail = (id: string) => {
     router.push({
-          pathname: "/(screens)/detail/[detailID]",
-          params: { detailID: id },
-        });
+      pathname: "/(screens)/detail/[detailID]",
+      params: { detailID: id },
+    });
   };
 
   const renderSectionHeader = ({ section }: { section: any }) => (
@@ -113,6 +147,14 @@ const WishlistScreen = () => {
       </View>
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.loadingText}>Đang tải...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -239,6 +281,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 20,
+    color: "#333",
   },
 });
 
