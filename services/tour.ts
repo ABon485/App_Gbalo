@@ -9,6 +9,7 @@ import {
   TourItem,
   FavoriteTour,
   FavoriteTourAPIResponse,
+  Booking,
 
 
 
@@ -159,6 +160,15 @@ const tourApi = {
       throw error;
     }
   },
+  createBooking: async (bookingData: Booking): Promise<any> => {
+  try {
+    const response = await api.post("/booking/tour/create", bookingData);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi tạo booking:", error);
+    throw error;
+  }
+},
 };
 
 export default tourApi;

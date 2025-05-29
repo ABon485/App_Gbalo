@@ -29,6 +29,8 @@ const LoginEmail = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
+
 
   const { showToast } = useToast();
 
@@ -49,128 +51,130 @@ const LoginEmail = () => {
   };
 
   const handleLogin = async () => {
-  // Trim inputs to avoid whitespace issues
-  const trimmedEmail = email.trim();
-  const trimmedPassword = password.trim();
+    // Trim inputs to avoid whitespace issues
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
 
-  // Validate empty fields
-  if (!trimmedEmail) {
-    showToast({
-      type: "error",
-      heading: "Lỗi",
-      message: "Vui lòng nhập email",
-    });
-    return;
-  }
-
-  if (!trimmedPassword) {
-    showToast({
-      type: "error",
-      heading: "Lỗi",
-      message: "Vui lòng nhập mật khẩu",
-    });
-    return;
-  }
-
-  // Validate email format
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(trimmedEmail)) {
-    showToast({
-      type: "error",
-      heading: "Lỗi",
-      message: "Định dạng email không hợp lệ",
-    });
-    return;
-  }
-
-  // Validate password: at least 8 characters, one uppercase, one number, one special character
-  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
-  if (!passwordRegex.test(trimmedPassword)) {
-    showToast({
-      type: "error",
-      heading: "Lỗi",
-      message: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, số và ký tự đặc biệt",
-    });
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const formData: LoginEmailType = {
-      email: trimmedEmail,
-      password: trimmedPassword,
-      rememberMe,
-    };
-
-    const response: ApiResponse = await api.post("/LoginByEmail", formData);
-    console.log("API /LoginByEmail response:", response);
-
-    const isSuccess = response.data?.status === "Success";
-    const token = response.data?.data?.token;
-
-    if (isSuccess && token) {
-      // Gọi API UserProfile để lấy thông tin user
-      const profileResponse = await api.get("/Accounts/Profile", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const user = profileResponse.data?.data;
-
-      if (!user) {
-        showToast({
-          type: "error",
-          heading: "Lỗi",
-          message: "Không thể lấy thông tin người dùng",
-        });
-        return;
-      }
-
-      const authData = {
-        token,
-        email: trimmedEmail,
-        fullName: user.fullName || "Khách hàng",
-        userId: user.id, // Lưu userId vào authData
-      };
-      console.log(authData)
-      await AsyncStorage.setItem("data", JSON.stringify(authData));
-
-      showToast({
-        type: "success",
-        heading: "Thành công",
-        message: "Đăng nhập thành công!",
-      });
-
-      router.replace("/(tabs)/assistant");
-    } else {
-      let errorMessage = response.data?.message || "Đăng nhập thất bại";
-
-      if (errorMessage.toLowerCase().includes("password")) {
-        errorMessage = "Sai mật khẩu";
-      } else if (errorMessage.toLowerCase().includes("not found")) {
-        errorMessage = "Tài khoản không tồn tại";
-      } else if (!errorMessage) {
-        errorMessage = "Có lỗi xảy ra, vui lòng thử lại";
-      }
-
+    // Validate empty fields
+    if (!trimmedEmail) {
       showToast({
         type: "error",
         heading: "Lỗi",
-        message: errorMessage,
+        message: "Vui lòng nhập email",
       });
+      return;
     }
-  } catch (error: any) {
-    showToast({
-      type: "error",
-      heading: "Lỗi",
-      message: error.response?.data?.message || error.message || "Có lỗi xảy ra, vui lòng thử lại",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+
+    if (!trimmedPassword) {
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Vui lòng nhập mật khẩu",
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Định dạng email không hợp lệ",
+      });
+      return;
+    }
+
+    // Validate password: at least 8 characters, one uppercase, one number, one special character
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+    if (!passwordRegex.test(trimmedPassword)) {
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, số và ký tự đặc biệt",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const formData: LoginEmailType = {
+        email: trimmedEmail,
+        password: trimmedPassword,
+        rememberMe,
+      };
+
+      const response: ApiResponse = await api.post("/LoginByEmail", formData);
+      console.log("API /LoginByEmail response:", response);
+
+      const isSuccess = response.data?.status === "Success";
+      const token = response.data?.data?.token;
+
+      if (isSuccess && token) {
+        // Gọi API UserProfile để lấy thông tin user
+        const profileResponse = await api.get("/Accounts/Profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const user = profileResponse.data?.data;
+
+        if (!user) {
+          showToast({
+            type: "error",
+            heading: "Lỗi",
+            message: "Không thể lấy thông tin người dùng",
+          });
+          return;
+        }
+        // Đặt userId vào state
+        setUserId(user.id);
+
+        const authData = {
+          token,
+          email: trimmedEmail,
+          fullName: user.fullName || "Khách hàng",
+          userId: user.id, // Lưu userId vào authData
+        };
+        console.log(authData)
+        await AsyncStorage.setItem("data", JSON.stringify(authData));
+
+        showToast({
+          type: "success",
+          heading: "Thành công",
+          message: "Đăng nhập thành công!",
+        });
+
+        router.replace("/(tabs)/assistant");
+      } else {
+        let errorMessage = response.data?.message || "Đăng nhập thất bại";
+
+        if (errorMessage.toLowerCase().includes("password")) {
+          errorMessage = "Sai mật khẩu";
+        } else if (errorMessage.toLowerCase().includes("not found")) {
+          errorMessage = "Tài khoản không tồn tại";
+        } else if (!errorMessage) {
+          errorMessage = "Có lỗi xảy ra, vui lòng thử lại";
+        }
+
+        showToast({
+          type: "error",
+          heading: "Lỗi",
+          message: errorMessage,
+        });
+      }
+    } catch (error: any) {
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: error.response?.data?.message || error.message || "Có lỗi xảy ra, vui lòng thử lại",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>

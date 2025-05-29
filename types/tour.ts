@@ -147,4 +147,41 @@ export type Order = {
 export type TabType = 'all' | 'pending' | 'paid' | 'completed';
 
 
+// types/booking.ts
 
+export type Booking = {
+  CustomerId: number;
+  departureDate: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  customerAddress: string;
+  note: string;
+  services: Service[];
+  payments: Payment[];
+}
+
+export type Service = {
+  serviceId: number;
+  serviceName: string;
+  details: ServiceDetail[];
+}
+
+export type ServiceDetail = {
+  serviceDetailId: number;
+  quantity: number;
+  price: number;
+}
+
+export type Payment = {
+  paymentDate: string;
+  paymentMethodId: number;
+  bankCode: string;
+  paymentAmount: number;
+  paymentAmountByCurrency: number;
+  currencyType: string;
+  currencyRate: number;
+  note: string;
+  isDeposit: boolean;
+  isDepositPaid: boolean;
+}

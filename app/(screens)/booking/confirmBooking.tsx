@@ -15,8 +15,10 @@ import EditPersonalInformation from "@/components/booking/edit-personal-informat
 import AddDiscountCode from "@/components/booking/add-discount-code";
 import { router, useLocalSearchParams } from "expo-router";
 import tourApi from "@/services/tour";
-import { TourDetail } from "@/types/tour";
+import bookingApi from "@/services/tour";
+import { Booking, TourDetail } from "@/types/tour";
 import { useToast } from "@/context/ToastContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ConfirmBooking() {
   const [checkbox, setIsCheckbox] = useState(false);
@@ -31,11 +33,15 @@ export default function ConfirmBooking() {
   const [showEditPersonalModal, setShowEditPersonalModal] = useState(false);
   const [showAddDiscountModal, setShowAddDiscountModal] = useState(false);
   const [tour, setTour] = useState<TourDetail | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+
+
   const { showToast } = useToast();
   const [userInfo, setUserInfo] = useState<{
     fullName?: string;
     phone?: string;
     email?: string;
+    address?:string;
   } | null>(null);
   const [contactErrors, setContactErrors] = useState<{
     fullName?: string;
@@ -62,7 +68,7 @@ export default function ConfirmBooking() {
 
   const params = useLocalSearchParams();
   const tourId = Number(params.tourId);
-  const initialDate = params.selectedDate as string;
+  const initialDate = params.selectedDate as string; 
   const initialGuests = params.selectedGuests as string;
   const initialTotalPrice = Number(params.totalPrice) || 0;
   const initialImageUrl = params.imageUrl as string;
@@ -93,6 +99,22 @@ export default function ConfirmBooking() {
       fetchTourDetail();
     }
   }, [tourId]);
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const dataStr = await AsyncStorage.getItem("data");
+        if (dataStr) {
+          const data = JSON.parse(dataStr);
+          if (data && data.userId) {
+            setUserId(data.userId);
+          }
+        }
+      } catch (err) {
+        console.error("Lỗi lấy userId từ AsyncStorage:", err);
+      }
+    };
+    fetchUserId();
+  }, []);
 
   useEffect(() => {
     // Cập nhật dữ liệu ban đầu
@@ -125,6 +147,7 @@ export default function ConfirmBooking() {
     setTotalPrice(price);
     setShowClientModal(false);
   };
+
 
   const handleSavePersonalInfo = (personalInfo: { fullName: string; phone: string; email: string; }) => {
     setUserInfo(prev => ({
@@ -169,70 +192,144 @@ export default function ConfirmBooking() {
     </TouchableOpacity>
   );
 
-  const handlePayment = () => {
-    // Validate ngày khởi hành
-    if (
-      !selectedDate ||
-      selectedDate === "Chưa chọn" ||
-      selectedDate === "Chọn ngày"
-    ) {
-      showToast({
-        type: "error",
-        message: "Vui lòng chọn ngày khởi hành trước khi thanh toán.",
-      });
-      return;
-    }
+  const handlePayment = async () => {
+  if (
+    !selectedDate ||
+    selectedDate === "Chưa chọn" ||
+    selectedDate === "Chọn ngày"
+  ) {
+    console.log("Validation failed: Invalid or missing selectedDate");
+    showToast({
+      type: "error",
+      message: "Vui lòng chọn ngày khởi hành trước khi thanh toán.",
+    });
+    return;
+  }
+  if (
+    !selectedGuests ||
+    selectedGuests === "Chưa chọn" ||
+    selectedGuests === "1 khách"
+  ) {
+    showToast({
+      type: "error",
+      message: "Vui lòng chọn số lượng khách trước khi thanh toán.",
+    });
+    return;
+  }
 
-    // Validate số khách
-    if (
-      !selectedGuests ||
-      selectedGuests === "Chưa chọn" ||
-      selectedGuests === "1 khách"
-    ) {
-      showToast({
-        type: "error",
-        message: "Vui lòng chọn số lượng khách trước khi thanh toán.",
-      });
-      return;
-    }
+  const errors: typeof contactErrors = {};
+  if (!userInfo?.fullName || userInfo.fullName.trim() === "") {
+    errors.fullName = "Vui lòng điền tên của bạn.";
+  }
+  if (!userInfo?.phone || userInfo.phone.trim() === "") {
+    errors.phone = "Vui lòng điền số điện thoại của bạn.";
+  }
+  if (!userInfo?.email || userInfo.email.trim() === "") {
+    errors.email = "Vui lòng điền email của bạn.";
+  }
+  setContactErrors(errors);
 
-    // Validate contact info
-    const errors: typeof contactErrors = {};
-    if (!userInfo?.fullName || userInfo.fullName.trim() === "") {
-      errors.fullName = "Vui lòng điền tên của bạn.";
-    }
-    if (!userInfo?.phone || userInfo.phone.trim() === "") {
-      errors.phone = "Vui lòng điền số điện thoại của bạn.";
-    }
-    if (!userInfo?.email || userInfo.email.trim() === "") {
-      errors.email = "Vui lòng điền email của bạn.";
-    }
-    setContactErrors(errors);
+  if (Object.keys(errors).length > 0) {
+    return;
+  }
 
-    if (Object.keys(errors).length > 0) {
-      // Có lỗi, không cho tiếp tục
-      return;
-    }
+  // Kiểm tra đồng ý điều khoản
+  if (!checkbox) {
+    showToast({
+      type: "error",
+      message: "Vui lòng đồng ý với Điều khoản sử dụng và Chính sách hoàn hủy.",
+    });
+    return;
+  }
 
-    // Kiểm tra checkbox
-    if (!checkbox) {
-      showToast({
-        type: "error",
-        message:
-          "Vui lòng đồng ý với Điều khoản sử dụng và Chính sách hoàn hủy.",
-      });
-      return;
-    }
+  // Kiểm tra userId
+  if (!userInfo || !userId) {
+    router.push("/(auths)/(Login)/login");
+    return;
+  }
 
-    // Kiểm tra đăng nhập
-    if (!userInfo) {
-      router.push("/(auths)/(Login)/login");
-      return;
-    }
+  console.log("Parsing selectedGuests:", selectedGuests);
+  const guestMatch = selectedGuests.match(/^(\d+)\s*(.+)$/); // e.g., "2 adults" -> ["2 adults", "2", "adults"]
+  if (!guestMatch) {
+    console.log("Validation failed: Invalid selectedGuests format");
+    showToast({
+      type: "error",
+      message: "Dữ liệu số lượng khách không hợp lệ.",
+    });
+    return;
+  }
 
-    // Thành công
+  const quantity = parseInt(guestMatch[1], 10); // Extract quantity (e.g., 2)
+  const guestType = guestMatch[2].trim(); // Extract guest type (e.g., "adults")
+
+  const tourPrice = tour?.tourPrices.find(
+    (price) => price.guestType.toLowerCase() === guestType.toLowerCase()
+  );
+
+  if (!tourPrice) {
+    console.log("Validation failed: No matching tourPrice for guestType", guestType);
+    showToast({
+      type: "error",
+      message: "Không tìm thấy thông tin giá cho loại khách này.",
+    });
+    return;
+  }
+
+  const guestTypeId = tourPrice.guestTypeId;
+  const price = tourPrice.price;
+
+  // Verify totalPrice consistency
+  const expectedTotalPrice = price * quantity;
+  if (totalPrice !== expectedTotalPrice) {
+
+  }
+
+  // Tạo dữ liệu đặt chỗ
+  const bookingData: Booking = {
+  CustomerId: userId || 11,
+  departureDate: selectedDate,
+  customerName: userInfo.fullName || "",
+  customerPhone: userInfo.phone || "",
+  customerEmail: userInfo.email || "",
+  customerAddress: userInfo.address || "",
+  note: "",
+  services: [
+    {
+      serviceId: tourId,
+      serviceName: tourName,
+      details: [
+        {
+          serviceDetailId: guestTypeId,
+          quantity: quantity,
+          price: price,
+        },
+      ],
+    },
+  ],
+  payments: [
+    {
+      paymentDate: new Date().toISOString(), // hoặc 'YYYY-MM-DD HH:mm:ss'
+      paymentMethodId: 1,
+      bankCode: "VNPay",
+      paymentAmount: totalPrice,
+      paymentAmountByCurrency: totalPrice,
+      currencyType: "VND",
+      currencyRate: 1,
+      note: "",
+      isDeposit: true,
+      isDepositPaid: false,
+    },
+  ],
+};
+
+  console.log("Generated bookingData:", JSON.stringify(bookingData, null, 2));
+
+  try {
+    const response = await bookingApi.createBooking(bookingData);
+    console.log("Booking API response:", response);
+
     router.push({
-      pathname: "/booking/successBooking",
+      pathname: "/(screens)/booking/successBooking",
       params: {
         tourId: tourId.toString(),
         selectedDate,
@@ -242,9 +339,19 @@ export default function ConfirmBooking() {
         tourName,
         tourSubName,
         userInfo: JSON.stringify(userInfo),
+        bookingId: response.id,
       },
     });
-  };
+  } catch (error) {
+    console.error("Error in bookingApi.createBooking:", error);
+    console.log("Error details:", JSON.stringify(error, null, 2));
+    showToast({
+      type: "error",
+      message: "Tạo booking thất bại, vui lòng thử lại.",
+    });
+  }
+
+};
 
   if (!tour) {
     return (
