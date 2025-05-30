@@ -23,6 +23,7 @@ import PhoneModal from "@/components/profile/phoneNumber";
 import AddressModal from "@/components/profile/address";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import FileUploadWebView from "@/components/WebView_Upload";
+import ImageGalleryModal from "@/components/rating/ImageGalleryModal";
 
 const ProfileUpdateScreen = () => {
   const params = useLocalSearchParams();
@@ -35,6 +36,9 @@ const ProfileUpdateScreen = () => {
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
+  const [imageList, setImageList] = useState<string[]>([]);
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const fetchProfile = async () => {
     try {
@@ -104,14 +108,9 @@ const ProfileUpdateScreen = () => {
         };
 
         setProfile(profileData);
-        // Cập nhật AsyncStorage với dữ liệu mới
         await AsyncStorage.setItem(
           "data",
-          JSON.stringify({
-            ...parsedData,
-            ...profileData,
-            token,
-          })
+          JSON.stringify({ ...parsedData, ...profileData, token })
         );
       } else {
         throw new Error("Không có dữ liệu trả về từ API");
@@ -120,7 +119,6 @@ const ProfileUpdateScreen = () => {
       console.error("Lỗi khi fetch profile:", error);
       showToast({ type: "error", message: "Không thể tải hồ sơ" });
 
-      // Fallback to AsyncStorage data
       const parsedData = JSON.parse(
         (await AsyncStorage.getItem("data")) || "{}"
       );
@@ -170,7 +168,7 @@ const ProfileUpdateScreen = () => {
       if (!token) throw new Error("Token không tồn tại");
 
       await api.post(
-        "/Accounts/ChangeProfile",
+        "/Accounts/ChangeAvatar",
         {
           avatar: fileUrl,
           fullName: parsedData.fullName || profile?.fullName || "",
@@ -178,12 +176,10 @@ const ProfileUpdateScreen = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Cập nhật profile state
       if (profile) {
         setProfile({ ...profile, avatar: fileUrl });
       }
 
-      // Cập nhật AsyncStorage
       await AsyncStorage.setItem(
         "data",
         JSON.stringify({
@@ -205,6 +201,20 @@ const ProfileUpdateScreen = () => {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  const handleNameUpdated = async (newName: string) => {
+    if (profile) {
+      setProfile({ ...profile, fullName: newName });
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        await AsyncStorage.setItem(
+          "data",
+          JSON.stringify({ ...parsedData, fullName: newName })
+        );
+      }
+    }
+  };
 
   const handleEmailUpdated = async (newEmail: string) => {
     if (profile) {
@@ -229,20 +239,6 @@ const ProfileUpdateScreen = () => {
         await AsyncStorage.setItem(
           "data",
           JSON.stringify({ ...parsedData, phone: newPhone })
-        );
-      }
-    }
-  };
-
-  const handleNameUpdated = async (newName: string) => {
-    if (profile) {
-      setProfile({ ...profile, fullName: newName });
-      const data = await AsyncStorage.getItem("data");
-      if (data) {
-        const parsedData = JSON.parse(data);
-        await AsyncStorage.setItem(
-          "data",
-          JSON.stringify({ ...parsedData, fullName: newName })
         );
       }
     }
@@ -290,14 +286,25 @@ const ProfileUpdateScreen = () => {
         </View>
 
         <View style={styles.avatarContainer}>
-          <Image
-            source={{
-              uri:
+          <TouchableOpacity
+            onPress={() => {
+              setImageList([
                 profile.avatar ||
-                "https://t3.ftcdn.net/jpg/11/69/54/34/360_F_1169543439_7AxjAvV0GnwlEo3IIqlCGqiF3UFJfTAe.jpg",
+                  "https://t3.ftcdn.net/jpg/11/69/54/34/360_F_1169543439_7AxjAvV0GnwlEo3IIqlCGqiF3UFJfTAe.jpg",
+              ]);
+              setSelectedImageIndex(0);
+              setIsImageViewerVisible(true);
             }}
-            style={styles.avatar}
-          />
+          >
+            <Image
+              source={{
+                uri:
+                  profile.avatar ||
+                  "https://t3.ftcdn.net/jpg/11/69/54/34/360_F_1169543439_7AxjAvV0GnwlEo3IIqlCGqiF3UFJfTAe.jpg",
+              }}
+              style={styles.avatar}
+            />
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.avatarOverlay}
             onPress={() => setShowWebView(true)}
@@ -309,6 +316,12 @@ const ProfileUpdateScreen = () => {
             />
           </TouchableOpacity>
         </View>
+        <ImageGalleryModal
+          visible={isImageViewerVisible}
+          images={imageList}
+          index={selectedImageIndex}
+          onClose={() => setIsImageViewerVisible(false)}
+        />
 
         <View style={styles.row}>
           <View style={styles.rowLeft}>
@@ -385,7 +398,7 @@ const ProfileUpdateScreen = () => {
             onClose={() => setShowAddressModal(false)}
             title="Địa chỉ"
             content={profile.address || ""}
-            onUpdateAddress={handleAddressUpdated}
+            onUpdate={handleAddressUpdated}
             fetchProfile={fetchProfile}
           /> */}
         </View>
@@ -432,9 +445,9 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 80,
   },
   avatarOverlay: {
     position: "absolute",

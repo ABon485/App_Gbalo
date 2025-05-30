@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -16,93 +16,164 @@ import { useRouter } from "expo-router";
 import tourApi from "@/services/tour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
 const WishlistScreen = () => {
-  const [wishlistItems, setWishlistItems] = useState<any[]>([]);
+  interface WishlistItem {
+    id: string;
+    title: string;
+    image: { uri: string };
+    rating: number;
+    reviews: number;
+    provinceName: string;
+    price: number;
+    isFavorite: boolean;
+    location: string;
+  }
+
+  interface WishlistSection {
+    location: string;
+    count: number;
+    data: WishlistItem[];
+  }
+
+  const [wishlistItems, setWishlistItems] = useState<WishlistSection[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { showToast } = useToast();
 
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      try {
-        setLoading(true);
-        const storedData = await AsyncStorage.getItem("data");
-        if (!storedData) {
-          showToast({
-            type: "error",
-            message: "Vui lòng đăng nhập để xem danh sách yêu thích.",
-          });
-          router.push("/(auths)/(Login)/login");
-          return;
-        }
-
-        const parsedData = JSON.parse(storedData);
-        const userId = parsedData.profile?.id || parsedData.id;
-
-        if (!userId) {
-          showToast({
-            type: "error",
-            message: "Không tìm thấy ID người dùng. Vui lòng đăng nhập lại.",
-          });
-          router.push("/(auths)/(Login)/login");
-          return;
-        }
-
-        const res = await tourApi.getFavorite(userId);
-        console.log(
-          "Favorite API response:",
-          JSON.stringify(res.data.datas, null, 2)
-        );
-        const rawTours = res.data.datas;
-
-        if (!rawTours || rawTours.length === 0) {
-          setWishlistItems([]);
-          setLoading(false);
-          return;
-        }
-
-        const grouped = rawTours.reduce((acc: any, tour: any) => {
-          const provinceName = tour.provinceName || "Không xác định";
-          if (!acc[provinceName]) acc[provinceName] = [];
-          acc[provinceName].push({
-            id: String(tour.id),
-            title: tour.name,
-            image: { uri: tour.featuredImageUrl },
-            rating: tour.vote ?? 4.5,
-            reviews: 100,
-            provinceName: provinceName,
-            price: tour.fromPrice,
-            isFavorite: tour.isFavorite,
-            location: provinceName,
-          });
-          return acc;
-        }, {});
-
-        const sections = Object.entries(grouped).map(([province, data]) => ({
-          location: province,
-          count: (data as any[]).length,
-          data: data as any[],
-        }));
-
-        setWishlistItems(sections);
-      } catch (err) {
-        console.error("Failed to fetch favorites:", err);
+  const fetchFavorites = async () => {
+    try {
+      setLoading(true);
+      const storedData = await AsyncStorage.getItem("data");
+      if (!storedData) {
         showToast({
           type: "error",
-          message: "Không thể tải danh sách yêu thích. Vui lòng thử lại.",
+          message: "Vui lòng đăng nhập để xem danh sách yêu thích.",
         });
-      } finally {
-        setLoading(false);
+        router.push("/");
+        return;
       }
-    };
 
-    fetchFavorites();
-  }, []);
+      const parsedData = JSON.parse(storedData);
+      const userId = parsedData.profile?.id || parsedData.id;
+
+      let rawTours = [];
+      const cachedFavorites = await AsyncStorage.getItem("favorites");
+      if (cachedFavorites && cachedFavorites.length > 0) {
+        rawTours = JSON.parse(cachedFavorites);
+      } else {
+        const res = await tourApi.getFavorite(userId);
+        rawTours = res.data.datas;
+        await AsyncStorage.setItem("favorites", JSON.stringify(rawTours));
+      }
+
+      if (!rawTours || rawTours.length === 0) {
+        setWishlistItems([]);
+        setLoading(false);
+        return;
+      }
+
+      interface Tour {
+        id: number;
+        name: string;
+        featuredImageUrl: string;
+        vote?: number;
+        fromPrice: number;
+        provinceName?: string;
+      }
+
+      const grouped = (rawTours as Tour[]).reduce((acc: { [provinceName: string]: WishlistItem[] }, tour) => {
+        const provinceName = tour.provinceName || "Không xác định";
+        if (!acc[provinceName]) {
+          acc[provinceName] = [];
+        }
+        acc[provinceName].push({
+          id: String(tour.id),
+          title: tour.name,
+          image: { uri: tour.featuredImageUrl },
+          rating: tour.vote || 4.5,
+          reviews: 100,
+          provinceName,
+          price: tour.fromPrice,
+          isFavorite: true,
+          location: provinceName,
+        });
+        return acc;
+      }, {} as { [provinceName: string]: WishlistItem[] });
+
+      const sections = Object.entries(grouped).map(([province, data]) => ({
+        location: province,
+        count: data.length,
+        data,
+      }));
+
+      setWishlistItems(sections);
+    } catch (err) {
+      console.error("Lỗi khi tải danh sách yêu thích:", err);
+      showToast({
+        type: "error",
+        message: "Không thể tải danh sách yêu thích. Vui lòng thử lại.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchFavorites();
+    }, [])
+  );
+
+  const toggleFavorite = async (id: string) => {
+    try {
+      const storedData = await AsyncStorage.getItem("data");
+      if (!storedData) {
+        showToast({
+          type: "error",
+          message: "Vui lòng đăng nhập để xóa tour yêu thích.",
+        });
+        router.push("/");
+        return;
+      }
+
+      const parsedData = JSON.parse(storedData);
+      const userId = parsedData.profile?.id || parsedData.id;
+
+      await tourApi.deleteFavorite(userId, Number(id));
+      showToast({
+        type: "success",
+        message: "Đã xóa khỏi danh sách yêu thích.",
+      });
+
+      const cachedFavorites = await AsyncStorage.getItem("favorites");
+      let favorites = cachedFavorites ? JSON.parse(cachedFavorites) : [];
+      favorites = favorites.filter(
+        (tour: { id: number }) => tour.id !== Number(id)
+      );
+      await AsyncStorage.setItem("favorites", JSON.stringify(favorites));
+
+      setWishlistItems((prev) =>
+        prev
+          .map((section) => ({
+            ...section,
+            data: section.data.filter((item) => item.id !== id),
+          }))
+          .filter((section) => section.data.length > 0)
+      );
+    } catch (err) {
+      console.error("Lỗi khi xóa yêu thích:", err);
+      showToast({
+        type: "error",
+        message: "Không thể xóa tour yêu thích. Vui lòng thử lại.",
+      });
+    }
+  };
 
   const navigateToDetail = (id: string) => {
     router.push({
@@ -140,9 +211,12 @@ const WishlistScreen = () => {
         </View>
         <View style={styles.imageContainer}>
           <Image source={item.image} style={styles.image} />
-          <View style={styles.favoriteButton}>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={() => toggleFavorite(item.id)}
+          >
             <Heart size={22} color="#fff" fill="#FF3B30" stroke="#FF3B30" />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>

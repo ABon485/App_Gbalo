@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -14,6 +14,9 @@ import { TourItem, TourListResponse } from "@/types/tour";
 import tourApi from "@/services/tour";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useToast } from "@/context/ToastContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 interface SimilarTourProps {
   provinceIds: number[];
@@ -31,28 +34,38 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
   const [tours, setTours] = useState<TourItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
-  // Log để kiểm tra provinceIds và tourId
-  useEffect(() => {
-    console.log(
-      "SimilarTour nhận provinceIds:",
-      provinceIds,
-      "tourId:",
-      tourId
-    );
-  }, [provinceIds, tourId]);
-
-  // Hàm lấy và lọc tour
   const fetchTours = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      const storedData = await AsyncStorage.getItem("data");
+      let userId: string | null = null;
+      let token: string | null = null;
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        userId = parsedData.profile?.id || parsedData.id;
+        token = parsedData.token;
+      }
+
+      let favoriteTourIds: string[] = [];
+      if (userId && token) {
+        const favoriteRes = await tourApi.getFavorite(Number(userId));
+        favoriteTourIds = favoriteRes.data.datas.map((tour: any) =>
+          String(tour.id)
+        );
+        await AsyncStorage.setItem(
+          "favorites",
+          JSON.stringify(favoriteRes.data.datas)
+        );
+      }
+
       let allTours: TourItem[] = [];
       let currentPage = 1;
       let totalPages = 1;
 
-      // Gọi API để lấy danh sách tour
       while (currentPage <= totalPages) {
         const response: TourListResponse = await tourApi.ListTour(
           currentPage,
@@ -70,9 +83,11 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
               : item.provinceId
               ? [Number(item.provinceId)]
               : [],
+            provinceName: item.provinceName || "",
+            tourExtraServices: item.tourExtraServices || [],
             vote: item.vote || 0,
             fromPrice: item.fromPrice || 0,
-            isFavorite: false,
+            isFavorite: favoriteTourIds.includes(String(item.id)),
           })
         );
 
@@ -81,46 +96,59 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
         currentPage += 1;
       }
 
-      console.log("Tổng số tour lấy được:", allTours.length);
-
-      // Lọc tour
       let filteredTours: TourItem[] = [];
       if (provinceIds.length > 0) {
         filteredTours = allTours
           .filter((tour) => {
             const isCurrentTour = Number(tour.id) === Number(tourId);
-            if (isCurrentTour) {
-              console.log(
-                `Loại bỏ tour có id=${tour.id} vì trùng với tourId=${tourId}`
-              );
-              return false;
-            }
-            return tour.provinceIds.some((id) => provinceIds.includes(id));
+            if (isCurrentTour) return false;
+            return Array.isArray(tour.provinceIds)
+              ? tour.provinceIds.some((id) => provinceIds.includes(id))
+              : provinceIds.includes(Number(tour.provinceIds));
           })
           .slice(0, 5);
       } else {
-        console.warn("Không có provinceIds, lấy 5 tour phổ biến");
         filteredTours = allTours
           .filter((tour) => Number(tour.id) !== Number(tourId))
           .sort((a, b) => b.vote - a.vote)
           .slice(0, 5);
       }
 
-      console.log(
-        "Tour sau khi lọc:",
-        filteredTours.map((tour) => tour.id)
-      );
-
       if (filteredTours.length === 0) {
         setError("Không tìm thấy tour tương tự nào");
       } else {
         setTours(filteredTours);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Lỗi khi lấy tour tương tự:", err);
-      setError(err.message || "Không tải được các tour tương tự");
+      if (err instanceof Error) {
+        setError(err.message || "Không tải được các tour tương tự");
+      } else {
+        setError("Không tải được các tour tương tự");
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateFavoriteStatus = async () => {
+    try {
+      const storedData = await AsyncStorage.getItem("data");
+      if (!storedData) return;
+      const parsedData = JSON.parse(storedData);
+      const userId = parsedData.profile?.id || parsedData.id;
+      const cachedFavorites = await AsyncStorage.getItem("favorites");
+      const favorites = cachedFavorites ? JSON.parse(cachedFavorites) : [];
+      const favoriteTourIds = favorites.map((tour: any) => String(tour.id));
+
+      setTours((prev) =>
+        prev.map((tour) => ({
+          ...tour,
+          isFavorite: favoriteTourIds.includes(tour.id),
+        }))
+      );
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái yêu thích:", error);
     }
   };
 
@@ -128,12 +156,74 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
     fetchTours();
   }, [provinceIds, tourId]);
 
-  const toggleFavorite = (id: string) => {
-    setTours((prevTours) =>
-      prevTours.map((tour) =>
-        tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour
-      )
-    );
+  useFocusEffect(
+    useCallback(() => {
+      updateFavoriteStatus();
+    }, [])
+  );
+
+  const toggleFavorite = async (id: string) => {
+    try {
+      const storedData = await AsyncStorage.getItem("data");
+      if (!storedData) {
+        showToast({
+          type: "error",
+          message: "Vui lòng đăng nhập để lưu tour yêu thích.",
+        });
+        router.push("/(auths)/(Login)/login");
+        return;
+      }
+
+      const parsedData = JSON.parse(storedData);
+      const userId = parsedData.profile?.id || parsedData.id;
+      const token = parsedData.token;
+
+      if (!userId || !token) {
+        showToast({
+          type: "error",
+          message:
+            "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+        });
+        router.push("/(auths)/(Login)/login");
+        return;
+      }
+
+      const tour = tours.find((t) => t.id === id);
+      const isCurrentlyFavorite = tour?.isFavorite;
+
+      setTours((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, isFavorite: !t.isFavorite } : t))
+      );
+
+      if (isCurrentlyFavorite) {
+        await tourApi.deleteFavorite(userId, Number(id));
+        showToast({
+          type: "success",
+          message: "Đã xóa khỏi danh sách yêu thích.",
+        });
+      } else {
+        await tourApi.postFavorite(userId, Number(id));
+        showToast({
+          type: "success",
+          message: "Đã thêm vào danh sách yêu thích.",
+        });
+      }
+
+      const favoriteRes = await tourApi.getFavorite(userId);
+      await AsyncStorage.setItem(
+        "favorites",
+        JSON.stringify(favoriteRes.data.datas)
+      );
+    } catch (err) {
+      console.error("Lỗi khi lưu yêu thích:", err);
+      showToast({
+        type: "error",
+        message: "Không thể cập nhật tour yêu thích. Vui lòng thử lại.",
+      });
+      setTours((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, isFavorite: !t.isFavorite } : t))
+      );
+    }
   };
 
   const handleCardPress = (id: string) => {
@@ -217,7 +307,7 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
   if (tours.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.errorText}>Không tìm thấy tour tương tự nào</Text>
+        <Text style={styles.errorText}>Không tìm thấy tour tương tự nào.</Text>
       </SafeAreaView>
     );
   }
@@ -228,9 +318,8 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
         data={tours}
         renderItem={renderTourItem}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingHorizontal: 10 }}
         horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
       />
     </SafeAreaView>
   );
@@ -248,6 +337,7 @@ const styles = StyleSheet.create({
   itemContainer: {
     width: itemWidth,
     marginRight: 10,
+    marginBottom: 15,
   },
   imageContainer: {
     position: "relative",

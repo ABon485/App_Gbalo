@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -14,17 +14,16 @@ import {
 } from "react-native";
 import { Heart } from "lucide-react-native";
 import { TourItem, TourListResponse } from "@/types/tour";
-import tourApi from "@/services/tour"; // Cập nhật import nếu cần
+import tourApi from "@/services/tour";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
+import { useFocusEffect } from "@react-navigation/native";
 
-// Get screen width to calculate item width
 const { width } = Dimensions.get("window");
-const itemWidth = (width - 40) / 2; // 2 items per row with 40px total padding
+const itemWidth = (width - 40) / 2;
 
-// Format price with commas
 const formatPrice = (price: number | null | undefined): string => {
   if (price == null) return "0";
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -40,8 +39,6 @@ const TourListScreen = () => {
   const fetchTours = async () => {
     try {
       setLoading(true);
-
-      // Lấy userId từ AsyncStorage
       const storedData = await AsyncStorage.getItem("data");
       let userId: string | null = null;
       let token: string | null = null;
@@ -51,16 +48,18 @@ const TourListScreen = () => {
         token = parsedData.token;
       }
 
-      // Lấy danh sách tour yêu thích của người dùng
       let favoriteTourIds: string[] = [];
       if (userId && token) {
         const favoriteRes = await tourApi.getFavorite(Number(userId));
         favoriteTourIds = favoriteRes.data.datas.map((tour: any) =>
           String(tour.id)
         );
+        await AsyncStorage.setItem(
+          "favorites",
+          JSON.stringify(favoriteRes.data.datas)
+        );
       }
 
-      // Lấy danh sách tour
       let allTours: TourItem[] = [];
       let currentPage = 1;
       let totalPages = 1;
@@ -103,9 +102,36 @@ const TourListScreen = () => {
     }
   };
 
+  const updateFavoriteStatus = async () => {
+    try {
+      const storedData = await AsyncStorage.getItem("data");
+      if (!storedData) return;
+      const parsedData = JSON.parse(storedData);
+      const userId = parsedData.profile?.id || parsedData.id;
+      const cachedFavorites = await AsyncStorage.getItem("favorites");
+      const favorites = cachedFavorites ? JSON.parse(cachedFavorites) : [];
+      const favoriteTourIds = favorites.map((tour: any) => String(tour.id));
+
+      setTours((prev) =>
+        prev.map((tour) => ({
+          ...tour,
+          isFavorite: favoriteTourIds.includes(tour.id),
+        }))
+      );
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái yêu thích:", error);
+    }
+  };
+
   useEffect(() => {
     fetchTours();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      updateFavoriteStatus();
+    }, [])
+  );
 
   const toggleFavorite = async (id: string) => {
     try {
@@ -133,34 +159,40 @@ const TourListScreen = () => {
         return;
       }
 
-      // Kiểm tra trạng thái yêu thích hiện tại
-      const isCurrentlyFavorite = tours.find((tour) => tour.id === id)
-        ?.isFavorite;
+      const tour = tours.find((t) => t.id === id);
+      const isCurrentlyFavorite = tour?.isFavorite;
 
-      // Cập nhật UI trước
       setTours((prev) =>
-        prev.map((tour) =>
-          tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour
-        )
+        prev.map((t) => (t.id === id ? { ...t, isFavorite: !t.isFavorite } : t))
       );
 
-      // Gọi API tương ứng
       if (isCurrentlyFavorite) {
         await tourApi.deleteFavorite(userId, Number(id));
+        showToast({
+          type: "success",
+          message: "Đã xóa khỏi danh sách yêu thích.",
+        });
       } else {
         await tourApi.postFavorite(userId, Number(id));
+        showToast({
+          type: "success",
+          message: "Đã thêm vào danh sách yêu thích.",
+        });
       }
+
+      const favoriteRes = await tourApi.getFavorite(userId);
+      await AsyncStorage.setItem(
+        "favorites",
+        JSON.stringify(favoriteRes.data.datas)
+      );
     } catch (err) {
       console.error("Lỗi khi lưu yêu thích:", err);
       showToast({
         type: "error",
         message: "Không thể cập nhật tour yêu thích. Vui lòng thử lại.",
       });
-      // Khôi phục trạng thái nếu API thất bại
       setTours((prev) =>
-        prev.map((tour) =>
-          tour.id === id ? { ...tour, isFavorite: !tour.isFavorite } : tour
-        )
+        prev.map((t) => (t.id === id ? { ...t, isFavorite: !t.isFavorite } : t))
       );
     }
   };
@@ -212,7 +244,7 @@ const TourListScreen = () => {
           color={item.vote > 0 ? "#FF9500" : "#999999"}
         />
         <Text style={styles.reviews}>{item.vote}</Text>
-        <Text style={styles.reviews}>{item.provinceName }</Text>
+        <Text style={styles.reviews}>{item.provinceName}</Text>
       </View>
       <View>
         <Text style={styles.price}>
@@ -327,24 +359,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
     color: "#333",
-  },
-  errorText: {
-    fontSize: 16,
-    textAlign: "center",
-    marginTop: 20,
-    color: "#FF3B30",
-  },
-  retryButton: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: "#FF9500",
-    borderRadius: 8,
-    alignSelf: "center",
-  },
-  retryText: {
-    color: "#fff",
-    fontSize: 14,
-    fontFamily: "Inter-Medium",
   },
   loadMoreButton: {
     paddingVertical: 10,

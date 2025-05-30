@@ -73,6 +73,9 @@ export type UpdateEmail = {
 export type UpdatePhone = {
   phone: string;
 };
+export type UpdateAvatar = {
+  avatar: string;
+};
 export type UpdateProfile = {
   data: {
     fullName: string;
