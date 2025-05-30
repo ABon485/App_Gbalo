@@ -4,7 +4,7 @@ import {
   LoginEmailType, LoginByPhone, LoginType, VerifyCodeLogin, SendCodeLogin, RegisterByEmail,
   RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail, RegisterTypePhone,
   RegistercodeByPhone, ProfileResponse, UpdateEmail, UpdatePhone, ChangePassByCodeType, VerifyChangePassCodeType,
-  UpdateProfile, ChangePassCodeType
+  UpdateProfile, ChangePassCodeType, UpdateAvatar
 } from "@/types/user";
 
 const authApi = {
@@ -52,6 +52,12 @@ const authApi = {
   updatePhone: (formData: UpdatePhone) => api.post("/Accounts/ChangePhone", formData),
 
   updatefullName: (formData: UpdateProfile) => api.post("/Accounts/ChangeProfile", formData),
+
+  updateAvatar: (formData: UpdateAvatar) => api.post("/Accounts/ChangeAvatar", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  }),
   
 };
 

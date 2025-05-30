@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import {
   FileText,
   Tag,
@@ -42,120 +42,135 @@ export default function ProfileScreen() {
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await AsyncStorage.getItem("data");
-        if (!data) {
-          setIsLoggedIn(false);
-          return;
-        }
-
-        const parsedData = JSON.parse(data);
-        const token = parsedData.token;
-        if (!token) {
-          setIsLoggedIn(false);
-          return;
-        }
-
-        const response = await api.get<ProfileResponse>("/Accounts/Profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (response.data?.data) {
-          const userData: ProfileResponse["data"] = {
-            ...response.data.data,
-            id: response.data.data.id || parsedData.id || "",
-            userName: response.data.data.userName || parsedData.userName || "",
-            fullName:
-              response.data.data.fullName ||
-              parsedData.fullName ||
-              "Khách hàng",
-            email:
-              response.data.data.email || parsedData.email || "Không có email",
-            avatar: response.data.data.avatar || parsedData.avatar || "",
-            createDate:
-              response.data.data.createDate ||
-              parsedData.createDate ||
-              new Date().toISOString(),
-            roles: response.data.data.roles || parsedData.roles || [],
-            permissions:
-              response.data.data.permissions || parsedData.permissions || [],
-            phone: response.data.data.phone || parsedData.phone || "",
-            language:
-              response.data.data.language || parsedData.language || "vi",
-            address: response.data.data.address || parsedData.address || "",
-            nationality:
-              response.data.data.nationality || parsedData.nationality || "",
-            dateOfBirth: response.data.data.dateOfBirth
-              ? new Date(response.data.data.dateOfBirth)
-              : parsedData.dateOfBirth
-              ? new Date(parsedData.dateOfBirth)
-              : new Date(),
-          };
-
-          setUser(userData);
-          setIsLoggedIn(true);
-
-          // Cập nhật AsyncStorage với dữ liệu mới
-          await AsyncStorage.setItem(
-            "data",
-            JSON.stringify({
-              ...parsedData,
-              ...userData,
-              token,
-            })
-          );
-        } else {
-          throw new Error("No user data in API response");
-        }
-      } catch (error) {
-        console.error("Error in fetchProfile:", error);
-        showToast({
-          type: "error",
-          heading: "Lỗi",
-          message: "Không thể tải thông tin hồ sơ. Vui lòng thử lại.",
-        });
-
-        // Fallback to AsyncStorage data
-        const parsedData = JSON.parse(
-          (await AsyncStorage.getItem("data")) || "{}"
-        );
-        if (parsedData) {
-          const userData: ProfileResponse["data"] = {
-            id: parsedData.id || "",
-            userName: parsedData.userName || "",
-            fullName: parsedData.fullName || "Khách hàng",
-            isBanned: parsedData.isBanned ?? false,
-            isActive: parsedData.isActive ?? true,
-            lastActivityDate: parsedData.lastActivityDate || new Date().toISOString(),
-            isLockedOut: parsedData.isLockedOut ?? false,
-            lastLockoutDate: parsedData.lastLockoutDate || "",
-            email: parsedData.email || "Không có email",
-            avatar: parsedData.avatar || "",
-            createDate: parsedData.createDate || new Date().toISOString(),
-            roles: parsedData.roles || [],
-            permissions: parsedData.permissions || [],
-            phone: parsedData.phone || "",
-            language: parsedData.language || "vi",
-            address: parsedData.address || "",
-            nationality: parsedData.nationality || "",
-            dateOfBirth: parsedData.dateOfBirth
-              ? new Date(parsedData.dateOfBirth)
-              : new Date(),
-            lastChangePassDate: parsedData.lastChangePassDate || "",
-          };
-          setUser(userData);
-          setIsLoggedIn(true);
-        }
+  const fetchProfile = async () => {
+    try {
+      const data = await AsyncStorage.getItem("data");
+      if (!data) {
+        setIsLoggedIn(false);
+        setUser(null);
+        return;
       }
-    };
 
-    fetchProfile();
-  }, []);
+      const parsedData = JSON.parse(data);
+      const token = parsedData.token;
+      if (!token) {
+        setIsLoggedIn(false);
+        setUser(null);
+        return;
+      }
+
+      const response = await api.get<ProfileResponse>("/Accounts/Profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.data?.data) {
+        const userData: ProfileResponse["data"] = {
+          id: response.data.data.id || parsedData.id || "",
+          userName: response.data.data.userName || parsedData.userName || "",
+          fullName:
+            response.data.data.fullName || parsedData.fullName || "Khách hàng",
+          isBanned: response.data.data.isBanned ?? parsedData.isBanned ?? false,
+          isActive: response.data.data.isActive ?? parsedData.isActive ?? true,
+          lastActivityDate:
+            response.data.data.lastActivityDate ||
+            parsedData.lastActivityDate ||
+            new Date().toISOString(),
+          isLockedOut:
+            response.data.data.isLockedOut ?? parsedData.isLockedOut ?? false,
+          lastLockoutDate:
+            response.data.data.lastLockoutDate ||
+            parsedData.lastLockoutDate ||
+            "",
+          email:
+            response.data.data.email || parsedData.email || "Không có email",
+          avatar: response.data.data.avatar || parsedData.avatar || "",
+          createDate:
+            response.data.data.createDate ||
+            parsedData.createDate ||
+            new Date().toISOString(),
+          roles: response.data.data.roles || parsedData.roles || [],
+          permissions:
+            response.data.data.permissions || parsedData.permissions || [],
+          phone: response.data.data.phone || parsedData.phone || "",
+          language: response.data.data.language || parsedData.language || "vi",
+          address: response.data.data.address || parsedData.address || "",
+          nationality:
+            response.data.data.nationality || parsedData.nationality || "",
+          dateOfBirth: response.data.data.dateOfBirth
+            ? new Date(response.data.data.dateOfBirth)
+            : parsedData.dateOfBirth
+            ? new Date(parsedData.dateOfBirth)
+            : new Date(),
+          lastChangePassDate:
+            response.data.data.lastChangePassDate ||
+            parsedData.lastChangePassDate ||
+            "",
+        };
+
+        setUser(userData);
+        setIsLoggedIn(true);
+
+        await AsyncStorage.setItem(
+          "data",
+          JSON.stringify({
+            ...parsedData,
+            ...userData,
+            token,
+          })
+        );
+      } else {
+        throw new Error("No user data in API response");
+      }
+    } catch (error) {
+      console.error("Error in fetchProfile:", error);
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Không thể tải thông tin hồ sơ. Vui lòng thử lại.",
+      });
+
+      const parsedData = JSON.parse(
+        (await AsyncStorage.getItem("data")) || "{}"
+      );
+      if (parsedData) {
+        const userData: ProfileResponse["data"] = {
+          id: parsedData.id || "",
+          userName: parsedData.userName || "",
+          fullName: parsedData.fullName || "Khách hàng",
+          isBanned: parsedData.isBanned ?? false,
+          isActive: parsedData.isActive ?? true,
+          lastActivityDate:
+            parsedData.lastActivityDate || new Date().toISOString(),
+          isLockedOut: parsedData.isLockedOut ?? false,
+          lastLockoutDate: parsedData.lastLockoutDate || "",
+          email: parsedData.email || "Không có email",
+          avatar: parsedData.avatar || "",
+          createDate: parsedData.createDate || new Date().toISOString(),
+          roles: parsedData.roles || [],
+          permissions: parsedData.permissions || [],
+          phone: parsedData.phone || "",
+          language: parsedData.language || "vi",
+          address: parsedData.address || "",
+          nationality: parsedData.nationality || "",
+          dateOfBirth: parsedData.dateOfBirth
+            ? new Date(parsedData.dateOfBirth)
+            : new Date(),
+          lastChangePassDate: parsedData.lastChangePassDate || "",
+        };
+        setUser(userData);
+        setIsLoggedIn(true);
+      }
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
 
   const handleLogin = () => {
     router.push("/(auths)/(Login)/login");

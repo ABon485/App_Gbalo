@@ -73,25 +73,33 @@ export type TourDetail = {
   name: string;
   slug: string;
   subName: string;
+  featuredImageUrl: string;
   duration: string;
   description: string;
+  metaDescription: string;
   included: string;
   schedule: string;
   policies: string;
   rules: string;
   fromPrice: number;
+  isFavorite: boolean;
+  provinceId: number;
+  provinceName: string;
+  regionId: number;
+  countryId: number;
+  tourGroupIds: number[];
   tourExtraServices: {
     id: number;
     name: string;
   }[];
   tourPrices: {
-    unitName: null;
     id: number;
     guestTypeId: number;
     guestType: string;
     age: string;
     price: number;
     unitId: number;
+    unitName: string;
   }[];
 };
 
@@ -140,12 +148,9 @@ export type Order = {
   id: string;
   title: string;
   date: string;
-  status: 'pending' | 'paid' | 'completed';
+  status: "pending" | "paid" | "completed";
   price: string;
   image: string;
   countdown?: string;
-}
-export type TabType = 'all' | 'pending' | 'paid' | 'completed';
-
-
-
+};
+export type TabType = "all" | "pending" | "paid" | "completed";

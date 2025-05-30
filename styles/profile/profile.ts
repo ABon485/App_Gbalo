@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     left: 10,
   },
   pointsText: {
-    fontSize: 12,
+    fontSize: 14,
     flex: 1,
     lineHeight: 18,
     fontFamily: "Inter-Medium",
