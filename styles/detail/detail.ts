@@ -136,6 +136,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     fontFamily: "Inter-Medium",
+    marginBottom: 15,
   },
   description: {
     color: "#333",

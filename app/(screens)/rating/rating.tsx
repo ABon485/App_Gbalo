@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import ImageGalleryModal from "@/components/rating/ImageGalleryModal";
+import { TouchableOpacity } from "react-native";
+import { router } from "expo-router";
 
 export default function RatingScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -58,10 +60,13 @@ export default function RatingScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: 35 }}>
       {/* Header cố định */}
-      <View style={[styles.header, { paddingHorizontal: 16 }]}>
-        <AntDesign name="arrowleft" size={24} color="black" />
+      <TouchableOpacity
+        style={[styles.header, { paddingHorizontal: 16 }]}
+        onPress={() => router.back()}
+      >
+        <AntDesign name="arrowleft" size={20} color="black" />
         <Text style={styles.rating}> Đánh giá</Text>
-      </View>
+      </TouchableOpacity>
 
       {/* ScrollView cho phần đánh giá */}
       <ScrollView style={{ paddingHorizontal: 16 }}>
@@ -120,7 +125,11 @@ export default function RatingScreen() {
         {/* Image Modal Viewer */}
         <ImageGalleryModal
           visible={modalVisible}
-          images={selectedImages}
+          images={selectedImages.map((img) =>
+            typeof img === "number"
+              ? img
+              : (img as { uri?: string }).uri ?? ""
+          )}
           index={selectedIndex}
           onClose={() => setModalVisible(false)}
         />
