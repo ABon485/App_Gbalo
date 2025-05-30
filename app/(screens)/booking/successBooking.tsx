@@ -1,24 +1,63 @@
-import React from "react";
-import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import Feather from "@expo/vector-icons/Feather";
 import { router, useLocalSearchParams } from "expo-router";
 import styles from "@/styles/booking/successBooking";
-import Feather from "@expo/vector-icons/Feather";
+import bookingApi from "@/services/tour";
+import { BookingResponse } from "@/types/tour";
 
 export default function SuccessBooking() {
-  const params = useLocalSearchParams();
-  const selectedDate = params.selectedDate as string;
-  const selectedGuests = params.selectedGuests as string;
-  const totalPrice = Number(params.totalPrice) || 0;
-  const imageUrl = params.imageUrl as string;
-  const tourName = params.tourName as string;
-  const tourSubName = params.tourSubName as string;
-  const userInfo = params.userInfo
-    ? JSON.parse(params.userInfo as string)
-    : null; // Parse userInfo từ params
-  const prepaid = Math.round(totalPrice * 0.3);
-  const remaining = totalPrice - prepaid;
+  const { bookingId } = useLocalSearchParams();
+  const [bookingData, setBookingData] = useState<BookingResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBookingDetails = async () => {
+      if (!bookingId) {
+        setError("Không tìm thấy mã đặt tour.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await bookingApi.getBookingById(Number(bookingId));
+        if (!response.data || !response.data.bookingCode) {
+          throw new Error("Dữ liệu booking không đầy đủ.");
+        }
+        setBookingData(response);
+        setLoading(false);
+      } catch (err) {
+        console.error("Lỗi khi lấy chi tiết booking:", err);
+        setError("Không thể tải thông tin đặt tour. Vui lòng thử lại.");
+        setLoading(false);
+      }
+    };
+
+    fetchBookingDetails();
+  }, [bookingId]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Đang tải thông tin đặt tour...</Text>
+      </View>
+    );
+  }
+
+  if (error || !bookingData) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error || "Không tìm thấy thông tin đặt tour."}</Text>
+      </View>
+    );
+  }
+
+  const { data } = bookingData;
+  const service = data.services?.[0] || {}; // Lấy service đầu tiên, nếu không có thì trả về object rỗng
+  const serviceDetail = service.details?.[0] || {}; // Lấy detail đầu tiên
 
   return (
     <View style={styles.container}>
@@ -45,29 +84,17 @@ export default function SuccessBooking() {
       {/* Tour Info */}
       <View style={styles.tourCard}>
         <Image
-          source={
-            imageUrl
-              ? { uri: imageUrl }
-              : require("@/assets/images/home/Property1.png")
-          }
+          source={{ uri: service.serviceImageUrl || "https://via.placeholder.com/150" }}
           style={styles.tourImage}
-          onError={() => {
-            console.log("Failed to load image from URL:", imageUrl);
-          }}
         />
         <View style={styles.tourInfo}>
-          <Text style={styles.tourTitle}>{tourName}</Text>
-          <Text style={styles.tourDesc}>{tourSubName}</Text>
+          <Text style={styles.tourTitle}>{service.serviceName || "Tên tour không xác định"}</Text>
+          <Text style={styles.tourDesc}>Khám phá điểm đến</Text>
           <Text style={styles.rating}>
             <AntDesign name="star" size={16} color="#F24E1E" /> 4.95/5 (648)
           </Text>
           <Text style={styles.price}>
-            Từ
-            <Text style={styles.bold}>
-              {" "}
-              {totalPrice.toLocaleString("vi-VN")}₫/
-            </Text>
-            Người
+            Từ <Text style={styles.bold}>{data.totalAmount?.toLocaleString("vi-VN") || "0"}₫</Text>/Người
           </Text>
         </View>
       </View>
@@ -77,7 +104,11 @@ export default function SuccessBooking() {
         <AntDesign name="calendar" size={16} color="#666" style={styles.icon} />
         <View>
           <Text style={styles.labelText}>Ngày khởi hành</Text>
-          <Text style={styles.valueText}>Từ {selectedDate || "..."}</Text>
+          <Text style={styles.valueText}>
+            {data.departureDate
+              ? new Date(data.departureDate).toLocaleDateString("vi-VN")
+              : "Chưa xác định"}
+          </Text>
         </View>
       </View>
 
@@ -85,7 +116,7 @@ export default function SuccessBooking() {
         <Feather name="users" size={16} color="#666" style={styles.icon} />
         <View>
           <Text style={styles.labelText}>Khách</Text>
-          <Text style={styles.valueText}>{selectedGuests || "..."}</Text>
+          <Text style={styles.valueText}>{serviceDetail.quantity ? `${serviceDetail.quantity} khách` : "Chưa xác định"}</Text>
         </View>
       </View>
 
@@ -95,54 +126,42 @@ export default function SuccessBooking() {
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Mã đặt Tour:</Text>
-          <Text style={styles.detailValue}>#TOUR2025DN</Text>
+          <Text style={styles.detailValue}>{data.bookingCode || "Chưa xác định"}</Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Khởi hành từ:</Text>
-          <Text style={styles.detailValue}>Hà Nội</Text>
+          <Text style={styles.detailValue}>Hà Nội</Text> {/* Cập nhật nếu API cung cấp */}
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Khách hàng:</Text>
-          <Text style={styles.detailValue}>
-            {userInfo?.fullName || "Chưa cung cấp"}
-          </Text>
+          <Text style={styles.detailValue}>{data.customerName || "Chưa cung cấp"}</Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Số điện thoại:</Text>
-          <Text style={styles.detailValue}>
-            {userInfo?.phone || "Chưa cung cấp"}
-          </Text>
+          <Text style={styles.detailValue}>{data.customerPhone || "Chưa cung cấp"}</Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Email:</Text>
-          <Text style={styles.detailValue}>
-            {userInfo?.email || "Chưa cung cấp"}
-          </Text>
+          <Text style={styles.detailValue}>{data.customerEmail || "Chưa cung cấp"}</Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Tổng giá Tour:</Text>
-          <Text style={styles.detailPrice}>
-            {totalPrice.toLocaleString("vi-VN")} vnd
-          </Text>
+          <Text style={styles.detailPrice}>{data.totalAmount?.toLocaleString("vi-VN") || "0"} vnd</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Đã thanh toán 30%:</Text>
-          <Text style={styles.detailPrice}>
-            {prepaid.toLocaleString("vi-VN")} vnd
-          </Text>
+          <Text style={styles.detailLabel}>Đã thanh toán:</Text>
+          <Text style={styles.detailPrice}>{data.amountPaid?.toLocaleString("vi-VN") || "0"} vnd</Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Số tiền còn lại:</Text>
-          <Text style={styles.detailPriceBold}>
-            {remaining.toLocaleString("vi-VN")} vnd
-          </Text>
+          <Text style={styles.detailPriceBold}>{data.amountRemaining?.toLocaleString("vi-VN") || "0"} vnd</Text>
         </View>
       </View>
 

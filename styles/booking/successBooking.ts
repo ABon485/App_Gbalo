@@ -8,6 +8,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 16,
   },
+  errorText: {
+    color: "#f44336", // Màu đỏ cho lỗi
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 20,
+    fontWeight: "500",
+  },
+
   successHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -69,7 +77,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: "#000",
   },
-   bold: {
+  bold: {
     fontWeight: "bold",
   },
   dateGuestContainer: {
@@ -83,7 +91,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 8,
-    marginTop: 2, 
+    marginTop: 2,
   },
 
   labelText: {

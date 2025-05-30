@@ -41,7 +41,7 @@ export default function ConfirmBooking() {
     fullName?: string;
     phone?: string;
     email?: string;
-    address?:string;
+    address?: string;
   } | null>(null);
   const [contactErrors, setContactErrors] = useState<{
     fullName?: string;
@@ -68,7 +68,7 @@ export default function ConfirmBooking() {
 
   const params = useLocalSearchParams();
   const tourId = Number(params.tourId);
-  const initialDate = params.selectedDate as string; 
+  const initialDate = params.selectedDate as string;
   const initialGuests = params.selectedGuests as string;
   const initialTotalPrice = Number(params.totalPrice) || 0;
   const initialImageUrl = params.imageUrl as string;
@@ -193,165 +193,157 @@ export default function ConfirmBooking() {
   );
 
   const handlePayment = async () => {
-  if (
-    !selectedDate ||
-    selectedDate === "Chưa chọn" ||
-    selectedDate === "Chọn ngày"
-  ) {
-    console.log("Validation failed: Invalid or missing selectedDate");
-    showToast({
-      type: "error",
-      message: "Vui lòng chọn ngày khởi hành trước khi thanh toán.",
-    });
-    return;
-  }
-  if (
-    !selectedGuests ||
-    selectedGuests === "Chưa chọn" ||
-    selectedGuests === "1 khách"
-  ) {
-    showToast({
-      type: "error",
-      message: "Vui lòng chọn số lượng khách trước khi thanh toán.",
-    });
-    return;
-  }
+    if (
+      !selectedDate ||
+      selectedDate === "Chưa chọn" ||
+      selectedDate === "Chọn ngày"
+    ) {
+      console.log("Validation failed: Invalid or missing selectedDate");
+      showToast({
+        type: "error",
+        message: "Vui lòng chọn ngày khởi hành trước khi thanh toán.",
+      });
+      return;
+    }
+    if (
+      !selectedGuests ||
+      selectedGuests === "Chưa chọn" ||
+      selectedGuests === "1 khách"
+    ) {
+      showToast({
+        type: "error",
+        message: "Vui lòng chọn số lượng khách trước khi thanh toán.",
+      });
+      return;
+    }
 
-  const errors: typeof contactErrors = {};
-  if (!userInfo?.fullName || userInfo.fullName.trim() === "") {
-    errors.fullName = "Vui lòng điền tên của bạn.";
-  }
-  if (!userInfo?.phone || userInfo.phone.trim() === "") {
-    errors.phone = "Vui lòng điền số điện thoại của bạn.";
-  }
-  if (!userInfo?.email || userInfo.email.trim() === "") {
-    errors.email = "Vui lòng điền email của bạn.";
-  }
-  setContactErrors(errors);
+    const errors: typeof contactErrors = {};
+    if (!userInfo?.fullName || userInfo.fullName.trim() === "") {
+      errors.fullName = "Vui lòng điền tên của bạn.";
+    }
+    if (!userInfo?.phone || userInfo.phone.trim() === "") {
+      errors.phone = "Vui lòng điền số điện thoại của bạn.";
+    }
+    if (!userInfo?.email || userInfo.email.trim() === "") {
+      errors.email = "Vui lòng điền email của bạn.";
+    }
+    setContactErrors(errors);
 
-  if (Object.keys(errors).length > 0) {
-    return;
-  }
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
 
-  // Kiểm tra đồng ý điều khoản
-  if (!checkbox) {
-    showToast({
-      type: "error",
-      message: "Vui lòng đồng ý với Điều khoản sử dụng và Chính sách hoàn hủy.",
-    });
-    return;
-  }
+    // Kiểm tra đồng ý điều khoản
+    if (!checkbox) {
+      showToast({
+        type: "error",
+        message: "Vui lòng đồng ý với Điều khoản sử dụng và Chính sách hoàn hủy.",
+      });
+      return;
+    }
 
-  // Kiểm tra userId
-  if (!userInfo || !userId) {
-    router.push("/(auths)/(Login)/login");
-    return;
-  }
+    // Kiểm tra userId
+    if (!userInfo || !userId) {
+      router.push("/(auths)/(Login)/login");
+      return;
+    }
 
-  console.log("Parsing selectedGuests:", selectedGuests);
-  const guestMatch = selectedGuests.match(/^(\d+)\s*(.+)$/); // e.g., "2 adults" -> ["2 adults", "2", "adults"]
-  if (!guestMatch) {
-    console.log("Validation failed: Invalid selectedGuests format");
-    showToast({
-      type: "error",
-      message: "Dữ liệu số lượng khách không hợp lệ.",
-    });
-    return;
-  }
+    console.log("Parsing selectedGuests:", selectedGuests);
+    const guestMatch = selectedGuests.match(/^(\d+)\s*(.+)$/); // e.g., "2 adults" -> ["2 adults", "2", "adults"]
+    if (!guestMatch) {
+      console.log("Validation failed: Invalid selectedGuests format");
+      showToast({
+        type: "error",
+        message: "Dữ liệu số lượng khách không hợp lệ.",
+      });
+      return;
+    }
 
-  const quantity = parseInt(guestMatch[1], 10); // Extract quantity (e.g., 2)
-  const guestType = guestMatch[2].trim(); // Extract guest type (e.g., "adults")
+    const quantity = parseInt(guestMatch[1], 10); // Extract quantity (e.g., 2)
+    const guestType = guestMatch[2].trim(); // Extract guest type (e.g., "adults")
 
-  const tourPrice = tour?.tourPrices.find(
-    (price) => price.guestType.toLowerCase() === guestType.toLowerCase()
-  );
+    const tourPrice = tour?.tourPrices.find(
+      (price) => price.guestType.toLowerCase() === guestType.toLowerCase()
+    );
 
-  if (!tourPrice) {
-    console.log("Validation failed: No matching tourPrice for guestType", guestType);
-    showToast({
-      type: "error",
-      message: "Không tìm thấy thông tin giá cho loại khách này.",
-    });
-    return;
-  }
+    if (!tourPrice) {
+      console.log("Validation failed: No matching tourPrice for guestType", guestType);
+      showToast({
+        type: "error",
+        message: "Không tìm thấy thông tin giá cho loại khách này.",
+      });
+      return;
+    }
 
-  const guestTypeId = tourPrice.guestTypeId;
-  const price = tourPrice.price;
+    const guestTypeId = tourPrice.guestTypeId;
+    const price = tourPrice.price;
 
-  // Verify totalPrice consistency
-  const expectedTotalPrice = price * quantity;
-  if (totalPrice !== expectedTotalPrice) {
+    // Verify totalPrice consistency
+    const expectedTotalPrice = price * quantity;
+    if (totalPrice !== expectedTotalPrice) {
 
-  }
+    }
 
-  // Tạo dữ liệu đặt chỗ
-  const bookingData: Booking = {
-  CustomerId: userId || 11,
-  departureDate: selectedDate,
-  customerName: userInfo.fullName || "",
-  customerPhone: userInfo.phone || "",
-  customerEmail: userInfo.email || "",
-  customerAddress: userInfo.address || "",
-  note: "",
-  services: [
-    {
-      serviceId: tourId,
-      serviceName: tourName,
-      details: [
+    // Tạo dữ liệu đặt chỗ
+    const bookingData: Booking = {
+      CustomerId: userId,
+      departureDate: selectedDate,
+      customerName: userInfo.fullName || "",
+      customerPhone: userInfo.phone || "",
+      customerEmail: userInfo.email || "",
+      customerAddress: userInfo.address || "",
+      note: "",
+      services: [
         {
-          serviceDetailId: guestTypeId,
-          quantity: quantity,
-          price: price,
+          serviceId: tourId,
+          serviceName: tourName,
+          details: [
+            {
+              serviceDetailId: guestTypeId,
+              quantity: quantity,
+              price: price,
+            },
+          ],
         },
       ],
-    },
-  ],
-  payments: [
-    {
-      paymentDate: new Date().toISOString(), // hoặc 'YYYY-MM-DD HH:mm:ss'
-      paymentMethodId: 1,
-      bankCode: "VNPay",
-      paymentAmount: totalPrice,
-      paymentAmountByCurrency: totalPrice,
-      currencyType: "VND",
-      currencyRate: 1,
-      note: "",
-      isDeposit: true,
-      isDepositPaid: false,
-    },
-  ],
-};
+      payments: [
+        {
+          paymentDate: new Date().toISOString(), // hoặc 'YYYY-MM-DD HH:mm:ss'
+          paymentMethodId: 1,
+          bankCode: "VNPay",
+          paymentAmount: totalPrice,
+          paymentAmountByCurrency: totalPrice,
+          currencyType: "VND",
+          currencyRate: 1,
+          note: "",
+          isDeposit: true,
+          isDepositPaid: false,
+        },
+      ],
+    };
 
-  console.log("Generated bookingData:", JSON.stringify(bookingData, null, 2));
+    console.log("Generated bookingData:", JSON.stringify(bookingData, null, 2));
 
-  try {
-    const response = await bookingApi.createBooking(bookingData);
-    console.log("Booking API response:", response);
+    try {
+      const response = await bookingApi.createBooking(bookingData);
+      console.log("Booking API response:", response);
 
-    router.push({
-      pathname: "/(screens)/booking/successBooking",
-      params: {
-        tourId: tourId.toString(),
-        selectedDate,
-        selectedGuests,
-        totalPrice: totalPrice.toString(),
-        imageUrl: imageUrl || "",
-        tourName,
-        tourSubName,
-        userInfo: JSON.stringify(userInfo),
-        bookingId: response.id,
-      },
-    });
-  } catch (error) {
-    console.error("Error in bookingApi.createBooking:", error);
-    console.log("Error details:", JSON.stringify(error, null, 2));
-    showToast({
-      type: "error",
-      message: "Tạo booking thất bại, vui lòng thử lại.",
-    });
-  }
+      router.push({
+        pathname: "/(screens)/booking/successBooking",
+        params: {
+          bookingId: response.data.bookingId.toString(),
+        },
+      });
+    } catch (error) {
+      console.error("Error in bookingApi.createBooking:", error);
+      console.log("Error details:", JSON.stringify(error, null, 2));
+      showToast({
+        type: "error",
+        message: "Tạo booking thất bại, vui lòng thử lại.",
+      });
+    }
 
-};
+  };
 
   if (!tour) {
     return (
