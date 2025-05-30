@@ -152,5 +152,83 @@ export type Order = {
   price: string;
   image: string;
   countdown?: string;
-};
-export type TabType = "all" | "pending" | "paid" | "completed";
+}
+export type TabType = 'all' | 'pending' | 'paid' | 'completed';
+
+
+// types/booking.ts
+
+export type Booking = {
+  CustomerId: number;
+  departureDate: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  customerAddress: string;
+  note: string;
+  services: {
+    serviceId: number;
+    serviceName: string;
+    details: {
+      serviceDetailId: number;
+      quantity: number;
+      price: number;
+    }[];
+  }[];
+  payments: Payment[];
+}
+
+
+export type Payment = {
+  paymentDate: string;
+  paymentMethodId: number;
+  bankCode: string;
+  paymentAmount: number;
+  paymentAmountByCurrency: number;
+  currencyType: string;
+  currencyRate: number;
+  note: string;
+  isDeposit: boolean;
+  isDepositPaid: boolean;
+}
+export type BookingResponse = {
+  fullName: any;
+  bookingStatus: number;
+  bookingCode: string;
+  id: number;
+  departureDate: string;
+  data: BookingData;
+  status: string;
+}
+
+export type BookingData = {
+  id: number;
+  departureDate: string; // ISO date-time string (e.g., "2025-05-30T00:00:00")
+  bookingCode: string;
+  bookingStatus: number;
+  bookingStatusName: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerAddress: string;
+  note: string;
+  totalAmount: number;
+  pendingAmount: number;
+  pendingPaymentCreated: string; // ISO date-time string
+  amountPaid: number;
+  amountRemaining: number;
+  services: {
+    serviceId: number;
+    serviceName: string;
+    serviceImageUrl: string | null;
+    price: number;
+    details: {
+      serviceDetailId: number;
+      serviceDetaiName: string;
+      quantity: number;
+      price: number;
+      description: string;
+    }[];
+  }[];
+}
+
