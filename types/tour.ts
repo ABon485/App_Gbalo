@@ -218,6 +218,7 @@ export type BookingData = {
   amountPaid: number;
   amountRemaining: number;
   services: {
+    imageUrl: string;
     serviceId: number;
     serviceName: string;
     serviceImageUrl: string | null;
