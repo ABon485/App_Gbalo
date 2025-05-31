@@ -16,9 +16,18 @@ import AddDiscountCode from "@/components/booking/add-discount-code";
 import { router, useLocalSearchParams } from "expo-router";
 import tourApi from "@/services/tour";
 import bookingApi from "@/services/tour";
-import { Booking, TourDetail } from "@/types/tour";
+import { Booking, Policy, TourDetail } from "@/types/tour";
 import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Hàm chuyển đổi định dạng ngày từ DD/MM/YYYY sang YYYY-MM-DD
+const formatDateToYYYYMMDD = (date: string): string => {
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
+    const [day, month, year] = date.split("/");
+    return `${year}-${month}-${day}`;
+  }
+  return date; // Trả về nguyên gốc nếu đã đúng định dạng
+};
 
 export default function ConfirmBooking() {
   const [checkbox, setIsCheckbox] = useState(false);
@@ -34,8 +43,7 @@ export default function ConfirmBooking() {
   const [showAddDiscountModal, setShowAddDiscountModal] = useState(false);
   const [tour, setTour] = useState<TourDetail | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
-
-
+  const [policyData, setPolicyData] = useState<Policy | null>(null);
   const { showToast } = useToast();
   const [userInfo, setUserInfo] = useState<{
     fullName?: string;
@@ -48,23 +56,20 @@ export default function ConfirmBooking() {
     phone?: string;
     email?: string;
   }>({});
-  const updateUserInfo = (field: keyof typeof userInfo, value: string) => {
-    setUserInfo(prev => ({
-      ...prev,
-      [field]: value,
-    }));
 
-    // Nếu dữ liệu hợp lệ thì xóa lỗi tương ứng
-    setContactErrors(prevErrors => {
+  const updateUserInfo = (field: keyof typeof userInfo, value: string) => {
+    setUserInfo((prev) => ({ ...prev, [field]: value }));
+    setContactErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
-      if (value.trim() !== "") {
-        delete newErrors[field];
-      }
+      if (value.trim() !== "") delete newErrors[field];
       return newErrors;
     });
   };
 
-  const prepayment = Math.round(totalPrice * 0.3);
+  // Calculate prepayment based on depositPercent from policyData, with fallback to 0 if not available
+  const prepayment = policyData?.depositPercent
+    ? Math.round(totalPrice * (policyData.depositPercent / 100))
+    : 0;
 
   const params = useLocalSearchParams();
   const tourId = Number(params.tourId);
@@ -94,20 +99,16 @@ export default function ConfirmBooking() {
         console.error("Lỗi khi lấy chi tiết tour:", error);
       }
     };
-
-    if (tourId) {
-      fetchTourDetail();
-    }
+    if (tourId) fetchTourDetail();
   }, [tourId]);
+
   useEffect(() => {
     const fetchUserId = async () => {
       try {
         const dataStr = await AsyncStorage.getItem("data");
         if (dataStr) {
           const data = JSON.parse(dataStr);
-          if (data && data.userId) {
-            setUserId(data.userId);
-          }
+          if (data && data.userId) setUserId(data.userId);
         }
       } catch (err) {
         console.error("Lỗi lấy userId từ AsyncStorage:", err);
@@ -117,13 +118,11 @@ export default function ConfirmBooking() {
   }, []);
 
   useEffect(() => {
-    // Cập nhật dữ liệu ban đầu
     if (initialDate && initialDate !== "Chọn ngày") {
-      setSelectedDate(initialDate);
+      setSelectedDate(formatDateToYYYYMMDD(initialDate));
     }
-    if (initialGuests && initialGuests !== "1 khách") {
+    if (initialGuests && initialGuests !== "1 khách")
       setSelectedGuests(initialGuests);
-    }
     if (initialTotalPrice) setTotalPrice(initialTotalPrice);
     if (initialImageUrl) setImageUrl(initialImageUrl);
     if (initialTourName) setTourName(initialTourName);
@@ -137,8 +136,47 @@ export default function ConfirmBooking() {
     initialTourSubName,
   ]);
 
+  useEffect(() => {
+    const fetchPolicy = async () => {
+      if (
+        tourId &&
+        selectedDate &&
+        selectedDate !== "Chọn ngày" &&
+        selectedDate !== "Chưa chọn" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(selectedDate)
+      ) {
+        try {
+          console.log(
+            "Gửi yêu cầu API với:",
+            JSON.stringify({ tourId, selectedDate }, null, 2)
+          );
+          const res = await tourApi.getPolicy(tourId, selectedDate);
+          setPolicyData(res.data);
+          console.log(
+            "Lấy chính sách thành công:",
+            JSON.stringify(res, null, 2)
+          );
+        } catch (err) {
+          let errorMessage = "Không thể tải chính sách.";
+          if (typeof err === "object" && err !== null && "response" in err) {
+            const response = (err as any).response;
+            console.error("Lỗi khi gọi API getPolicy:", response?.data || err);
+            errorMessage = response?.data?.message || errorMessage;
+          } else {
+            console.error("Lỗi khi gọi API getPolicy:", err);
+          }
+          showToast({ type: "error", message: errorMessage });
+          setPolicyData(null);
+        }
+      } else {
+        console.log("Tham số không hợp lệ:", { tourId, selectedDate });
+      }
+    };
+    fetchPolicy();
+  }, [tourId, selectedDate]);
+
   const handleSaveDate = (date: string) => {
-    setSelectedDate(date);
+    setSelectedDate(formatDateToYYYYMMDD(date));
     setShowScheduleModal(false);
   };
 
@@ -148,35 +186,29 @@ export default function ConfirmBooking() {
     setShowClientModal(false);
   };
 
-
-  const handleSavePersonalInfo = (personalInfo: { fullName: string; phone: string; email: string; }) => {
-    setUserInfo(prev => ({
+  const handleSavePersonalInfo = (personalInfo: {
+    fullName: string;
+    phone: string;
+    email: string;
+  }) => {
+    setUserInfo((prev) => ({
       ...prev,
       fullName: personalInfo.fullName,
       phone: personalInfo.phone,
       email: personalInfo.email,
     }));
-
-    setContactErrors(prevErrors => {
+    setContactErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
-      if (personalInfo.fullName.trim() !== "") {
-        delete newErrors.fullName;
-      }
-      if (personalInfo.phone.trim() !== "") {
-        delete newErrors.phone;
-      }
-      if (personalInfo.email.trim() !== "") {
-        delete newErrors.email;
-      }
+      if (personalInfo.fullName.trim() !== "") delete newErrors.fullName;
+      if (personalInfo.phone.trim() !== "") delete newErrors.phone;
+      if (personalInfo.email.trim() !== "") delete newErrors.email;
       return newErrors;
     });
-
     setShowEditPersonalModal(false);
   };
 
   const handleApplyDiscount = (code: string) => {
     console.log("Applied discount code:", code);
-    // Thêm logic giảm giá nếu cần
   };
 
   const renderCheckbox = (
@@ -199,7 +231,6 @@ export default function ConfirmBooking() {
       selectedDate === "Chưa chọn" ||
       selectedDate === "Chọn ngày"
     ) {
-      console.log("Validation failed: Invalid or missing selectedDate");
       showToast({
         type: "error",
         message: "Vui lòng chọn ngày khởi hành trước khi thanh toán.",
@@ -222,31 +253,32 @@ export default function ConfirmBooking() {
 
     // Validate userInfo
     const errors: typeof contactErrors = {};
-    if (!userInfo?.fullName || userInfo.fullName.trim() === "") {
+    if (!userInfo?.fullName || userInfo.fullName.trim() === "")
       errors.fullName = "Vui lòng điền tên của bạn.";
-    }
-    if (!userInfo?.phone || userInfo.phone.trim() === "") {
+    if (!userInfo?.phone || userInfo.phone.trim() === "")
       errors.phone = "Vui lòng điền số điện thoại của bạn.";
-    }
-    if (!userInfo?.email || userInfo.email.trim() === "") {
+    if (!userInfo?.email || userInfo.email.trim() === "")
       errors.email = "Vui lòng điền email của bạn.";
-    }
     setContactErrors(errors);
 
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
+    if (Object.keys(errors).length > 0) return;
 
-    // Validate terms and conditions checkbox
     if (!checkbox) {
       showToast({
         type: "error",
-        message: "Vui lòng đồng ý với Điều khoản sử dụng và Chính sách hoàn hủy.",
+        message:
+          "Vui lòng đồng ý với Điều khoản sử dụng và Chính sách hoàn hủy.",
       });
       return;
     }
 
-    // Validate user authentication
+    if (!policyData?.depositPercent) {
+      showToast({
+        type: "error",
+        message: "Không thể xác định tỷ lệ thanh toán trước. Vui lòng thử lại.",
+      });
+      return;
+    }
     if (!userInfo || !userId) {
       router.push("/(auths)/(Login)/login");
       return;
@@ -346,6 +378,7 @@ export default function ConfirmBooking() {
           serviceId: tourId,
           serviceName: tourName,
           details: serviceDetails,
+
         },
       ],
       payments: [
@@ -353,28 +386,22 @@ export default function ConfirmBooking() {
           paymentDate: new Date().toISOString(),
           paymentMethodId: 1,
           bankCode: "VNPay",
-          paymentAmount: totalPrice,
-          paymentAmountByCurrency: totalPrice,
+          paymentAmount: prepayment,
+          paymentAmountByCurrency: prepayment,
           currencyType: "VND",
           currencyRate: 1,
           note: "",
-          isDeposit: true,
+          isDeposit: typeof policyData?.depositPercent !== "undefined" && policyData.depositPercent > 0,
           isDepositPaid: false,
         },
       ],
     };
 
-    console.log("Generated bookingData:", JSON.stringify(bookingData, null, 2));
-
     try {
       const response = await bookingApi.createBooking(bookingData);
-      console.log("Booking API response:", response);
-
       router.push({
         pathname: "/(screens)/booking/successBooking",
-        params: {
-          bookingId: response.data.bookingId.toString(),
-        },
+        params: { bookingId: response.data.bookingId.toString() },
       });
     } catch (error) {
       console.error("Error in bookingApi.createBooking:", error);
@@ -395,7 +422,6 @@ export default function ConfirmBooking() {
 
   return (
     <View style={styles.container}>
-      {/* Fixed Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => router.back()}>
           <AntDesign name="arrowleft" size={20} color="black" />
@@ -403,9 +429,7 @@ export default function ConfirmBooking() {
         <Text style={styles.headerText}>Xác nhận và thanh toán</Text>
       </View>
 
-      {/* Scrollable Content */}
       <ScrollView style={styles.scrollContent}>
-        {/* Tour Info */}
         <View style={styles.tourCard}>
           <Image
             source={
@@ -421,25 +445,23 @@ export default function ConfirmBooking() {
           />
           <View style={styles.tourInfo}>
             <Text style={styles.tourTitle}>{tourName || tour.name}</Text>
-            {/* <Text style={styles.tourDesc}>{tourSubName || tour.subName}</Text> */}
             <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
             <Text style={styles.price}>
-              Từ
+              Từ{" "}
               <Text style={styles.bold}>
                 {" "}
                 {totalPrice.toLocaleString("vi-VN")}₫/
-              </Text>Người
+              </Text>
+              Người
             </Text>
           </View>
         </View>
 
-        {/* Cancellation Notice */}
         <Text style={styles.notice}>
-          <Text style={styles.bold}>Hủy miễn phí</Text>
+          <Text style={styles.bold}>Hủy miễn phí</Text>{" "}
           {" trước 8 tháng 4. Được hoàn tiền đầy đủ nếu bạn thay đổi kế hoạch."}
         </Text>
 
-        {/* Schedule Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Thời gian chuyến đi</Text>
           <View style={styles.scheduleRow}>
@@ -462,7 +484,6 @@ export default function ConfirmBooking() {
           </View>
         </View>
 
-        {/* Contact Info */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Thông tin liên hệ</Text>
@@ -480,7 +501,6 @@ export default function ConfirmBooking() {
           {contactErrors.fullName && (
             <Text style={styles.errorText}>{contactErrors.fullName}</Text>
           )}
-
           <Text style={styles.contactText}>
             Số điện thoại <Text style={styles.required}>*</Text>:{" "}
             {userInfo?.phone || "Chưa cung cấp"}
@@ -488,7 +508,6 @@ export default function ConfirmBooking() {
           {contactErrors.phone && (
             <Text style={styles.errorText}>{contactErrors.phone}</Text>
           )}
-
           <Text style={styles.contactText}>
             Email <Text style={styles.required}>*</Text>:{" "}
             {userInfo?.email || "Chưa cung cấp"}
@@ -498,7 +517,6 @@ export default function ConfirmBooking() {
           )}
         </View>
 
-        {/* Requirements */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Bạn yêu cầu nào không?</Text>
           <Text style={styles.sectionSub}>
@@ -513,7 +531,6 @@ export default function ConfirmBooking() {
           />
         </View>
 
-        {/* Discount */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Giảm giá</Text>
           <View style={styles.discountRow}>
@@ -534,7 +551,6 @@ export default function ConfirmBooking() {
           </View>
         </View>
 
-        {/* Payment */}
         <Text style={styles.paymentTitle}>Thanh toán bằng</Text>
         <Text style={styles.introText}>
           Tất cả thông tin đều được mã hóa và bảo mật
@@ -556,37 +572,25 @@ export default function ConfirmBooking() {
           </View>
         </View>
 
-        {/* Chính sách */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Chính sách</Text>
-          <View style={styles.policyItem}>
-            <Text style={styles.checkMark}>
-              <AntDesign name="check" size={20} color="green" />
-            </Text>
-            <Text style={styles.policyText}>
-              Khách sẽ thanh toán trước 30% tổng tiền tour, bằng hình thức
-              vnpay.
-            </Text>
-          </View>
-          <View style={styles.policyItem}>
-            <Text style={styles.checkMark}>
-              <AntDesign name="check" size={20} color="green" />
-            </Text>
-            <Text style={styles.policyText}>
-              Khách không được hoàn lại số tiền đã thanh toán trước nếu hủy tour
-              bất kỳ lúc nào.
-            </Text>
-          </View>
-          <View style={styles.policyItem}>
-            <Text style={styles.checkMark}>
-              <AntDesign name="check" size={20} color="green" />
-            </Text>
-            <Text style={styles.policyText}>
-              Khách có thể hủy đến 14 ngày trước khi tour khởi hành. Khách phải
-              trả 50% tổng tiền thanh toán trước nếu hủy tour trong vòng 14 ngày
-              trước khi tour khởi hành và phải trả 100% tổng tiền thanh toán
-              trước nếu vắng mặt.
-            </Text>
+          <View>
+            {policyData?.policies && policyData.policies.length > 0 ? (
+              policyData.policies.map((item: string, index: number) => (
+                <View key={index} style={styles.policyItem}>
+                  <Text style={styles.checkMark}>
+                    <AntDesign name="check" size={20} color="green" />
+                  </Text>
+                  <Text style={styles.policyText}>{item}</Text>
+                </View>
+              ))
+            ) : (
+              <>
+                <View style={styles.policyItem}>
+                  <Text style={styles.checkMark}>Không có chính sách </Text>
+                </View>
+              </>
+            )}
           </View>
 
           <View style={styles.checkboxContainer}>
@@ -597,16 +601,8 @@ export default function ConfirmBooking() {
               <Text style={styles.Newlink}>Chính sách hoàn hủy</Text>
             </Text>
           </View>
-          {!checkbox && (
-            <Text
-              style={{ color: "red", marginLeft: 20, marginTop: 5, fontSize: 13 }}
-            >
-              Vui lòng chọn vào nút đồng ý.
-            </Text>
-          )}
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <View style={styles.priceInfo}>
             <View style={styles.priceRow}>
@@ -616,20 +612,24 @@ export default function ConfirmBooking() {
               </Text>
             </View>
             <View style={styles.prepayRow}>
-              <Text style={styles.label}>Thanh toán trước 30%:</Text>
+              <Text style={styles.label}>
+                Thanh toán trước{" "}
+                {policyData?.depositPercent
+                  ? `${policyData.depositPercent}%`
+                  : "N/A"}
+                :
+              </Text>
               <Text style={styles.prepayAmount}>
                 đ {prepayment.toLocaleString("vi-VN")}
               </Text>
             </View>
           </View>
-
           <TouchableOpacity style={styles.button} onPress={handlePayment}>
             <Text style={styles.buttonText}>Thanh toán</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* Modals */}
       <Schedule
         visible={showScheduleModal}
         onClose={() => setShowScheduleModal(false)}

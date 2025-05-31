@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
   checkMark: {
     color: "green",
-    fontSize: 18,
+    fontSize: 14,
     marginRight: 8,
     marginTop: 2,
   },

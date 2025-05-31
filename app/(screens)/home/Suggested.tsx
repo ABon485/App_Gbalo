@@ -244,7 +244,6 @@ const TourListScreen = () => {
           color={item.vote > 0 ? "#FF9500" : "#999999"}
         />
         <Text style={styles.reviews}>{item.vote}</Text>
-        <Text style={styles.reviews}>{item.provinceName}</Text>
       </View>
       <View>
         <Text style={styles.price}>

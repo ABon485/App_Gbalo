@@ -86,7 +86,7 @@ export default function SuccessBooking() {
       {/* Tour Info */}
       <View style={styles.tourCard}>
         <Image
-          source={{ uri: service.serviceImageUrl || "https://via.placeholder.com/150" }}
+          source={{ uri: service.imageUrl || "https://via.placeholder.com/150" }}
           style={styles.tourImage}
         />
         <View style={styles.tourInfo}>

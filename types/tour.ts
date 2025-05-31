@@ -218,6 +218,7 @@ export type BookingData = {
   amountPaid: number;
   amountRemaining: number;
   services: {
+    imageUrl: string;
     serviceId: number;
     serviceName: string;
     serviceImageUrl: string | null;
@@ -230,5 +231,12 @@ export type BookingData = {
       description: string;
     }[];
   }[];
+  
 }
 
+export type Policy = {
+  policies: string[];
+  paymentMethod: string;
+  depositPercent: number;
+  cancelPercent: number;
+};
