@@ -230,5 +230,12 @@ export type BookingData = {
       description: string;
     }[];
   }[];
+  
 }
 
+export type Policy = {
+  policies: string[];
+  paymentMethod: string;
+  depositPercent: number;
+  cancelPercent: number;
+};

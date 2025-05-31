@@ -11,7 +11,7 @@ import {
   FavoriteTourAPIResponse,
   Booking,
   BookingResponse,
-
+  Policy
 
 
 
@@ -58,7 +58,7 @@ const tourApi = {
 
   getProvince: (): Promise<ProvinceType[]> =>
     api.get("/province").then((response) => {
-      console.log("Raw API response:", response);
+      // console.log("Raw API response:", response);
       const data = response.data?.data;
       if (!Array.isArray(data)) {
         throw new Error("API response data is not an array");
@@ -179,7 +179,23 @@ const tourApi = {
       console.error("Lỗi khi gọi API getBookingById:", error);
       throw error;
     }
+  },
+ getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
+  try {
+    const response = await api.get(`/tour/getpolicy`, {
+      params: {
+        tourId,
+        departureDate,
+      },
+    });
+    // console.log("Response API getPolicy:", response);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi gọi API getPolicy:", error);
+    throw error;
   }
+}
+
 };
 
 export default tourApi;
