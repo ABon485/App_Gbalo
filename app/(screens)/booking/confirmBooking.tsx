@@ -193,6 +193,7 @@ export default function ConfirmBooking() {
   );
 
   const handlePayment = async () => {
+    // Validate selectedDate
     if (
       !selectedDate ||
       selectedDate === "Chưa chọn" ||
@@ -205,6 +206,8 @@ export default function ConfirmBooking() {
       });
       return;
     }
+
+    // Validate selectedGuests
     if (
       !selectedGuests ||
       selectedGuests === "Chưa chọn" ||
@@ -217,6 +220,7 @@ export default function ConfirmBooking() {
       return;
     }
 
+    // Validate userInfo
     const errors: typeof contactErrors = {};
     if (!userInfo?.fullName || userInfo.fullName.trim() === "") {
       errors.fullName = "Vui lòng điền tên của bạn.";
@@ -233,7 +237,7 @@ export default function ConfirmBooking() {
       return;
     }
 
-    // Kiểm tra đồng ý điều khoản
+    // Validate terms and conditions checkbox
     if (!checkbox) {
       showToast({
         type: "error",
@@ -242,49 +246,93 @@ export default function ConfirmBooking() {
       return;
     }
 
-    // Kiểm tra userId
+    // Validate user authentication
     if (!userInfo || !userId) {
       router.push("/(auths)/(Login)/login");
       return;
     }
 
-    console.log("Parsing selectedGuests:", selectedGuests);
-    const guestMatch = selectedGuests.match(/^(\d+)\s*(.+)$/); // e.g., "2 adults" -> ["2 adults", "2", "adults"]
-    if (!guestMatch) {
-      console.log("Validation failed: Invalid selectedGuests format");
-      showToast({
-        type: "error",
-        message: "Dữ liệu số lượng khách không hợp lệ.",
-      });
-      return;
+    // Parse selectedGuests, e.g., "1 người lớn, 1 trẻ em, 1 em bé"
+    const guestEntries = selectedGuests.split(",").map((entry) => entry.trim());
+    const guestDetails: { quantity: number; guestType: string }[] = [];
+
+    for (const entry of guestEntries) {
+      const guestMatch = entry.match(/^(\d+)\s*(.+)$/); // e.g., "1 người lớn" -> ["1 người lớn", "1", "người lớn"]
+      if (!guestMatch) {
+        console.log("Validation failed: Invalid selectedGuests format for", entry);
+        showToast({
+          type: "error",
+          message: `Dữ liệu số lượng khách không hợp lệ: ${entry}.`,
+        });
+        return;
+      }
+      const quantity = parseInt(guestMatch[1], 10);
+      const guestType = guestMatch[2].trim();
+      guestDetails.push({ quantity, guestType });
     }
 
-    const quantity = parseInt(guestMatch[1], 10); // Extract quantity (e.g., 2)
-    const guestType = guestMatch[2].trim(); // Extract guest type (e.g., "adults")
+    // Validate and calculate total price for each guest type
+    let expectedTotalPrice = 0;
+    const serviceDetails: { serviceDetailId: number; quantity: number; price: number }[] = [];
 
-    const tourPrice = tour?.tourPrices.find(
-      (price) => price.guestType.toLowerCase() === guestType.toLowerCase()
-    );
+    for (const { quantity, guestType } of guestDetails) {
+      let tourPrice;
 
-    if (!tourPrice) {
-      console.log("Validation failed: No matching tourPrice for guestType", guestType);
-      showToast({
-        type: "error",
-        message: "Không tìm thấy thông tin giá cho loại khách này.",
-      });
-      return;
+      // Map guestType to tourPrice based on guestType and age
+      if (guestType.toLowerCase() === "người lớn") {
+        tourPrice = tour?.tourPrices.find(
+          (price) => price.guestType.toLowerCase() === "người lớn"
+        );
+      } else if (guestType.toLowerCase() === "trẻ em") {
+        tourPrice = tour?.tourPrices.find(
+          (price) =>
+            price.guestType.toLowerCase() === "trẻ em" &&
+            price.age === "Từ 6-11 tuổi"
+        );
+      } else if (guestType.toLowerCase() === "em bé") {
+        tourPrice = tour?.tourPrices.find(
+          (price) =>
+            price.guestType.toLowerCase() === "trẻ em" &&
+            price.age === "Từ 2-5 tuổi"
+        );
+      } else {
+        console.log("Validation failed: Unrecognized guestType", guestType);
+        showToast({
+          type: "error",
+          message: `Loại khách không hợp lệ: ${guestType}.`,
+        });
+        return;
+      }
+
+      if (!tourPrice) {
+        console.log("Validation failed: No matching tourPrice for guestType", guestType);
+        showToast({
+          type: "error",
+          message: `Không tìm thấy thông tin giá cho loại khách: ${guestType}.`,
+        });
+        return;
+      }
+
+      const guestTypeId = tourPrice.guestTypeId;
+      const price = tourPrice.price;
+      expectedTotalPrice += price * quantity;
+      serviceDetails.push({ serviceDetailId: guestTypeId, quantity, price });
     }
-
-    const guestTypeId = tourPrice.guestTypeId;
-    const price = tourPrice.price;
 
     // Verify totalPrice consistency
-    const expectedTotalPrice = price * quantity;
     if (totalPrice !== expectedTotalPrice) {
-
+      console.log("Validation failed: Total price mismatch", {
+        totalPrice,
+        expectedTotalPrice,
+      });
+      showToast({
+        type: "error",
+        message: "Tổng giá không khớp, vui lòng kiểm tra lại.",
+      });
+      return;
     }
 
-    // Tạo dữ liệu đặt chỗ
+    // Create booking data
     const bookingData: Booking = {
       CustomerId: userId,
       departureDate: selectedDate,
@@ -297,18 +345,12 @@ export default function ConfirmBooking() {
         {
           serviceId: tourId,
           serviceName: tourName,
-          details: [
-            {
-              serviceDetailId: guestTypeId,
-              quantity: quantity,
-              price: price,
-            },
-          ],
+          details: serviceDetails,
         },
       ],
       payments: [
         {
-          paymentDate: new Date().toISOString(), // hoặc 'YYYY-MM-DD HH:mm:ss'
+          paymentDate: new Date().toISOString(),
           paymentMethodId: 1,
           bankCode: "VNPay",
           paymentAmount: totalPrice,
@@ -336,13 +378,11 @@ export default function ConfirmBooking() {
       });
     } catch (error) {
       console.error("Error in bookingApi.createBooking:", error);
-      console.log("Error details:", JSON.stringify(error, null, 2));
       showToast({
         type: "error",
         message: "Tạo booking thất bại, vui lòng thử lại.",
       });
     }
-
   };
 
   if (!tour) {

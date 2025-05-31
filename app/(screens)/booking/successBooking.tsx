@@ -56,8 +56,10 @@ export default function SuccessBooking() {
   }
 
   const { data } = bookingData;
-  const service = data.services?.[0] || {}; // Lấy service đầu tiên, nếu không có thì trả về object rỗng
-  const serviceDetail = service.details?.[0] || {}; // Lấy detail đầu tiên
+  const service = data.services?.[0] || {};
+
+  // Calculate total number of guests from all service details
+  const totalGuests = service.details?.reduce((sum, detail) => sum + (detail.quantity || 0), 0) || 0;
 
   return (
     <View style={styles.container}>
@@ -116,7 +118,9 @@ export default function SuccessBooking() {
         <Feather name="users" size={16} color="#666" style={styles.icon} />
         <View>
           <Text style={styles.labelText}>Khách</Text>
-          <Text style={styles.valueText}>{serviceDetail.quantity ? `${serviceDetail.quantity} khách` : "Chưa xác định"}</Text>
+          <Text style={styles.valueText}>
+            {totalGuests > 0 ? `${totalGuests} khách` : "Chưa xác định"}
+          </Text>
         </View>
       </View>
 
@@ -131,7 +135,7 @@ export default function SuccessBooking() {
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Khởi hành từ:</Text>
-          <Text style={styles.detailValue}>Hà Nội</Text> {/* Cập nhật nếu API cung cấp */}
+          <Text style={styles.detailValue}>Hà Nội</Text>
         </View>
 
         <View style={styles.detailRow}>
