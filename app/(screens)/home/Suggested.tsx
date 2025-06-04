@@ -139,6 +139,7 @@ const TourListScreen = () => {
       if (!storedData) {
         showToast({
           type: "error",
+          heading: "Thành công",
           message: "Vui lòng đăng nhập để lưu tour yêu thích.",
         });
         router.push("/(auths)/(Login)/login");
@@ -152,6 +153,7 @@ const TourListScreen = () => {
       if (!userId || !token) {
         showToast({
           type: "error",
+          heading: "Thành công",
           message:
             "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
         });
@@ -170,12 +172,14 @@ const TourListScreen = () => {
         await tourApi.deleteFavorite(userId, Number(id));
         showToast({
           type: "success",
+          heading: "Thành công",
           message: "Đã xóa khỏi danh sách yêu thích.",
         });
       } else {
         await tourApi.postFavorite(userId, Number(id));
         showToast({
           type: "success",
+          heading: "Thành công",
           message: "Đã thêm vào danh sách yêu thích.",
         });
       }
@@ -189,6 +193,7 @@ const TourListScreen = () => {
       console.error("Lỗi khi lưu yêu thích:", err);
       showToast({
         type: "error",
+          heading: "Thành công",
         message: "Không thể cập nhật tour yêu thích. Vui lòng thử lại.",
       });
       setTours((prev) =>

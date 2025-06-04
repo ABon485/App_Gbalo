@@ -117,6 +117,7 @@ const WishlistScreen = () => {
       console.error("Lỗi khi tải danh sách yêu thích:", err);
       showToast({
         type: "error",
+        heading: "Thành công",
         message: "Không thể tải danh sách yêu thích. Vui lòng thử lại.",
       });
     } finally {
@@ -136,6 +137,7 @@ const WishlistScreen = () => {
       if (!storedData) {
         showToast({
           type: "error",
+          heading: "Thành công",
           message: "Vui lòng đăng nhập để xóa tour yêu thích.",
         });
         router.push("/");
@@ -148,6 +150,7 @@ const WishlistScreen = () => {
       await tourApi.deleteFavorite(userId, Number(id));
       showToast({
         type: "success",
+        heading: "Thành công",
         message: "Đã xóa khỏi danh sách yêu thích.",
       });
 
@@ -157,6 +160,7 @@ const WishlistScreen = () => {
         (tour: { id: number }) => tour.id !== Number(id)
       );
       await AsyncStorage.setItem("favorites", JSON.stringify(favorites));
+      await fetchFavorites();
 
       setWishlistItems((prev) =>
         prev
@@ -170,6 +174,7 @@ const WishlistScreen = () => {
       console.error("Lỗi khi xóa yêu thích:", err);
       showToast({
         type: "error",
+        heading: "Thành công",
         message: "Không thể xóa tour yêu thích. Vui lòng thử lại.",
       });
     }

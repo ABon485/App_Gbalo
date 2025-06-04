@@ -1,168 +1,191 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { BookingItem } from '@/types/tour'; // Adjust the import path
+import bookingApi from '@/services/tour';
 
 const TourListScreen = () => {
   const router = useRouter();
+  const [tours, setTours] = useState<BookingItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const tours = [
-    {
-      id: 1,
-      image: require('@/assets/images/BackGroud.png'),
-      title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
-      date: 'Ngày khởi hành: 15/03/2025',
-      price: '2 x 1.988.000VND',
-      total: 'Tổng số: 1.234.556 đ',
-      status: 'Trạng thái: Đã thanh toán',
-      balance: 'Hiển thị chi tiết',
-    },
-    {
-      id: 2,
-      image: require('@/assets/images/BackGroud.png'),
-      title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
-      date: '15/03/2025',
-      price: '1 x 988.000VND',
-      total: 'Tổng số: 1.234.556 đ',
-      status: 'Trạng thái: Đang chờ thanh toán 01:48:17',
-      balance: 'Hiển thị chi tiết',
-      buttonText: 'Thanh toán',
-    },
-    {
-      id: 3,
-      image: require('@/assets/images/BackGroud.png'),
-      title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
-      date: 'Ngày khởi hành: 15/03/2025',
-      price: '2 x 1.988.000VND',
-      total: 'Tổng số: 5.434.556 đ',
-      status: 'Trạng thái: Đã thanh toán',
-      balance: 'Hiển thị chi tiết',
-      cancelText: 'Xem đơn hàng',
-    },
-    {
-      id: 4,
-      image: require('@/assets/images/BackGroud.png'),
-      title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
-      date: 'Ngày khởi hành: 15/03/2025',
-      price: '1 x 988.000VND',
-      total: 'Tổng số: 1.234.556 đ',
-      status: 'Trạng thái: Đã thanh toán',
-      balance: 'Hiển thị chi tiết',
-      buttonText: 'Đặt lại',
-    },
-    {
-      id: 5,
-      image: require('@/assets/images/BackGroud.png'),
-      title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
-      date: '15/03/2025',
-      price: '1 x 988.000VND',
-      total: 'Tổng số: 1.234.556 đ',
-      status: 'Trạng thái: Đang chờ thanh toán 01:48:17',
-      balance: 'Hiển thị chi tiết',
-      buttonText: 'Thanh toán',
-    },
-  ];
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await bookingApi.getBooking();
+        setTours(response.data.datas);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch bookings:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
+  const formatCurrency = (amount: number) => {
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
+  };
+
+  const getStatusText = (item: BookingItem) => {
+    if (item.amountRemaining > 0) {
+      const timeRemaining = new Date(item.pendingPaymentCreated).toLocaleTimeString('vi-VN');
+      return `Trạng thái: Đang chờ thanh toán ${timeRemaining}`;
+    }
+    if (item.bookingStatus === 3) {
+      return 'Trạng thái: Đã hoàn thành';
+    }
+    return 'Trạng thái: Đã thanh toán';
+  };
+
+  const getButtonText = (item: BookingItem) => {
+    if (item.amountRemaining > 0) {
+      return 'Thanh toán';
+    }
+    if (item.bookingStatus === 3) {
+      return 'Đặt lại';
+    }
+    return null;
+  };
+
+  const getCancelText = (item: BookingItem) => {
+    if (item.bookingStatus === 3) {
+      return 'Xem đơn hàng';
+    }
+    return null;
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container}>
-      {tours.map((tour) => (
-        <View key={tour.id} style={styles.tourItem}>
-          <Image source={tour.image} style={styles.tourImage} />
-          <View style={styles.tourDetails}>
-            <Text style={styles.tourTitle}>{tour.title}</Text>
-            <Text style={styles.tourDate}>{tour.date}</Text>
-            <Text style={styles.tourPrice}>{tour.price}</Text>
-            <Text style={styles.tourStatus}>{tour.status}</Text>
-            <Text style={styles.tourTotal}>{tour.total}</Text>
-            <TouchableOpacity onPress={() => router.push('/(screens)/tourOder/oderDetail')}>
-              <Text style={styles.tourBalance}>{tour.balance}</Text>
-            </TouchableOpacity>
-            {tour.buttonText && (
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>{tour.buttonText}</Text>
-              </TouchableOpacity>
-            )}
-            {tour.cancelText && (
-              <TouchableOpacity style={styles.cancelButton}>
-                <Text style={styles.cancelButtonText}>{tour.cancelText}</Text>
-              </TouchableOpacity>
-            )}
+    <View style={styles.container}>
+      <ScrollView style={styles.listContainer}>
+        {tours.map((tour) => (
+          <View key={tour.id} style={styles.tourItem}>
+            <Image
+              source={tour.serviceImageUrl ? { uri: tour.serviceImageUrl } : require('@/assets/images/BackGroud.png')}
+              style={styles.tourImage}
+            />
+            <View style={styles.tourDetails}>
+              <Text style={styles.tourTitle}>{tour.serviceName}</Text>
+              <Text style={styles.tourDate}>Ngày khởi hành: {new Date(tour.departureDate).toLocaleDateString('vi-VN')}</Text>
+              <Text style={styles.tourPrice}>{getStatusText(tour)}</Text>
+              <Text style={styles.tourTotal}>
+                Tổng số: <Text style={styles.orangeText}>{formatCurrency(tour.totalAmount)}</Text>
+              </Text>
+              <View style={styles.bottomRow}>
+                <TouchableOpacity onPress={() => router.push('/(screens)/tourOder/oderDetail')}>
+                  <Text style={styles.tourBalance}>Hiển thị chi tiết</Text>
+                </TouchableOpacity>
+                {getButtonText(tour) && (
+                  <TouchableOpacity style={styles.button}>
+                    <Text style={styles.buttonText}>{getButtonText(tour)}</Text>
+                  </TouchableOpacity>
+                )}
+                {getCancelText(tour) && (
+                  <TouchableOpacity style={styles.cancelButton}>
+                    <Text style={styles.cancelButtonText}>{getCancelText(tour)}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
           </View>
-        </View>
-      ))}
-    </ScrollView>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    marginTop: 10,
+    backgroundColor: '#fff',
+  },
+  listContainer: {
+    flex: 1,
   },
   tourItem: {
     flexDirection: 'row',
     backgroundColor: '#fff',
     marginVertical: 10,
     marginHorizontal: 10,
-    borderRadius: 5,
-    elevation: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    paddingBottom: 10,
   },
   tourImage: {
     width: 100,
-    height: 100,
-    borderTopLeftRadius: 5,
-    borderBottomLeftRadius: 5,
+    height: 110,
+    borderRadius: 10,
+    marginTop: 15,
+    marginLeft: 5
   },
   tourDetails: {
     flex: 1,
     padding: 10,
+    justifyContent: 'space-between',
   },
   tourTitle: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#333',
   },
   tourDate: {
     fontSize: 14,
-    color: '#666',
+    marginTop: 4,
   },
   tourPrice: {
     fontSize: 14,
-    color: '#666',
-  },
-  tourStatus: {
-    fontSize: 14,
-    color: '#ff4500',
+    marginTop: 4,
   },
   tourTotal: {
     fontSize: 14,
-    color: '#666',
+    marginTop: 4,
+    color: '#333',
+  },
+  orangeText: {
+    color: '#ff6600',
+    fontWeight: 'bold',
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
   },
   tourBalance: {
     fontSize: 14,
-    color: '#007AFF',
-    marginTop: 5,
+    textDecorationLine: 'underline',
+    color: 'gray',
   },
   button: {
     backgroundColor: '#ff4500',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    marginTop: 5,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 20,
   },
   buttonText: {
     color: '#fff',
     textAlign: 'center',
+    fontSize: 14,
   },
   cancelButton: {
     backgroundColor: '#007AFF',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    marginTop: 5,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 20,
   },
   cancelButtonText: {
     color: '#fff',
     textAlign: 'center',
+    fontSize: 14,
   },
 });
 

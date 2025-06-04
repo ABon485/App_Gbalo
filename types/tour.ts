@@ -231,7 +231,7 @@ export type BookingData = {
       description: string;
     }[];
   }[];
-  
+
 }
 
 export type Policy = {
@@ -240,3 +240,24 @@ export type Policy = {
   depositPercent: number;
   cancelPercent: number;
 };
+export type BookingItem = {
+  id: number;
+  bookingCode: string;
+  bookingStatus: number;
+  bookingStatusName: string;
+  departureDate: string; // ISO string format
+  serviceName: string;
+  serviceImageUrl: string | null;
+  totalAmount: number;
+  pendingAmount: number;
+  pendingPaymentCreated: string; // ISO string format
+  amountPaid: number;
+  amountRemaining: number;
+  serviceType: number;
+}
+
+export type BookingListResponse = {
+  data: {
+    datas: BookingItem[];
+  };
+}

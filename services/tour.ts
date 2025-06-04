@@ -11,7 +11,8 @@ import {
   FavoriteTourAPIResponse,
   Booking,
   BookingResponse,
-  Policy
+  Policy,
+  BookingListResponse
 
 
 
@@ -174,27 +175,37 @@ const tourApi = {
     try {
       const response = await api.get(`/booking/getbyid?id=${id}`);
       console.log("Response API getBookingById:", response);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error("Lỗi khi gọi API getBookingById:", error);
       throw error;
     }
   },
- getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
-  try {
-    const response = await api.get(`/tour/getpolicy`, {
-      params: {
-        tourId,
-        departureDate,
-      },
-    });
-    // console.log("Response API getPolicy:", response);
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi gọi API getPolicy:", error);
-    throw error;
+  getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
+    try {
+      const response = await api.get(`/tour/getpolicy`, {
+        params: {
+          tourId,
+          departureDate,
+        },
+      });
+      // console.log("Response API getPolicy:", response);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getPolicy:", error);
+      throw error;
+    }
+  },
+  getBooking: async (): Promise<BookingListResponse> => {
+    try {
+      const response = await api.get(`/booking/bookings`);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getBookings:", error);
+      throw error;
+    }
   }
-}
+
 
 };
 

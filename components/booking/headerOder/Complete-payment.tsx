@@ -1,51 +1,80 @@
-"use client";
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import  {BookingItem}  from '@/types/tour'; // Adjust the import path
+import bookingApi from "@/services/tour";
 
 const TourComplete = () => {
-  const tours = [
-    {
-      id: 1,
-      image: require('@/assets/images/BackGroud.png'),
-      title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
-      date: '15/03/2025',
-      price: 'Trạng thái: Hoàn thành',
-      total: 'Tổng số: 5.434.556 đ',
-      balance: '',
-      buttonText1: 'Đặt lại',
-      buttonText2: 'Viết đánh giá',
-    },
-    {
-      id: 2,
-      image: require('@/assets/images/BackGroud.png'),
-      title: 'Tour sông đầm đệ đẹp BaNaHill/Cầu vàng',
-      date: '15/03/2025',
-      price: 'Trạng thái: Hoàn thành',
-      total: 'Tổng số: 5.434.556 đ',
-      balance: '',
-      buttonText1: 'Đặt lại ',
-      buttonText2: 'Viết đánh giá',
-    },
-  ];
+  const router = useRouter();
+  const [tours, setTours] = useState<BookingItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCompletedBookings = async () => {
+      try {
+        const response = await bookingApi.getBooking();
+        // Filter for bookings that are completed or refunded (assuming status 3 for completed, 4 for refunded)
+        const completedTours = response.data.datas.filter(
+          (item: BookingItem) => item.bookingStatus === 3 || item.bookingStatus === 4
+        );
+        setTours(completedTours);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch completed/refunded bookings:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchCompletedBookings();
+  }, []);
+
+  const formatCurrency = (amount: number) => {
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
+  };
+
+  const getStatusText = (item: BookingItem) => {
+    if (item.bookingStatus === 4) {
+      return 'Trạng thái: Đã hoàn tiền';
+    }
+    return 'Trạng thái: Hoàn thành';
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (tours.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyText}>Chưa có tour được đặt</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.listContainer}>
         {tours.map((tour) => (
           <View key={tour.id} style={styles.tourItem}>
-            <Image source={tour.image} style={styles.tourImage} />
+            <Image
+              source={tour.serviceImageUrl ? { uri: tour.serviceImageUrl } : require('@/assets/images/BackGroud.png')}
+              style={styles.tourImage}
+            />
             <View style={styles.tourDetails}>
-              <Text style={styles.tourTitle}>{tour.title}</Text>
-              <Text style={styles.tourDate}>{tour.date}</Text>
-              <Text style={styles.tourPrice}>{tour.price}</Text>
-              <Text style={styles.tourTotal}>{tour.total}</Text>
+              <Text style={styles.tourTitle}>{tour.serviceName}</Text>
+              <Text style={styles.tourDate}>{new Date(tour.departureDate).toLocaleDateString('vi-VN')}</Text>
+              <Text style={styles.tourPrice}>{getStatusText(tour)}</Text>
+              <Text style={styles.tourTotal}>Tổng số: {formatCurrency(tour.totalAmount)}</Text>
               <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.button1}>
-                  <Text style={styles.buttonText1}>{tour.buttonText1}</Text>
+                  <Text style={styles.buttonText1}>Đặt lại</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button2}>
-                  <Text style={styles.buttonText2}>{tour.buttonText2}</Text>
+                <TouchableOpacity style={styles.button2} onPress={() => router.push('/')}>
+                  <Text style={styles.buttonText2}>Viết đánh giá</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -61,9 +90,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     marginTop: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContainer: {
     flex: 1,
+    width: '100%',
   },
   tourItem: {
     flexDirection: 'row',
@@ -113,15 +145,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
     gap: 10,
   },
-button1: {
-  backgroundColor: 'transparent', // hoặc có thể xóa dòng này luôn
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-  borderRadius: 20,
-  borderWidth: 1,
-  borderColor: '#ff4500',
-  
-},
+  button1: {
+    backgroundColor: 'transparent',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ff4500',
+  },
   button2: {
     backgroundColor: '#007AFF',
     paddingVertical: 6,
@@ -137,6 +168,11 @@ button1: {
     color: '#fff',
     textAlign: 'center',
     fontSize: 14,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });
 
