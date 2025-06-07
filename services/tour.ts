@@ -11,7 +11,13 @@ import {
   FavoriteTourAPIResponse,
   Booking,
   BookingResponse,
-  Policy
+  Policy,
+  BookingListResponse,
+  ApiResponse,
+  RatingListParams,
+  ReviewListResponse,
+  ReviewDetailResponse,
+  Review
 
 
 
@@ -174,27 +180,84 @@ const tourApi = {
     try {
       const response = await api.get(`/booking/getbyid?id=${id}`);
       console.log("Response API getBookingById:", response);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error("Lỗi khi gọi API getBookingById:", error);
       throw error;
     }
   },
- getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
-  try {
-    const response = await api.get(`/tour/getpolicy`, {
-      params: {
-        tourId,
-        departureDate,
-      },
-    });
-    // console.log("Response API getPolicy:", response);
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi gọi API getPolicy:", error);
-    throw error;
-  }
-}
+  getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
+    try {
+      const response = await api.get(`/tour/getpolicy`, {
+        params: {
+          tourId,
+          departureDate,
+        },
+      });
+      // console.log("Response API getPolicy:", response);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getPolicy:", error);
+      throw error;
+    }
+  },
+  getBooking: async (): Promise<BookingListResponse> => {
+    try {
+      const response = await api.get(`/booking/bookings`);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getBookings:", error);
+      throw error;
+    }
+  },
+  approveTourRating: async (): Promise<void> => {
+    try {
+      await api.get(`/rating/tour/approved`);
+    } catch (error) {
+      console.error("Lỗi khi gửi đánh giá tour:", error);
+      throw error;
+    }
+  },
+  // Lấy danh sách đánh giá
+  getRatingList: async (params: RatingListParams): Promise<ReviewListResponse> => {
+    try {
+      const response = await api.get('/rating', {
+        params: {
+          UserId: params.userId,
+          Page: params.page,
+          PageSize: params.pageSize,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getRatingList:", error);
+      throw error;
+    }
+  },
+
+  // Xem chi tiết đánh giá
+  getRatingById: async (id: number): Promise<ReviewDetailResponse> => {
+    try {
+      const response = await api.get(`/rating/getbyid?id=${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getRatingById:", error);
+      throw error;
+    }
+  },
+
+  // Tạo đánh giá mới
+  createRating: async (review: Review): Promise<ApiResponse<Review>> => {
+    try {
+      const response = await api.post('/rating/create', review);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API createRating:", error);
+      throw error;
+    }
+  },
+
+
 
 };
 

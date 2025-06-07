@@ -27,6 +27,7 @@ export default function SuccessBooking() {
         if (!response.data || !response.data.bookingCode) {
           throw new Error("Dữ liệu booking không đầy đủ.");
         }
+        console.log("Booking Details:", response.data); // Debug log
         setBookingData(response);
         setLoading(false);
       } catch (err) {
@@ -167,14 +168,30 @@ export default function SuccessBooking() {
           <Text style={styles.detailLabel}>Số tiền còn lại:</Text>
           <Text style={styles.detailPriceBold}>{data.amountRemaining?.toLocaleString("vi-VN") || "0"} vnd</Text>
         </View>
+
+        {/* Payment Status */}
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Trạng thái thanh toán:</Text>
+          <Text style={styles.detailValue}>
+            {data.amountRemaining === 0 ? "Đã thanh toán toàn bộ" : `Còn lại ${data.amountRemaining?.toLocaleString("vi-VN")} vnd`}
+          </Text>
+        </View>
       </View>
 
       {/* Explore More Button */}
       <TouchableOpacity
         style={styles.exploreButton}
-        onPress={() => router.replace("/homepage")}
+        onPress={() => {
+          if (data.amountRemaining === 0) {
+            router.replace("/"); // Navigate to TourPaid if fully paid
+          } else {
+            router.replace("/homepage"); // Otherwise, go to homepage
+          }
+        }}
       >
-        <Text style={styles.exploreButtonText}>Khám phá các Tours hấp dẫn</Text>
+        <Text style={styles.exploreButtonText}>
+          {data.amountRemaining === 0 ? "Xem các tour đã thanh toán" : "Khám phá các Tours hấp dẫn"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
