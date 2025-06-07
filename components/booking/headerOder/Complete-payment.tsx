@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import  {BookingItem}  from '@/types/tour'; // Adjust the import path
+import { BookingItem } from '@/types/tour'; // Adjust the import path
 import bookingApi from "@/services/tour";
 
 const TourComplete = () => {
@@ -27,6 +27,20 @@ const TourComplete = () => {
 
     fetchCompletedBookings();
   }, []);
+  const handleReviewPress = (tour: BookingItem) => {
+    // Pass tour data as parameters to ReviewPage
+    router.push({
+      pathname: '/(screens)/rating/ReviewPage',
+      params: {
+        tourId: tour.id.toString(),
+        tourName: tour.serviceName,
+        tourImage: tour.serviceImageUrl || '',
+        departureDate: tour.departureDate,
+        totalAmount: tour.totalAmount.toString(),
+        status: 'Hoàn thành', // You can adjust this based on your business logic
+      }
+    });
+  };
 
   const formatCurrency = (amount: number) => {
     return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
@@ -73,8 +87,8 @@ const TourComplete = () => {
                 <TouchableOpacity style={styles.button1}>
                   <Text style={styles.buttonText1}>Đặt lại</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button2} onPress={() => router.push('/')}>
-                  <Text style={styles.buttonText2}>Viết đánh giá</Text>
+                <TouchableOpacity style={styles.button2} onPress={() => router.push('/(screens)/rating/ReviewPage')}>
+                  <Text style={styles.buttonText2} onPress={() => handleReviewPress(tour)}>Viết đánh giá</Text>
                 </TouchableOpacity>
               </View>
             </View>

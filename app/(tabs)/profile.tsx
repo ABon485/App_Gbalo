@@ -233,7 +233,7 @@ export default function ProfileScreen() {
       id: 4,
       title: "Đánh giá của tôi",
       icon: <Star size={20} color="#333" />,
-      action: () => router.push("/"),
+      action: () => router.push("/(screens)/rating/myRating"),
     },
     {
       id: 5,

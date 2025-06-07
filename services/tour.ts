@@ -12,7 +12,12 @@ import {
   Booking,
   BookingResponse,
   Policy,
-  BookingListResponse
+  BookingListResponse,
+  ApiResponse,
+  RatingListParams,
+  ReviewListResponse,
+  ReviewDetailResponse,
+  Review
 
 
 
@@ -204,7 +209,54 @@ const tourApi = {
       console.error("Lỗi khi gọi API getBookings:", error);
       throw error;
     }
-  }
+  },
+  approveTourRating: async (): Promise<void> => {
+    try {
+      await api.get(`/rating/tour/approved`);
+    } catch (error) {
+      console.error("Lỗi khi gửi đánh giá tour:", error);
+      throw error;
+    }
+  },
+  // Lấy danh sách đánh giá
+  getRatingList: async (params: RatingListParams): Promise<ReviewListResponse> => {
+    try {
+      const response = await api.get('/rating', {
+        params: {
+          UserId: params.userId,
+          Page: params.page,
+          PageSize: params.pageSize,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getRatingList:", error);
+      throw error;
+    }
+  },
+
+  // Xem chi tiết đánh giá
+  getRatingById: async (id: number): Promise<ReviewDetailResponse> => {
+    try {
+      const response = await api.get(`/rating/getbyid?id=${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getRatingById:", error);
+      throw error;
+    }
+  },
+
+  // Tạo đánh giá mới
+  createRating: async (review: Review): Promise<ApiResponse<Review>> => {
+    try {
+      const response = await api.post('/rating/create', review);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API createRating:", error);
+      throw error;
+    }
+  },
+
 
 
 };

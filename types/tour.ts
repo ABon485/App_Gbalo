@@ -261,3 +261,42 @@ export type BookingListResponse = {
     datas: BookingItem[];
   };
 }
+export type ApiResponse<T> = {
+  data: {
+    id: any;
+    datas: T[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    count: number;
+  };
+  status: string;
+}
+export type Review = {
+  id?: number;
+  createdAt: string | number | Date;
+  userId: number;
+  star: number;
+  serviceId: number;
+  serviceName: string;
+  comment: string;
+  imageUrls: string[];
+  serviceType: 1 | 2 | 3 | 4; // 1: Tour, 2: Khách sạn, 3: Xe, 4: Vé tham quan
+};
+
+export type ReviewListResponse = {
+  data: Review[];
+  pagination: PaginationInfo<Review>;
+};
+
+export type ReviewDetailResponse = {
+  data: Review;
+};
+
+export type RatingListParams = {
+  userId: number;
+  page: number;
+  pageSize: number;
+};
+

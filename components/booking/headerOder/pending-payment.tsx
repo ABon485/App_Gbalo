@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { BookingItem } from '@/types/tour'; // Adjust the import path
+import { BookingItem } from '@/types/tour';
 import bookingApi from "@/services/tour";
 
 const TourPending = () => {
@@ -13,7 +13,6 @@ const TourPending = () => {
     const fetchPendingBookings = async () => {
       try {
         const response = await bookingApi.getBooking();
-        // Filter for bookings with pending payments (amountRemaining > 0)
         const pendingTours = response.data.datas.filter((item: BookingItem) => item.amountRemaining > 0);
         setTours(pendingTours);
         setLoading(false);
@@ -34,6 +33,8 @@ const TourPending = () => {
     const timeRemaining = new Date(item.pendingPaymentCreated).toLocaleTimeString('vi-VN');
     return `Trạng thái: Đang chờ thanh toán ${timeRemaining}`;
   };
+
+
 
   if (loading) {
     return (
@@ -92,7 +93,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
     paddingBottom: 10,
   },
-
   tourImage: {
     width: 100,
     height: 110,
