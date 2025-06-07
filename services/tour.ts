@@ -1,4 +1,4 @@
-import { apiTour, api } from "@/config/tourApi";
+import { apiTour, api,apiVNPay } from "@/config/tourApi";
 import {
   TourListResponse,
   TourDetail,
@@ -11,10 +11,10 @@ import {
   FavoriteTourAPIResponse,
   Booking,
   BookingResponse,
-  Policy
-
-
-
+  Policy,
+  PaymentData,
+  PaymentResponse,
+  PaymentInfoResponse,
 } from "@/types/tour";
 
 const tourApi = {
@@ -136,7 +136,10 @@ const tourApi = {
       throw error;
     }
   },
-  deleteFavorite: async (userId: number, tourId: number): Promise<FavoriteTour> => {
+  deleteFavorite: async (
+    userId: number,
+    tourId: number
+  ): Promise<FavoriteTour> => {
     try {
       const response = await apiTour.post("/tour/favorite/delete", {
         userId,
@@ -174,28 +177,74 @@ const tourApi = {
     try {
       const response = await api.get(`/booking/getbyid?id=${id}`);
       console.log("Response API getBookingById:", response);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error("Lỗi khi gọi API getBookingById:", error);
       throw error;
     }
   },
- getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
-  try {
-    const response = await api.get(`/tour/getpolicy`, {
-      params: {
-        tourId,
-        departureDate,
-      },
-    });
-    // console.log("Response API getPolicy:", response);
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi gọi API getPolicy:", error);
-    throw error;
-  }
-}
+  getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
+    try {
+      const response = await api.get(`/tour/getpolicy`, {
+        params: {
+          tourId,
+          departureDate,
+        },
+      });
+      // console.log("Response API getPolicy:", response);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getPolicy:", error);
+      throw error;
+    }
+  },
 
+  postPayment: async (paymentData: PaymentData): Promise<PaymentResponse> => {
+    try {
+      const response = await apiVNPay.post(`/vnpay/create-link`, null, {
+        params: {
+          Amount: paymentData.Amount,
+          ClientIp: paymentData.ClientIp,
+          OrderInfo: paymentData.OrderInfo,
+          OrderType: paymentData.OrderType,
+          ReturnUrl: paymentData.ReturnUrl,
+          ExpireDate: paymentData.ExpireDate,
+        },
+        headers: {
+          Accept: "text/plain",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API postPayment:", error);
+      throw error;
+    }
+  },
+  getPaymentResult: async (bookingId: string): Promise<any> => {
+    try {
+      const response = await apiVNPay.get(`/VnPayResult`, {
+        params: { bookingId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getPaymentResult:", error);
+      throw error;
+    }
+  },
+
+  getPaymentInfo: async (paymentId: number): Promise<PaymentInfoResponse> => {
+    try {
+      const response = await apiVNPay.get(`/payment/${paymentId}`, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getPaymentInfo:", error);
+      throw error;
+    }
+  },
 };
 
 export default tourApi;
