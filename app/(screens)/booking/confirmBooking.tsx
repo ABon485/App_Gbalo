@@ -20,9 +20,10 @@ import { Booking, Policy, TourDetail } from "@/types/tour";
 import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import moment from "moment";
-import { createVNPayUrl } from "@/utils/vnpay"; // Import hàm tạo URL VNPay
+import { createVNPayUrl } from "@/utils/vnpay";
 
-// Hàm chuyển đổi định dạng ngày từ DD/MM/YYYY sang YYYY-MM-DD
+
+
 const formatDateToYYYYMMDD = (date: string): string => {
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
     const [day, month, year] = date.split("/");
@@ -445,8 +446,11 @@ export default function ConfirmBooking() {
       console.error("Lỗi trong handlePayment", error);
       showToast({
         type: "error",
-        message: `Tạo booking hoặc liên kết thanh toán thất bại: ${error.message ||
-          "Vui lòng thử lại"}`,
+        message: `Tạo booking hoặc liên kết thanh toán thất bại: ${
+          typeof error === "object" && error !== null && "message" in error
+            ? (error as any).message
+            : "Vui lòng thử lại"
+        }`,
       });
     }
   };
