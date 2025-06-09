@@ -51,7 +51,7 @@ const DestinationSection = () => {
       try {
         setLoading(true);
         const data: ProvinceType[] = await tourService.getProvince();
-        setProvinces(data);
+        setProvinces(data.slice(0, 6)); // 👈 Hiển thị 6 province đầu tiên
       } catch (err) {
         setError("Failed to fetch provinces. Please try again later.");
         console.error(err);
@@ -93,6 +93,7 @@ const DestinationSection = () => {
             image={item.image}
             name={item.name}
             description={item.description}
+    
           />
         )}
         horizontal

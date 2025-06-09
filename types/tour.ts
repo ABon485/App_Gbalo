@@ -229,7 +229,8 @@ export type BookingData = {
       description: string;
     }[];
   }[];
-};
+
+}
 
 export type Policy = {
   policies: string[];
@@ -288,3 +289,63 @@ export interface PaymentInfoResponse {
   };
   meta?: string;
 }
+export type BookingItem = {
+  id: number;
+  bookingCode: string;
+  bookingStatus: number;
+  bookingStatusName: string;
+  departureDate: string; // ISO string format
+  serviceName: string;
+  serviceImageUrl: string | null;
+  totalAmount: number;
+  pendingAmount: number;
+  pendingPaymentCreated: string; // ISO string format
+  amountPaid: number;
+  amountRemaining: number;
+  serviceType: number;
+}
+
+export type BookingListResponse = {
+  data: {
+    datas: BookingItem[];
+  };
+}
+export type ApiResponse<T> = {
+  data: {
+    id: any;
+    datas: T[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    count: number;
+  };
+  status: string;
+}
+export type Review = {
+  id?: number;
+  createdAt: string | number | Date;
+  userId: number;
+  star: number;
+  serviceId: number;
+  serviceName: string;
+  comment: string;
+  imageUrls: string[];
+  serviceType: 1 | 2 | 3 | 4; // 1: Tour, 2: Khách sạn, 3: Xe, 4: Vé tham quan
+};
+
+export type ReviewListResponse = {
+  data: Review[];
+  pagination: PaginationInfo<Review>;
+};
+
+export type ReviewDetailResponse = {
+  data: Review;
+};
+
+export type RatingListParams = {
+  userId: number;
+  page: number;
+  pageSize: number;
+};
+
