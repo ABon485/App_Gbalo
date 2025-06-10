@@ -15,7 +15,7 @@ import {
 import { Heart } from "lucide-react-native";
 import { TourItem, TourListResponse } from "@/types/tour";
 import tourApi from "@/services/tour";
-import { AntDesign } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
@@ -80,6 +80,7 @@ const TourListScreen = () => {
             vote: item.vote || 0,
             fromPrice: item.fromPrice || 0,
             isFavorite: favoriteTourIds.includes(String(item.id)),
+            ratingCount:item.ratingCount || 0,
             tourExtraServices: [],
           })
         );
@@ -234,8 +235,8 @@ const TourListScreen = () => {
           <Heart
             size={22}
             color="#fff"
-            fill={item.isFavorite ? "#FF3B30" : "transparent"}
-            stroke={item.isFavorite ? "#FF3B30" : "#fff"}
+            fill={item.isFavorite ? "#FF3B30" : "#C0C0C0"}
+            stroke={item.isFavorite ? "#FF3B30" : "#000000"}
           />
         </TouchableOpacity>
       </View>
@@ -243,12 +244,13 @@ const TourListScreen = () => {
         {item.name}
       </Text>
       <View style={styles.ratingContainer}>
-        <AntDesign
-          name="staro"
+        <FontAwesome
+          name="star"
           size={15}
-          color={item.vote > 0 ? "#FF9500" : "#999999"}
+          color={item.vote > 0 ? "#F24E1E" : "#999999"}
         />
         <Text style={styles.reviews}>{item.vote}</Text>
+        <Text style={styles.reviews}>({item.ratingCount})</Text>
       </View>
       <View>
         <Text style={styles.price}>
@@ -345,8 +347,8 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   reviews: {
+    marginLeft:3,
     fontSize: 10,
-    color: "#8E8E93",
     fontFamily: "Inter-Medium",
   },
   price: {
@@ -371,7 +373,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   loadMoreText: {
-    color: "#FF9500",
+    color: "#F24E1E",
     fontSize: 14,
     fontFamily: "Inter-Medium",
   },

@@ -17,6 +17,7 @@ import tourApi from "@/services/tour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
 import { useFocusEffect } from "@react-navigation/native";
+import { FontAwesome } from "@expo/vector-icons";
 
 const formatPrice = (price: number): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -207,7 +208,11 @@ const WishlistScreen = () => {
             {item.title}
           </Text>
           <View style={styles.ratingContainer}>
-            <Text style={styles.ratingIcon}>★</Text>
+            <FontAwesome
+              name="star"
+              size={15}
+              color={item.vote > 0 ? "#999999" : "#F24E1E"}
+            />
             <Text style={styles.rating}>{item.rating}/5</Text>
             <Text style={styles.reviews}>({item.reviews})</Text>
           </View>
@@ -321,12 +326,11 @@ const styles = StyleSheet.create({
   },
   rating: {
     fontSize: 12,
-    color: "#FF9500",
     fontFamily: "Inter-Medium",
+    marginLeft:3,
   },
   reviews: {
     fontSize: 12,
-    color: "#8E8E93",
     marginLeft: 4,
     fontFamily: "Inter-Medium",
   },
