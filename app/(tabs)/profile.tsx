@@ -239,7 +239,7 @@ export default function ProfileScreen() {
       id: 5,
       title: "Đăng nhập và mật khẩu",
       icon: <Lock size={20} color="#333" />,
-      action: () => router.push("/"),
+      action: () => router.push('/(screens)/profile/loginSecurity'),
     },
     {
       id: 6,

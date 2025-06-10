@@ -87,6 +87,8 @@ function RootLayoutNav() {
           <Stack.Screen name="(screens)/tourOder/oderDetail"options={{ headerShown: false }} />
           <Stack.Screen name="(screens)/rating/ReviewPage"options={{ headerShown: false }} />
           <Stack.Screen name="(screens)/rating/myRating"options={{ headerShown: false }} />
+          <Stack.Screen name="(screens)/profile/loginSecurity"options={{ headerShown: false }} />
+
 
 
 

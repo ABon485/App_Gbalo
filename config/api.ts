@@ -13,7 +13,7 @@ const api: AxiosInstance = axios.create({
 
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    const authRoutes = ['/Login', '/LoginByEmail', '/LoginByPhone', '/Accounts/Resgiter','/Accounts/SendResgiterCode','/Accounts/ResgiterByCode','/Accounts/VerifyResgiterCode','/Accounts/Profile','/SendLoginCode','/LoginByCode','/Accounts/ChangePassByCode','/Accounts/VerifyChangePassCode','/Accounts/SendChangePassCode']
+    const authRoutes = ['/Login', '/LoginByEmail', '/LoginByPhone', '/Accounts/Resgiter','/Accounts/SendResgiterCode','/Accounts/ResgiterByCode','/Accounts/VerifyResgiterCode','/Accounts/Profile','/SendLoginCode','/LoginByCode','/Accounts/ChangePassByCode','/Accounts/VerifyChangePassCode','/Accounts/SendChangePassCode','/Accounts/ChangePassword']
     const data = await AsyncStorage.getItem('data')
     const parsedData = data ? JSON.parse(data) : null
 
