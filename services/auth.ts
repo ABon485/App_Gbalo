@@ -4,8 +4,10 @@ import {
   LoginEmailType, LoginByPhone, LoginType, VerifyCodeLogin, SendCodeLogin, RegisterByEmail,
   RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail, RegisterTypePhone,
   RegistercodeByPhone, ProfileResponse, UpdateEmail, UpdatePhone, ChangePassByCodeType, VerifyChangePassCodeType,
-  UpdateProfile, ChangePassCodeType, UpdateAvatar
+  UpdateProfile, ChangePassCodeType, UpdateAvatar,
+  ChangePasswordRequest
 } from "@/types/user";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const authApi = {
   login: (formData: LoginType) => api.post("/login", formData),
@@ -58,7 +60,34 @@ const authApi = {
       "Content-Type": "multipart/form-data",
     },
   }),
-  
+  changePassword: async (formData: ChangePasswordRequest) => {
+    const authDataString = await AsyncStorage.getItem("data")
+    console.log("Stored Auth Data:", authDataString) // Log dữ liệu lưu trữ
+
+    if (!authDataString) {
+      console.log("Token Error: No auth data found")
+      throw new Error("Không tìm thấy dữ liệu xác thực")
+    }
+
+    const authData = JSON.parse(authDataString)
+    const token = authData.token
+    console.log("Access Token:", token) // Log token để kiểm tra
+
+    if (!token) {
+      console.log("Token Error: No access token found in auth data")
+      throw new Error("Không tìm thấy token xác thực")
+    }
+
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    }
+    console.log("Request Headers:", headers) // Log headers để kiểm tra
+
+    return api.post("/Accounts/ChangePassword", formData, { headers })
+  },
+
 };
 
 export default authApi;
