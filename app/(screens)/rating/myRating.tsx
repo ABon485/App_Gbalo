@@ -77,11 +77,11 @@ export default function z() {
             {/* ScrollView cho phần đánh giá */}
             <ScrollView style={{ paddingHorizontal: 16 }}>
                 {/* Điểm số tổng quan */}
-                {/* <View style={[styles.headerBody, { paddingHorizontal: 12 }]}>
+                <View style={[styles.headerBody, { paddingHorizontal: 12 }]}>
                     <Text style={styles.ratingText}>
                         Ngày đánh giá: {new Date(review.createdAt).toLocaleDateString('vi-VN')}
                     </Text>
-                </View> */}
+                </View>
                 <View style={styles.reviewCard}>
                     <View style={styles.userRow}>
                         <View style={{ flex: 1 }}>

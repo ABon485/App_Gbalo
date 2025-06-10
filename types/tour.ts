@@ -201,7 +201,7 @@ export type BookingResponse = {
 
 export type BookingData = {
   id: number;
-  departureDate: string; 
+  departureDate: string;
   bookingCode: string;
   bookingStatus: number;
   bookingStatusName: string;
@@ -212,7 +212,7 @@ export type BookingData = {
   note: string;
   totalAmount: number;
   pendingAmount: number;
-  pendingPaymentCreated: string; 
+  pendingPaymentCreated: string;
   amountPaid: number;
   amountRemaining: number;
   services: {
@@ -229,8 +229,7 @@ export type BookingData = {
       description: string;
     }[];
   }[];
-
-}
+};
 
 export type Policy = {
   policies: string[];
@@ -259,7 +258,7 @@ export interface PaymentResponse {
 export interface PaymentResponse {
   status: string;
   data: {
-    payId: number; 
+    payId: number;
     url: string;
   };
 }
@@ -272,8 +271,8 @@ export interface PaymentInfoResponse {
     property: string;
     price: number;
     clientIp: string;
-    createTime: string; 
-    expiryTime: string; 
+    createTime: string;
+    expiryTime: string;
     returnUrl: string;
     isConfirm: boolean;
     confirmId: number;
@@ -303,13 +302,13 @@ export type BookingItem = {
   amountPaid: number;
   amountRemaining: number;
   serviceType: number;
-}
+};
 
 export type BookingListResponse = {
   data: {
     datas: BookingItem[];
   };
-}
+};
 export type ApiResponse<T> = {
   data: {
     id: any;
@@ -321,7 +320,7 @@ export type ApiResponse<T> = {
     count: number;
   };
   status: string;
-}
+};
 export type Review = {
   id?: number;
   createdAt: string | number | Date;
@@ -348,4 +347,3 @@ export type RatingListParams = {
   page: number;
   pageSize: number;
 };
-

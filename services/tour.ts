@@ -182,16 +182,15 @@ const tourApi = {
       throw error;
     }
   },
-  getBookingById: async (id: number): Promise<BookingResponse> => {
-    try {
-      const response = await api.get(`/booking/getbyid?id=${id}`);
-      console.log("Response API getBookingById:", response);
-      return response.data;
-    } catch (error) {
-      console.error("Lỗi khi gọi API getBookingById:", error);
-      throw error;
-    }
-  },
+ getBookingById: async (id: number, customerId: number): Promise<BookingResponse> => {
+  try {
+    const response = await api.get(`/booking/getbyid?id=${id}&customerId=${customerId}`);
+    return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+},
+
   getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
     try {
       const response = await api.get(`/tour/getpolicy`, {
@@ -207,15 +206,22 @@ const tourApi = {
       throw error;
     }
   },
-  getBooking: async (): Promise<BookingListResponse> => {
-    try {
-      const response = await api.get(`/booking/bookings`);
-      return response.data;
-    } catch (error) {
-      console.error("Lỗi khi gọi API getBookings:", error);
-      throw error;
-    }
-  },
+getBooking: async (customerId: number, page: number, pageSize: number): Promise<BookingListResponse> => {
+  try {
+    const response = await api.get(`/booking/bookings`, {
+      params: {
+        CustomerId: customerId,
+        Page: page,
+        PageSize: pageSize,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi gọi API getBookings:", error);
+    throw error;
+  }
+},
+
   approveTourRating: async (): Promise<void> => {
     try {
       await api.get(`/rating/tour/approved`);
