@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, FlatList, StyleSheet, Dimensions } from 'react-native';
-import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
+import { AntDesign, FontAwesome, FontAwesome6 } from '@expo/vector-icons';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import tourApi from '@/services/tour';
 import { TourItem, ProvinceType } from '@/types/tour';
@@ -59,6 +59,7 @@ const SearchResult = () => {
                     fromPrice: item.fromPrice || item.price || 0,
                     isFavorite: false,
                     provinceIds: provinceIds,
+                    ratingCount: item.ratingCount,
                     tourExtraServices: [],
                 };
             });
@@ -247,71 +248,74 @@ const SearchResult = () => {
         }
     };
 
-   const handleApplyFilters = (tourResponse: any) => {
-    try {
-        setLoading(true);
-        setError(null);
-        setHasSearched(true);
+    const handleApplyFilters = (tourResponse: any) => {
+        try {
+            setLoading(true);
+            setError(null);
+            setHasSearched(true);
 
-        console.log('Received tourResponse in handleApplyFilters:', JSON.stringify(tourResponse, null, 2));
+            console.log('Received tourResponse in handleApplyFilters:', JSON.stringify(tourResponse, null, 2));
 
-        const datas = tourResponse?.data?.datas ?? tourResponse?.datas;
+            const datas = tourResponse?.data?.datas ?? tourResponse?.datas;
 
-        if (!Array.isArray(datas)) {
-            throw new Error("Không tìm thấy danh sách tour trong dữ liệu phản hồi.");
-        }
-
-        const filteredTours: TourItem[] = datas.map((item: any) => {
-            let provinceIds = [];
-
-            if (Array.isArray(item.provinceIds)) {
-                provinceIds = item.provinceIds.map((id: any) => typeof id === 'string' ? parseInt(id, 10) : id);
-            } else if (item.provinceId !== undefined) {
-                const id = typeof item.provinceId === 'string' ? parseInt(item.provinceId, 10) : item.provinceId;
-                provinceIds = [id];
+            if (!Array.isArray(datas)) {
+                throw new Error("Không tìm thấy danh sách tour trong dữ liệu phản hồi.");
             }
 
-            return {
-                id: item.id.toString(),
-                name: item.name,
-                slug: item.slug,
-                featuredImageUrl: item.featuredImageUrl || 'default_image_url',
-                vote: item.vote || 0,
-                fromPrice: item.fromPrice || item.price || 0,
-                isFavorite: false,
-                provinceIds: provinceIds,
-                tourExtraServices: [],
-            };
-        });
+            const filteredTours: TourItem[] = datas.map((item: any) => {
+                let provinceIds = [];
 
-        console.log('Mapped Filtered Tours:', filteredTours);
+                if (Array.isArray(item.provinceIds)) {
+                    provinceIds = item.provinceIds.map((id: any) => typeof id === 'string' ? parseInt(id, 10) : id);
+                } else if (item.provinceId !== undefined) {
+                    const id = typeof item.provinceId === 'string' ? parseInt(item.provinceId, 10) : item.provinceId;
+                    provinceIds = [id];
+                }
 
-        if (filteredTours.length === 0) {
-            setError('Không tìm thấy tour nào phù hợp với bộ lọc');
+                return {
+                    id: item.id.toString(),
+                    name: item.name,
+                    slug: item.slug,
+                    featuredImageUrl: item.featuredImageUrl || 'default_image_url',
+                    vote: item.vote || 0,
+                    fromPrice: item.fromPrice || item.price || 0,
+                    isFavorite: false,
+                    provinceIds: provinceIds,
+                    ratingCount: item.ratingCount || 0,
+                    tourExtraServices: [],
+                };
+            });
+
+            console.log('Mapped Filtered Tours:', filteredTours);
+
+            if (filteredTours.length === 0) {
+                setError('Không tìm thấy tour nào phù hợp với bộ lọc');
+                setTours([]);
+            } else {
+                setTours(filteredTours);
+            }
+
+        } catch (error) {
+            console.error('Error applying filters:', error);
+            setError('Không thể áp dụng bộ lọc');
             setTours([]);
-        } else {
-            setTours(filteredTours);
+        } finally {
+            setLoading(false);
         }
-
-    } catch (error) {
-        console.error('Error applying filters:', error);
-        setError('Không thể áp dụng bộ lọc');
-        setTours([]);
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     useEffect(() => {
-        if (!searchQuery.trim()) {
+        if (searchQuery.trim() && selectedProvinceId) {
+            setHasSearched(true);
+            setSuggestions([]); // Xóa gợi ý để tránh hiển thị dư thừa
+            searchTours(selectedProvinceId, searchQuery);
+        } else if (!searchQuery.trim()) {
             setTours([]);
             setHasSearched(false);
             setError(null);
             fetchProvinceSuggestions('');
-        } else if (hasSearched) {
-            searchTours(selectedProvinceId, searchQuery);
         }
-    }, [searchTrigger, searchQuery]);
+    }, [searchQuery, selectedProvinceId]);
 
     const renderTourItem = ({ item }: { item: TourItem }) => (
         <TouchableOpacity style={styles.ContainerItem} onPress={() => handleTourPress(item)}>
@@ -335,26 +339,22 @@ const SearchResult = () => {
                     <Heart
                         size={22}
                         color="#fff"
-                        fill={item.isFavorite ? '#FF3B30' : 'transparent'}
-                        stroke={item.isFavorite ? '#FF3B30' : '#fff'}
+                        fill={item.isFavorite ? '#FF3B30' : '#C0C0C0'}
+                        stroke={item.isFavorite ? '#FF3B30' : '#000000'}
                     />
                 </TouchableOpacity>
             </View>
             <Text style={styles.title} numberOfLines={2}>
                 {item.name}
             </Text>
-            <Text style={styles.province}>
-                {item.provinceIds
-                    .map(id => allProvinces.find(p => p.id.toString() === id.toString())?.name || 'Unknown')
-                    .join(', ')}
-            </Text>
             <View style={styles.ratingContainer}>
-                <AntDesign
-                    name="staro"
+                <FontAwesome
+                    name="star"
                     size={15}
-                    color={item.vote > 0 ? '#FF9500' : '#999999'}
+                    color={item.vote > 0 ? '#F24E1E' : '#999999'}
                 />
                 <Text style={styles.reviews}>({item.vote})</Text>
+                <Text style={styles.reviews}>({item.ratingCount})</Text>
             </View>
             <Text style={styles.price}>
                 Từ {(item.fromPrice || 0).toLocaleString()}đ/Người
@@ -556,6 +556,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
+
     },
     title: {
         fontSize: 12,
@@ -576,7 +577,7 @@ const styles = StyleSheet.create({
     },
     reviews: {
         fontSize: 10,
-        color: '#8E8E93',
+        marginLeft: 3,
         fontFamily: 'Inter-Medium',
     },
     price: {
@@ -593,7 +594,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
     },
     loadMoreText: {
-        color: '#FF9500',
+        color: '#F24E1E',
         fontSize: 14,
         fontFamily: 'Inter-Medium',
     },

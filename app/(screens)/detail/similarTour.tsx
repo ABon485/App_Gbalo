@@ -12,7 +12,7 @@ import {
 import { Heart } from "lucide-react-native";
 import { TourItem, TourListResponse } from "@/types/tour";
 import tourApi from "@/services/tour";
-import { AntDesign } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
@@ -86,6 +86,7 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
             provinceName: item.provinceName || "",
             tourExtraServices: item.tourExtraServices || [],
             vote: item.vote || 0,
+            ratingCount:item.ratingCount || 0,
             fromPrice: item.fromPrice || 0,
             isFavorite: favoriteTourIds.includes(String(item.id)),
           })
@@ -266,8 +267,8 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
           <Heart
             size={22}
             color="#fff"
-            fill={item.isFavorite ? "#FF3B30" : "transparent"}
-            stroke={item.isFavorite ? "#FF3B30" : "#fff"}
+            fill={item.isFavorite ? "#FF3B30" : "#C0C0C0"}
+            stroke={item.isFavorite ? "#FF3B30" : "#000000"}
           />
         </TouchableOpacity>
       </View>
@@ -275,12 +276,13 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
         {item.name}
       </Text>
       <View style={styles.ratingContainer}>
-        <AntDesign
-          name="staro"
+        <FontAwesome
+          name="star"
           size={15}
-          color={item.vote > 0 ? "#FF9500" : "#999999"}
+          color={item.vote > 0 ? "#F24E1E" : "#999999"}
         />
         <Text style={styles.reviews}>({item.vote})</Text>
+        <Text style={styles.reviews}>({item.ratingCount})</Text>
       </View>
       <Text style={styles.price}>
         Từ <Text style={styles.bold}>{formatPrice(item.fromPrice)}đ</Text>/Người
@@ -373,12 +375,11 @@ const styles = StyleSheet.create({
   },
   reviews: {
     fontSize: 10,
-    color: "#8E8E93",
     fontFamily: "Inter-Medium",
+    marginLeft:3,
   },
   price: {
     fontSize: 12,
-    color: "#333",
     fontFamily: "Inter-Medium",
   },
   bold: {
