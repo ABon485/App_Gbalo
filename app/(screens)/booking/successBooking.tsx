@@ -9,24 +9,33 @@ import bookingApi from "@/services/tour";
 import { BookingResponse } from "@/types/tour";
 
 export default function SuccessBooking() {
-  const { bookingId } = useLocalSearchParams();
+  const { bookingId, customerId } = useLocalSearchParams();
   const [bookingData, setBookingData] = useState<BookingResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
-      if (!bookingId) {
-        setError("Không tìm thấy mã đặt tour.");
+      if (!bookingId || !customerId) {
+        setError("Thiếu thông tin booking hoặc khách hàng.");
         setLoading(false);
         return;
       }
 
       try {
-        const response = await bookingApi.getBookingById(Number(bookingId));
-        if (!response.data || !response.data.bookingCode) {
-          throw new Error("Dữ liệu booking không đầy đủ.");
-        }
+        const response = await bookingApi.getBookingById(
+          Number(bookingId),
+          Number(customerId)
+        );
+
+        // Nếu API KHÔNG filter thì kiểm tra lại customerId ở response:
+        // if (
+        //   response.data.customerId &&
+        //   response.data.customerId !== Number(customerId)
+        // ) {
+        //   throw new Error("Bạn không có quyền xem booking này.");
+        // }
+
         console.log("Booking Details:", response.data); // Debug log
         setBookingData(response);
         setLoading(false);
@@ -38,7 +47,7 @@ export default function SuccessBooking() {
     };
 
     fetchBookingDetails();
-  }, [bookingId]);
+  }, [bookingId, customerId]);
 
   if (loading) {
     return (
@@ -51,7 +60,9 @@ export default function SuccessBooking() {
   if (error || !bookingData) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>{error || "Không tìm thấy thông tin đặt tour."}</Text>
+        <Text style={styles.errorText}>
+          {error || "Không tìm thấy thông tin đặt tour."}
+        </Text>
       </View>
     );
   }
@@ -60,7 +71,9 @@ export default function SuccessBooking() {
   const service = data.services?.[0] || {};
 
   // Calculate total number of guests from all service details
-  const totalGuests = service.details?.reduce((sum, detail) => sum + (detail.quantity || 0), 0) || 0;
+  const totalGuests =
+    service.details?.reduce((sum, detail) => sum + (detail.quantity || 0), 0) ||
+    0;
 
   return (
     <View style={styles.container}>
@@ -87,17 +100,25 @@ export default function SuccessBooking() {
       {/* Tour Info */}
       <View style={styles.tourCard}>
         <Image
-          source={{ uri: service.imageUrl || "https://via.placeholder.com/150" }}
+          source={{
+            uri: service.imageUrl || "https://via.placeholder.com/150",
+          }}
           style={styles.tourImage}
         />
         <View style={styles.tourInfo}>
-          <Text style={styles.tourTitle}>{service.serviceName || "Tên tour không xác định"}</Text>
+          <Text style={styles.tourTitle}>
+            {service.serviceName || "Tên tour không xác định"}
+          </Text>
           <Text style={styles.tourDesc}>Khám phá điểm đến</Text>
           <Text style={styles.rating}>
             <AntDesign name="star" size={16} color="#F24E1E" /> 4.95/5 (648)
           </Text>
           <Text style={styles.price}>
-            Từ <Text style={styles.bold}>{data.totalAmount?.toLocaleString("vi-VN") || "0"}₫</Text>/Người
+            Từ{" "}
+            <Text style={styles.bold}>
+              {data.totalAmount?.toLocaleString("vi-VN") || "0"}₫
+            </Text>
+            /Người
           </Text>
         </View>
       </View>
@@ -131,7 +152,9 @@ export default function SuccessBooking() {
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Mã đặt Tour:</Text>
-          <Text style={styles.detailValue}>{data.bookingCode || "Chưa xác định"}</Text>
+          <Text style={styles.detailValue}>
+            {data.bookingCode || "Chưa xác định"}
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
@@ -141,39 +164,53 @@ export default function SuccessBooking() {
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Khách hàng:</Text>
-          <Text style={styles.detailValue}>{data.customerName || "Chưa cung cấp"}</Text>
+          <Text style={styles.detailValue}>
+            {data.customerName || "Chưa cung cấp"}
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Số điện thoại:</Text>
-          <Text style={styles.detailValue}>{data.customerPhone || "Chưa cung cấp"}</Text>
+          <Text style={styles.detailValue}>
+            {data.customerPhone || "Chưa cung cấp"}
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Email:</Text>
-          <Text style={styles.detailValue}>{data.customerEmail || "Chưa cung cấp"}</Text>
+          <Text style={styles.detailValue}>
+            {data.customerEmail || "Chưa cung cấp"}
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Tổng giá Tour:</Text>
-          <Text style={styles.detailPrice}>{data.totalAmount?.toLocaleString("vi-VN") || "0"} vnd</Text>
+          <Text style={styles.detailPrice}>
+            {data.totalAmount?.toLocaleString("vi-VN") || "0"} vnd
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Đã thanh toán:</Text>
-          <Text style={styles.detailPrice}>{data.amountPaid?.toLocaleString("vi-VN") || "0"} vnd</Text>
+          <Text style={styles.detailPrice}>
+            {data.amountPaid?.toLocaleString("vi-VN") || "0"} vnd
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Số tiền còn lại:</Text>
-          <Text style={styles.detailPriceBold}>{data.amountRemaining?.toLocaleString("vi-VN") || "0"} vnd</Text>
+          <Text style={styles.detailPriceBold}>
+            {data.amountRemaining?.toLocaleString("vi-VN") || "0"} vnd
+          </Text>
         </View>
 
         {/* Payment Status */}
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Trạng thái thanh toán:</Text>
           <Text style={styles.detailValue}>
-            {data.amountRemaining === 0 ? "Đã thanh toán toàn bộ" : `Còn lại ${data.amountRemaining?.toLocaleString("vi-VN")} vnd`}
+            {data.amountRemaining === 0
+              ? "Đã thanh toán toàn bộ"
+              : `Còn lại ${data.amountRemaining?.toLocaleString("vi-VN")} vnd`}
           </Text>
         </View>
       </View>
@@ -190,7 +227,9 @@ export default function SuccessBooking() {
         }}
       >
         <Text style={styles.exploreButtonText}>
-          {data.amountRemaining === 0 ? "Xem các tour đã thanh toán" : "Khám phá các Tours hấp dẫn"}
+          {data.amountRemaining === 0
+            ? "Xem các tour đã thanh toán"
+            : "Khám phá các Tours hấp dẫn"}
         </Text>
       </TouchableOpacity>
     </View>

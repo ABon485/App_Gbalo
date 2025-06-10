@@ -15,7 +15,6 @@ import {
   FileText,
   Tag,
   CreditCard,
-  Star,
   Lock,
   Bell,
   Globe,
@@ -31,6 +30,8 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import DeleteAccountModal from "@/components/profile/deleteAcount";
 import ConfirmLogoutModal from "@/components/profile/confirmlogout";
 import styles from "@/styles/profile/profile";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -232,7 +233,7 @@ export default function ProfileScreen() {
     {
       id: 4,
       title: "Đánh giá của tôi",
-      icon: <Star size={20} color="#333" />,
+      icon: <MaterialCommunityIcons name="comment-text-outline" size={20} color="#333" />,
       action: () => router.push("/(screens)/rating/myRating"),
     },
     {
@@ -250,7 +251,7 @@ export default function ProfileScreen() {
     {
       id: 7,
       title: "Ngôn ngữ",
-      icon: <Globe size={20} color="#333" />,
+      icon: <Ionicons name="language" size={20} color="#333" />,
       action: () => router.push("/"),
     },
   ];

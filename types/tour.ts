@@ -152,9 +152,8 @@ export type Order = {
   price: string;
   image: string;
   countdown?: string;
-}
-export type TabType = 'all' | 'pending' | 'paid' | 'completed';
-
+};
+export type TabType = "all" | "pending" | "paid" | "completed";
 
 // types/booking.ts
 
@@ -176,8 +175,7 @@ export type Booking = {
     }[];
   }[];
   payments: Payment[];
-}
-
+};
 
 export type Payment = {
   paymentDate: string;
@@ -190,7 +188,7 @@ export type Payment = {
   note: string;
   isDeposit: boolean;
   isDepositPaid: boolean;
-}
+};
 export type BookingResponse = {
   fullName: any;
   bookingStatus: number;
@@ -199,11 +197,11 @@ export type BookingResponse = {
   departureDate: string;
   data: BookingData;
   status: string;
-}
+};
 
 export type BookingData = {
   id: number;
-  departureDate: string; // ISO date-time string (e.g., "2025-05-30T00:00:00")
+  departureDate: string;
   bookingCode: string;
   bookingStatus: number;
   bookingStatusName: string;
@@ -214,7 +212,7 @@ export type BookingData = {
   note: string;
   totalAmount: number;
   pendingAmount: number;
-  pendingPaymentCreated: string; // ISO date-time string
+  pendingPaymentCreated: string;
   amountPaid: number;
   amountRemaining: number;
   services: {
@@ -231,8 +229,7 @@ export type BookingData = {
       description: string;
     }[];
   }[];
-
-}
+};
 
 export type Policy = {
   policies: string[];
@@ -240,6 +237,57 @@ export type Policy = {
   depositPercent: number;
   cancelPercent: number;
 };
+
+export type PaymentData = {
+  Amount: number;
+  ClientIp: string;
+  OrderInfo: string;
+  OrderType: string;
+  ReturnUrl: string;
+  ExpireDate: string;
+};
+
+export interface PaymentResponse {
+  status: string;
+  data: {
+    payId: number;
+    url: string;
+  };
+}
+
+export interface PaymentResponse {
+  status: string;
+  data: {
+    payId: number;
+    url: string;
+  };
+}
+
+export interface PaymentInfoResponse {
+  status: string;
+  data: {
+    id: number;
+    provider: string;
+    property: string;
+    price: number;
+    clientIp: string;
+    createTime: string;
+    expiryTime: string;
+    returnUrl: string;
+    isConfirm: boolean;
+    confirmId: number;
+    providerNavigation: {
+      code: string;
+      name: string;
+      description: string;
+      initiateTransactions: string[];
+    };
+  };
+  errors?: {
+    [key: string]: string[];
+  };
+  meta?: string;
+}
 export type BookingItem = {
   id: number;
   bookingCode: string;
@@ -254,13 +302,13 @@ export type BookingItem = {
   amountPaid: number;
   amountRemaining: number;
   serviceType: number;
-}
+};
 
 export type BookingListResponse = {
   data: {
     datas: BookingItem[];
   };
-}
+};
 export type ApiResponse<T> = {
   data: {
     id: any;
@@ -272,7 +320,7 @@ export type ApiResponse<T> = {
     count: number;
   };
   status: string;
-}
+};
 export type Review = {
   id?: number;
   createdAt: string | number | Date;
@@ -299,4 +347,3 @@ export type RatingListParams = {
   page: number;
   pageSize: number;
 };
-
