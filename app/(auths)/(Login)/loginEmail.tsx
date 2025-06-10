@@ -129,17 +129,23 @@ const LoginEmail = () => {
           });
           return;
         }
+
         // Đặt userId vào state
         setUserId(user.id);
 
+        // Lưu token dưới key "accessToken"
+        await AsyncStorage.setItem("accessToken", token);
+        console.log("Stored Access Token:", token); // Log token để kiểm tra
+
+        // Lưu thông tin khác nếu cần
         const authData = {
           token,
           email: trimmedEmail,
           fullName: user.fullName || "Khách hàng",
-          userId: user.id, // Lưu userId vào authData
+          userId: user.id,
         };
-        console.log(authData)
         await AsyncStorage.setItem("data", JSON.stringify(authData));
+        console.log("Stored Auth Data:", authData);
 
         showToast({
           type: "success",
