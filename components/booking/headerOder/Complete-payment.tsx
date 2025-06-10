@@ -1,56 +1,116 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { BookingItem } from '@/types/tour'; // Adjust the import path
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { BookingItem } from "@/types/tour";
 import bookingApi from "@/services/tour";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const TourComplete = () => {
   const router = useRouter();
   const [tours, setTours] = useState<BookingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchCompletedBookings = async () => {
       try {
-        const response = await bookingApi.getBooking();
-        // Filter for bookings that are completed or refunded (assuming status 3 for completed, 4 for refunded)
-        const completedTours = response.data.datas.filter(
-          (item: BookingItem) => item.bookingStatus === 3 || item.bookingStatus === 4
+        const storedData = await AsyncStorage.getItem("data");
+        console.log(
+          "fetchCompletedBookings: Retrieved data from AsyncStorage:",
+          storedData
         );
-        setTours(completedTours);
-        setLoading(false);
+
+        if (storedData) {
+          const authData = JSON.parse(storedData);
+          const parsedUserId = Number(authData.userId);
+
+          if (!isNaN(parsedUserId)) {
+            setUserId(parsedUserId);
+            console.log(
+              `fetchCompletedBookings: Set userId to ${parsedUserId}`
+            );
+
+            console.log(
+              `fetchCompletedBookings: Calling API for userId=${parsedUserId}, page=1, pageSize=10`
+            );
+            const response = await bookingApi.getBooking(parsedUserId, 1, 10);
+            const completedTours = (response.data.datas || []).filter(
+              (item: BookingItem) =>
+                item.bookingStatus === 3 || item.bookingStatus === 4
+            );
+
+            console.log(
+              `fetchCompletedBookings: API response for userId=${parsedUserId}:`,
+              {
+                totalBookings: response.data.datas?.length || 0,
+                completedBookingCount: completedTours.length,
+                completedBookings: completedTours.map((b: BookingItem) => ({
+                  id: b.id,
+                  serviceName: b.serviceName,
+                  bookingStatus: b.bookingStatus,
+                  totalAmount: b.totalAmount,
+                })),
+              }
+            );
+
+            setTours(completedTours);
+          } else {
+            console.warn(
+              "fetchCompletedBookings: Invalid userId format in authData:",
+              authData.userId
+            );
+          }
+        } else {
+          console.warn(
+            "fetchCompletedBookings: No auth data found in AsyncStorage. Redirecting to login."
+          );
+          router.push("/(auths)/(Login)/loginEmail");
+        }
       } catch (error) {
-        console.error('Failed to fetch completed/refunded bookings:', error);
+        console.error(
+          "fetchCompletedBookings: Failed to fetch completed/refunded bookings:",
+          error
+        );
+      } finally {
         setLoading(false);
       }
     };
 
     fetchCompletedBookings();
   }, []);
+
   const handleReviewPress = (tour: BookingItem) => {
-    // Pass tour data as parameters to ReviewPage
     router.push({
-      pathname: '/(screens)/rating/ReviewPage',
+      pathname: "/(screens)/rating/ReviewPage",
       params: {
         tourId: tour.id.toString(),
         tourName: tour.serviceName,
-        tourImage: tour.serviceImageUrl || '',
+        tourImage: tour.serviceImageUrl || "",
         departureDate: tour.departureDate,
         totalAmount: tour.totalAmount.toString(),
-        status: 'Hoàn thành', // You can adjust this based on your business logic
-      }
+        status: tour.bookingStatus === 3 ? "Hoàn thành" : "Đã hoàn thành",
+      },
     });
   };
 
   const formatCurrency = (amount: number) => {
-    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " đ";
   };
 
   const getStatusText = (item: BookingItem) => {
-    if (item.bookingStatus === 4) {
-      return 'Trạng thái: Đã hoàn tiền';
+    if (item.bookingStatus === 3) {
+      return { prefix: "Trạng thái:", status: "Hoàn thành" };
+    } else if (item.bookingStatus === 4) {
+      return { prefix: "Trạng thái:", status: "Đã hoàn thành" };
     }
-    return 'Trạng thái: Hoàn thành';
+    return { prefix: "Trạng thái:", status: "Hoàn thành" }; // Fallback, should not occur
   };
 
   if (loading) {
@@ -61,40 +121,85 @@ const TourComplete = () => {
     );
   }
 
-  if (tours.length === 0) {
+  if (!userId) {
     return (
       <View style={styles.container}>
-        <Text style={styles.emptyText}>Chưa có tour được đặt</Text>
+        <Text style={styles.noOrderText}>
+          Vui lòng đăng nhập để xem danh sách booking.
+        </Text>
+        <TouchableOpacity
+          onPress={() => router.push("/(auths)/(Login)/loginEmail")}
+        >
+          <Text style={{ color: "#007AFF", fontSize: 16 }}>
+            Đi đến đăng nhập
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.listContainer}>
-        {tours.map((tour) => (
-          <View key={tour.id} style={styles.tourItem}>
-            <Image
-              source={tour.serviceImageUrl ? { uri: tour.serviceImageUrl } : require('@/assets/images/BackGroud.png')}
-              style={styles.tourImage}
-            />
-            <View style={styles.tourDetails}>
-              <Text style={styles.tourTitle}>{tour.serviceName}</Text>
-              <Text style={styles.tourDate}>{new Date(tour.departureDate).toLocaleDateString('vi-VN')}</Text>
-              <Text style={styles.tourPrice}>{getStatusText(tour)}</Text>
-              <Text style={styles.tourTotal}>Tổng số: {formatCurrency(tour.totalAmount)}</Text>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.button1}>
-                  <Text style={styles.buttonText1}>Đặt lại</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button2} onPress={() => router.push('/(screens)/rating/ReviewPage')}>
-                  <Text style={styles.buttonText2} onPress={() => handleReviewPress(tour)}>Viết đánh giá</Text>
-                </TouchableOpacity>
+      {tours.length === 0 && (
+        <View style={styles.noOrderContainer}>
+          <Image
+            source={require("@/assets/images/orderNull.png")}
+            style={styles.noOrderImage}
+          />
+          <Text style={styles.noOrderText}>
+            Bạn chưa có đơn hàng hoàn thành 
+          </Text>
+        </View>
+      )}
+      {tours.length > 0 && (
+        <ScrollView style={styles.listContainer}>
+          {tours.map((tour) => (
+            <View key={tour.id} style={styles.tourItem}>
+              <Image
+                source={
+                  tour.serviceImageUrl
+                    ? { uri: tour.serviceImageUrl }
+                    : require("@/assets/images/BackGroud.png")
+                }
+                style={styles.tourImage}
+              />
+              <View style={styles.tourDetails}>
+                <Text style={styles.tourTitle}>{tour.serviceName}</Text>
+                <Text style={styles.tourDate}>
+                  Ngày khởi hành:{" "}
+                  {new Date(tour.departureDate).toLocaleDateString("vi-VN")}
+                </Text>
+                {(() => {
+                  const status = getStatusText(tour);
+                  return (
+                    <Text style={styles.tourPrice}>
+                      {status.prefix}{" "}
+                      <Text style={{ color: "#666" }}>{status.status}</Text>
+                    </Text>
+                  );
+                })()}
+                <Text style={styles.tourTotal}>
+                  Tổng tiền:{" "}
+                  <Text style={{ color: "#ff6600", fontWeight: "bold" }}>
+                    {formatCurrency(tour.totalAmount)}
+                  </Text>
+                </Text>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity style={styles.button1}>
+                    <Text style={styles.buttonText1}>Đặt lại</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.button2}
+                    onPress={() => handleReviewPress(tour)}
+                  >
+                    <Text style={styles.buttonText2}>Viết đánh giá</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -102,91 +207,103 @@ const TourComplete = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    marginTop: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContainer: {
     flex: 1,
-    width: '100%',
+    width: "100%",
   },
   tourItem: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    backgroundColor: "#fff",
     marginVertical: 10,
     marginHorizontal: 10,
-    borderRadius: 5,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
   tourImage: {
-    width: 100,
-    height: 100,
-    borderTopLeftRadius: 5,
-    borderBottomLeftRadius: 5,
+    width: 130,
+    height: 150,
+    borderRadius: 15,
+    marginRight: 10,
+    marginTop: 10,
   },
   tourDetails: {
     flex: 1,
     padding: 10,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   tourTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#333",
   },
   tourDate: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   tourPrice: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   tourTotal: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 10,
+    justifyContent: "flex-start",
+    alignItems: "center",
     gap: 10,
   },
   button1: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ff4500',
+    borderWidth: 0.5,
+    borderColor: "#ff4500",
   },
   button2: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#ff6600",
     paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     borderRadius: 20,
   },
   buttonText1: {
-    color: '#ff4500',
-    textAlign: 'center',
+    color: "#ff4500",
+    textAlign: "center",
     fontSize: 14,
+    fontWeight: "bold",
   },
   buttonText2: {
-    color: '#fff',
-    textAlign: 'center',
+    color: "#fff",
+    textAlign: "center",
     fontSize: 14,
+    fontWeight: "bold",
   },
-  emptyText: {
+  noOrderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  noOrderImage: {
+    width: 150,
+    height: 150,
+    resizeMode: "contain",
+  },
+  noOrderText: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
+    marginTop: 10,
   },
 });
 

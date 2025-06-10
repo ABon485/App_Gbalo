@@ -19,15 +19,31 @@ import bookingApi from "@/services/tour";
 import { Booking, Policy, TourDetail } from "@/types/tour";
 import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import moment from "moment";
+import { createVNPayUrl } from "@/utils/vnpay";
 
-// Hàm chuyển đổi định dạng ngày từ DD/MM/YYYY sang YYYY-MM-DD
+
+
 const formatDateToYYYYMMDD = (date: string): string => {
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
     const [day, month, year] = date.split("/");
     return `${year}-${month}-${day}`;
   }
-  return date; // Trả về nguyên gốc nếu đã đúng định dạng
+  return date;
 };
+
+// Hàm lấy Client IP
+async function getClientIp() {
+  try {
+    const response = await fetch("https://api.ipify.org?format=json");
+    const data = await response.json();
+    console.log("Client IP từ ipify:", data.ip);
+    return data.ip;
+  } catch (error) {
+    console.error("Lỗi khi lấy Client IP:", error);
+    return "127.0.0.1"; // Fallback IP
+  }
+}
 
 export default function ConfirmBooking() {
   const [checkbox, setIsCheckbox] = useState(false);
@@ -66,7 +82,6 @@ export default function ConfirmBooking() {
     });
   };
 
-  // Calculate prepayment based on depositPercent from policyData, with fallback to 0 if not available
   const prepayment = policyData?.depositPercent
     ? Math.round(totalPrice * (policyData.depositPercent / 100))
     : 0;
@@ -225,7 +240,21 @@ export default function ConfirmBooking() {
   );
 
   const handlePayment = async () => {
-    // Validate selectedDate
+    console.log("Bắt đầu handlePayment", {
+      selectedDate,
+      selectedGuests,
+      userInfo,
+      checkbox,
+      policyData: policyData
+        ? { depositPercent: policyData.depositPercent }
+        : null,
+      userId,
+      tourId,
+      totalPrice,
+      prepayment,
+    });
+
+    // Validate inputs
     if (
       !selectedDate ||
       selectedDate === "Chưa chọn" ||
@@ -238,7 +267,6 @@ export default function ConfirmBooking() {
       return;
     }
 
-    // Validate selectedGuests
     if (
       !selectedGuests ||
       selectedGuests === "Chưa chọn" ||
@@ -251,7 +279,6 @@ export default function ConfirmBooking() {
       return;
     }
 
-    // Validate userInfo
     const errors: typeof contactErrors = {};
     if (!userInfo?.fullName || userInfo.fullName.trim() === "")
       errors.fullName = "Vui lòng điền tên của bạn.";
@@ -261,7 +288,10 @@ export default function ConfirmBooking() {
       errors.email = "Vui lòng điền email của bạn.";
     setContactErrors(errors);
 
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) {
+      console.log("Lỗi: Thông tin liên hệ không hợp lệ", { errors, userInfo });
+      return;
+    }
 
     if (!checkbox) {
       showToast({
@@ -279,19 +309,20 @@ export default function ConfirmBooking() {
       });
       return;
     }
+
     if (!userInfo || !userId) {
+      console.log("Lỗi: Thiếu userId hoặc userInfo", { userId, userInfo });
       router.push("/(auths)/(Login)/login");
       return;
     }
 
-    // Parse selectedGuests, e.g., "1 người lớn, 1 trẻ em, 1 em bé"
+    // Parse selectedGuests
     const guestEntries = selectedGuests.split(",").map((entry) => entry.trim());
     const guestDetails: { quantity: number; guestType: string }[] = [];
 
     for (const entry of guestEntries) {
-      const guestMatch = entry.match(/^(\d+)\s*(.+)$/); // e.g., "1 người lớn" -> ["1 người lớn", "1", "người lớn"]
+      const guestMatch = entry.match(/^(\d+)\s*(.+)$/);
       if (!guestMatch) {
-        console.log("Validation failed: Invalid selectedGuests format for", entry);
         showToast({
           type: "error",
           message: `Dữ liệu số lượng khách không hợp lệ: ${entry}.`,
@@ -303,14 +334,16 @@ export default function ConfirmBooking() {
       guestDetails.push({ quantity, guestType });
     }
 
-    // Validate and calculate total price for each guest type
+    // Validate and calculate total price
     let expectedTotalPrice = 0;
-    const serviceDetails: { serviceDetailId: number; quantity: number; price: number }[] = [];
+    const serviceDetails: {
+      serviceDetailId: number;
+      quantity: number;
+      price: number;
+    }[] = [];
 
     for (const { quantity, guestType } of guestDetails) {
       let tourPrice;
-
-      // Map guestType to tourPrice based on guestType and age
       if (guestType.toLowerCase() === "người lớn") {
         tourPrice = tour?.tourPrices.find(
           (price) => price.guestType.toLowerCase() === "người lớn"
@@ -328,7 +361,6 @@ export default function ConfirmBooking() {
             price.age === "Từ 2-5 tuổi"
         );
       } else {
-        console.log("Validation failed: Unrecognized guestType", guestType);
         showToast({
           type: "error",
           message: `Loại khách không hợp lệ: ${guestType}.`,
@@ -337,7 +369,6 @@ export default function ConfirmBooking() {
       }
 
       if (!tourPrice) {
-        console.log("Validation failed: No matching tourPrice for guestType", guestType);
         showToast({
           type: "error",
           message: `Không tìm thấy thông tin giá cho loại khách: ${guestType}.`,
@@ -351,12 +382,7 @@ export default function ConfirmBooking() {
       serviceDetails.push({ serviceDetailId: guestTypeId, quantity, price });
     }
 
-    // Verify totalPrice consistency
     if (totalPrice !== expectedTotalPrice) {
-      console.log("Validation failed: Total price mismatch", {
-        totalPrice,
-        expectedTotalPrice,
-      });
       showToast({
         type: "error",
         message: "Tổng giá không khớp, vui lòng kiểm tra lại.",
@@ -378,7 +404,6 @@ export default function ConfirmBooking() {
           serviceId: tourId,
           serviceName: tourName,
           details: serviceDetails,
-
         },
       ],
       payments: [
@@ -391,7 +416,9 @@ export default function ConfirmBooking() {
           currencyType: "VND",
           currencyRate: 1,
           note: "",
-          isDeposit: typeof policyData?.depositPercent !== "undefined" && policyData.depositPercent > 0,
+          isDeposit:
+            typeof policyData?.depositPercent !== "undefined" &&
+            policyData.depositPercent > 0,
           isDepositPaid: false,
         },
       ],
@@ -399,15 +426,31 @@ export default function ConfirmBooking() {
 
     try {
       const response = await bookingApi.createBooking(bookingData);
+      const bookingId = response.data.bookingId;
+
+      // Tạo URL thanh toán VNPay
+      const clientIp = await getClientIp();
+      const paymentUrl = createVNPayUrl(
+        `BOOKING_${bookingId}`,
+        prepayment,
+        `Thanh toán tour ${tourName} (Booking ID: ${bookingId})`,
+        clientIp
+      );
+      console.log("VNPay payment URL:", paymentUrl);
+      // Điều hướng đến màn hình VNPay
       router.push({
-        pathname: "/(screens)/booking/successBooking",
-        params: { bookingId: response.data.bookingId.toString() },
+        pathname: "/(screens)/payment/VNPayScreen",
+        params: { paymentUrl },
       });
     } catch (error) {
-      console.error("Error in bookingApi.createBooking:", error);
+      console.error("Lỗi trong handlePayment", error);
       showToast({
         type: "error",
-        message: "Tạo booking thất bại, vui lòng thử lại.",
+        message: `Tạo booking hoặc liên kết thanh toán thất bại: ${
+          typeof error === "object" && error !== null && "message" in error
+            ? (error as any).message
+            : "Vui lòng thử lại"
+        }`,
       });
     }
   };
@@ -585,11 +628,9 @@ export default function ConfirmBooking() {
                 </View>
               ))
             ) : (
-              <>
-                <View style={styles.policyItem}>
-                  <Text style={styles.checkMark}>Không có chính sách </Text>
-                </View>
-              </>
+              <View style={styles.policyItem}>
+                <Text style={styles.checkMark}>Không có chính sách</Text>
+              </View>
             )}
           </View>
 
@@ -639,7 +680,7 @@ export default function ConfirmBooking() {
         visible={showClientModal}
         onClose={() => setShowClientModal(false)}
         onSave={handleSaveClient}
-        tourPrices={tour.tourPrices || []}
+        tourPrices={tour?.tourPrices || []}
       />
       <EditPersonalInformation
         visible={showEditPersonalModal}
