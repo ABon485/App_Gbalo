@@ -20,77 +20,96 @@ import { AntDesign } from "@expo/vector-icons";
 export default function VerifyPhone() {
   const router = useRouter();
   const { phone } = useLocalSearchParams<{ phone: string }>();
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const inputRefs = useRef<TextInput[]>([]);
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  const { showToast } = useToast();
   const [errorMessage, setErrorMessage] = useState("");
+  const inputRefs = useRef<(TextInput | null)[]>([]);
+  const { showToast } = useToast();
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+
+  const hidePhone = (phone: string = ""): string => {
+    if (!phone) return "";
+    return phone.replace(/(\+\d{1,3})(\d{3})\d{3}(\d{3})/, "$1$2***$3");
+  };
 
   useEffect(() => {
-    const isValid = otp.every((char) => /^\d$/.test(char));
-    setIsButtonDisabled(!(isValid && otp.join("").length === 6));
-    if (errorMessage) setErrorMessage("");
-  }, [otp]);
+    if (!phone || !/^\+?[0-9]{7,15}$/.test(phone)) {
+      showToast({ type: "error", message: "Số điện thoại không hợp lệ" });
+      router.replace("/(auths)/(Login)/login");
+    }
+  }, [phone, router, showToast]);
+
+  useEffect(() => {
+    const isValidOtp =
+      otp.join("").length === 6 && otp.every((digit) => /^\d$/.test(digit));
+    setIsButtonDisabled(!isValidOtp);
+    if (errorMessage && isValidOtp) setErrorMessage("");
+  }, [otp, errorMessage]);
 
   const handleOtpChange = (text: string, index: number) => {
-    if (/^\d?$/.test(text)) {
-      const newOtp = [...otp];
-      newOtp[index] = text;
-      setOtp(newOtp);
-      if (text && index < 5) inputRefs.current[index + 1]?.focus();
-      else if (!text && index > 0) inputRefs.current[index - 1]?.focus();
-    }
+    if (!/^\d?$/.test(text)) return;
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+    if (text && index < 5) inputRefs.current[index + 1]?.focus();
+    else if (!text && index > 0) inputRefs.current[index - 1]?.focus();
   };
 
   const handleContinue = async () => {
     const code = otp.join("");
-
-    if (code.length < 6) {
+    if (code.length !== 6) {
+      setErrorMessage("Vui lòng nhập đầy đủ mã xác nhận");
       showToast({ type: "error", message: "Vui lòng nhập đầy đủ mã xác nhận" });
       return;
     }
 
-    if (code !== "123456") {
-      setErrorMessage(
-        "Rất tiếc, chúng tôi không thể xác minh mã. Vui lòng đảm bảo bạn nhập đúng số điện thoại di động và mã."
-      );
-      return;
-    }
-
     const token = await AsyncStorage.getItem("registerToken");
-
     if (!token) {
+      setErrorMessage("Không tìm thấy token xác minh");
       showToast({
         type: "error",
-        message: "Không tìm thấy token xác minh. Vui lòng thử lại.",
+        message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
       });
       return;
     }
 
     try {
       setLoading(true);
-
-      const response: ApiResponse = await api.post(
+      const response = await api.post<ApiResponse>(
         "/Accounts/VerifyResgiterCode",
-        { token, code: "123456" }
+        { token, code },
+        { headers: { "Content-Type": "application/json-patch+json" } }
       );
-      console.log("Response data:", response.data);
 
-      if (response.success) {
+      if (response.data?.status === "Success") {
         showToast({ type: "success", message: "Xác minh OTP thành công!" });
         router.push({
           pathname: "/(auths)/(register)/registerPhone/confirmPhone",
-          params: { phone, code: "123456" },
+          params: { phone, code },
         });
       } else {
-        showToast({ type: "error", message: "Mã xác nhận không đúng!" });
+        setErrorMessage(response.data?.message || "Mã xác nhận không đúng!");
+        showToast({
+          type: "error",
+          message: response.data?.message || "Mã xác nhận không đúng!",
+        });
       }
-    } catch (error: any) {
-      showToast({
-        type: "error",
-        message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
-      });
+    } catch (error) {
+      let errorMsg = "Có lỗi xảy ra khi xác minh OTP";
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        (error as any).response?.data?.message
+      ) {
+        errorMsg = (error as any).response.data.message;
+      }
+      setErrorMessage(errorMsg);
+      showToast({ type: "error", message: errorMsg });
+      console.error(
+        "VerifyResgiterCode error:",
+        (error as any)?.response?.data || error
+      );
     } finally {
       setLoading(false);
     }
@@ -98,52 +117,46 @@ export default function VerifyPhone() {
 
   const handleResend = async () => {
     try {
-      const token = await AsyncStorage.getItem("registerToken");
-
-      if (!token) {
-        showToast({ type: "error", message: "Không tìm thấy token xác minh" });
-        return;
-      }
-
-      const response = await api.post(
+      setLoading(true);
+      const response = await api.post<ApiResponse>(
         "/Accounts/SendResgiterCode",
-        {
-          phone, // gửi số điện thoại hiện tại
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { type: "Phone", phone },
+        { headers: { "Content-Type": "application/json-patch+json" } }
       );
 
-      const newToken = response.data?.data?.token;
-
-      if (newToken) {
-        await AsyncStorage.setItem("registerToken", newToken);
-
-        showToast({
-          type: "success",
-          message: "Đã gửi lại mã OTP!",
-        });
-
+      if (response.data?.status === "Success" && response.data?.data?.token) {
+        await AsyncStorage.setItem("registerToken", response.data.data.token);
+        showToast({ type: "success", message: "Đã gửi lại mã OTP!" });
         setOtp(Array(6).fill(""));
+        setErrorMessage("");
         inputRefs.current[0]?.focus();
       } else {
+        setErrorMessage(response.data?.message || "Gửi lại OTP thất bại");
         showToast({
           type: "error",
-          message: "Không nhận được token mới từ server",
+          message: response.data?.message || "Gửi lại OTP thất bại",
         });
       }
-    } catch (error: any) {
-      showToast({
-        type: "error",
-        message: error.message || "Có lỗi xảy ra, vui lòng thử lại",
-      });
+    } catch (error) {
+      let errorMsg = "Có lỗi xảy ra khi gửi lại OTP";
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        (error as any).response?.data?.message
+      ) {
+        errorMsg = (error as any).response.data.message;
+      }
+      setErrorMessage(errorMsg);
+      showToast({ type: "error", message: errorMsg });
+      console.error(
+        "Resend OTP error:",
+        (error as any)?.response?.data || error
+      );
+    } finally {
+      setLoading(false);
     }
   };
-
-  const maskedPhone = phone?.replace(/(\d{3})\d{3}(\d{3})/, "$1***$2") || "";
 
   return (
     <ImageBackground
@@ -154,6 +167,7 @@ export default function VerifyPhone() {
         <View style={styles.logoContainer}>
           <Image
             source={require("../../../../assets/images/imagLogo.png")}
+            style={styles.logo}
             resizeMode="contain"
           />
         </View>
@@ -161,73 +175,55 @@ export default function VerifyPhone() {
         <View style={styles.formContainer}>
           <Text style={styles.title}>Xác thực số điện thoại của bạn</Text>
           <Text style={styles.subtitle}>
-            Vui lòng nhập mã xác nhận đã được gửi đến số điện thoại
+            Vui lòng nhập mã xác nhận vừa gửi qua số điện thoại
           </Text>
-          <Text style={styles.phoneNumber}>{maskedPhone}</Text>
+          <Text style={styles.showEmail}>{hidePhone(phone)}</Text>
 
           <View style={styles.otpContainer}>
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={(ref) => {
-                  if (ref) inputRefs.current[index] = ref;
-                }}
+                ref={(ref) => (inputRefs.current[index] = ref)}
                 keyboardType="numeric"
                 maxLength={1}
                 value={digit}
                 onChangeText={(text) => handleOtpChange(text, index)}
-                style={[
-                  styles.otpInput,
-                  errorMessage
-                    ? { borderColor: "#FF4D4F", borderWidth: 1 }
-                    : {},
-                ]}
+                style={[styles.otpInput, errorMessage && styles.otpInputError]}
                 textContentType="oneTimeCode"
                 autoFocus={index === 0}
               />
             ))}
           </View>
-          {errorMessage ? (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 10,
-                paddingHorizontal: 4,
-              }}
-            >
+
+          {errorMessage && (
+            <View style={styles.formContainer}>
               <AntDesign name="exclamationcircleo" size={16} color="#FF4D4F" />
-              <Text
-                style={{
-                  color: "#FF4D4F",
-                  fontSize: 10,
-                  marginLeft: 6,
-                  flexShrink: 1,
-                }}
-              >
-                {errorMessage}
-              </Text>
+              {/* <Text style={styles.errorText}>{errorMessage}</Text> */}
             </View>
-          ) : null}
+          )}
 
           <CustomButtonRN
-            title="Tiếp tục"
+            title={loading ? "Đang xử lý..." : "Tiếp tục"}
             onPress={handleContinue}
             disabled={isButtonDisabled || loading}
             backgroundColor={
-              isButtonDisabled
+              isButtonDisabled || loading
                 ? styles.disabledButton.backgroundColor
                 : styles.activeButton.backgroundColor
             }
             textColor={
-              isButtonDisabled
+              isButtonDisabled || loading
                 ? styles.disabledButton.color
                 : styles.activeButton.color
             }
           />
 
-          <TouchableOpacity style={styles.resendButton} onPress={handleResend}>
-            <Text style={styles.resendText}>Gửi lại</Text>
+          <TouchableOpacity
+            style={[styles.resendButton, loading && styles.disabledButton]}
+            onPress={handleResend}
+            disabled={loading}
+          >
+            <Text style={styles.resendText}>Gửi lại OTP</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

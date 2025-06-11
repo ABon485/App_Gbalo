@@ -96,7 +96,7 @@ export default function VerifyEmail() {
       const response = await api.post<ApiResponse>(
         "/Accounts/VerifyResgiterCode",
         { token, code },
-        { headers: { "Content-Type": "application/json-patch+json" } } // Xóa Authorization
+        { headers: { "Content-Type": "application/json-patch+json" } } 
       );
       console.log("API response:", response.data);
 
