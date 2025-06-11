@@ -16,6 +16,7 @@ export type TourItem = {
   isFavorite: boolean;
   provinceIds: number;
   provinceName: string;
+  ratingCount:number;
   tourExtraServices: TourExtraService[];
 };
 

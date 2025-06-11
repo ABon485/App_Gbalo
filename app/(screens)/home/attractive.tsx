@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { ProvinceType } from "@/types/tour";
 import tourService from "@/services/tour";
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 const cardWidth = width * 0.35;
@@ -22,9 +23,19 @@ const truncateDescription = (text: string | undefined, wordLimit: number) => {
   return words.slice(0, wordLimit).join(" ") + "...";
 };
 
-const DestinationCard = ({ image, name, description }: ProvinceType) => {
+const DestinationCard = ({ id, image, name, description }: ProvinceType) => {
+  const router = useRouter();
+  const handlePress = () => {
+    router.push({
+      pathname: '/(screens)/search/searchResult',
+      params: {
+        selectedProvinceId: id.toString(),
+        searchQuery: name,
+      },
+    });
+  };
   return (
-    <TouchableOpacity style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={handlePress}>
       <Image
         source={
           image ? { uri: image } : require("@/assets/images/home/Property1.png")
@@ -93,7 +104,8 @@ const DestinationSection = () => {
             image={item.image}
             name={item.name}
             description={item.description}
-    
+            type={item.type}
+
           />
         )}
         horizontal
