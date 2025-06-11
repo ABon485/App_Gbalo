@@ -88,24 +88,27 @@ const WishlistScreen = () => {
         provinceName?: string;
       }
 
-      const grouped = (rawTours as Tour[]).reduce((acc: { [provinceName: string]: WishlistItem[] }, tour) => {
-        const provinceName = tour.provinceName || "Không xác định";
-        if (!acc[provinceName]) {
-          acc[provinceName] = [];
-        }
-        acc[provinceName].push({
-          id: String(tour.id),
-          title: tour.name,
-          image: { uri: tour.featuredImageUrl },
-          rating: tour.vote || 4.5,
-          reviews: 100,
-          provinceName,
-          price: tour.fromPrice,
-          isFavorite: true,
-          location: provinceName,
-        });
-        return acc;
-      }, {} as { [provinceName: string]: WishlistItem[] });
+      const grouped = (rawTours as Tour[]).reduce(
+        (acc: { [provinceName: string]: WishlistItem[] }, tour) => {
+          const provinceName = tour.provinceName || "Không xác định";
+          if (!acc[provinceName]) {
+            acc[provinceName] = [];
+          }
+          acc[provinceName].push({
+            id: String(tour.id),
+            title: tour.name,
+            image: { uri: tour.featuredImageUrl },
+            rating: tour.vote || 4.5,
+            reviews: 100,
+            provinceName,
+            price: tour.fromPrice,
+            isFavorite: true,
+            location: provinceName,
+          });
+          return acc;
+        },
+        {} as { [provinceName: string]: WishlistItem[] }
+      );
 
       const sections = Object.entries(grouped).map(([province, data]) => ({
         location: province,
@@ -246,14 +249,25 @@ const WishlistScreen = () => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Yêu thích</Text>
       </View>
-      <SectionList
-        sections={wishlistItems}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        renderSectionHeader={renderSectionHeader}
-        contentContainerStyle={styles.listContainer}
-        stickySectionHeadersEnabled={false}
-      />
+
+      {wishlistItems.length === 0 && !loading ? (
+        <View style={styles.noOrderContainer}>
+          <Image
+            source={require("@/assets/images/NoFavourist.png")}
+            style={styles.noOrderImage}
+          />
+          <Text style={styles.noOrderText}>Bạn chưa có tour yêu thích nào</Text>
+        </View>
+      ) : (
+        <SectionList
+          sections={wishlistItems}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+          contentContainerStyle={styles.listContainer}
+          stickySectionHeadersEnabled={false}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -327,7 +341,7 @@ const styles = StyleSheet.create({
   rating: {
     fontSize: 12,
     fontFamily: "Inter-Medium",
-    marginLeft:3,
+    marginLeft: 3,
   },
   reviews: {
     fontSize: 12,
@@ -370,6 +384,25 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
     color: "#333",
+  },
+  noOrderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    marginTop: 50,
+  },
+  noOrderImage: {
+    width: 200,
+    height: 200,
+    resizeMode: "contain",
+    marginBottom: 16,
+  },
+  noOrderText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    fontFamily: "Inter-Medium",
   },
 });
 
