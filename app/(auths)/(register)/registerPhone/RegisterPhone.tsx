@@ -30,8 +30,8 @@ export default function Register() {
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        router.replace("/profile"); 
-        return true; 
+        router.replace("/profile");
+        return true;
       };
 
       BackHandler.addEventListener("hardwareBackPress", onBackPress);
@@ -50,7 +50,7 @@ export default function Register() {
 
   const [selectedCountry, setSelectedCountry] = useState(countryPhoneCodes[0]);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phone, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = () => router.push("/(auths)/(Login)/login");
@@ -60,22 +60,30 @@ export default function Register() {
 
   const verifyPhone = async () => {
     const phoneRegex = /^\+?[0-9]{7,15}$/;
-    const fullPhone = `${selectedCountry.code}${phoneNumber}`;
-    if (!phoneNumber) {
+    if (!phone) {
       showToast({ type: "error", message: "Vui lòng nhập số điện thoại" });
-      return;
-    }
-    if (!phoneRegex.test(fullPhone)) {
-      showToast({ type: "error", message: "Số điện thoại không hợp lệ" });
       return;
     }
 
     try {
       setLoading(true);
+      console.log("Sending to SendRegisterCode:", {
+      type: "phone",
+      phone,
+    });
       const response = await api.post<ApiResponse<RegistercodeByPhone>>(
-        "/Accounts/SendResgiterCode",
-        { phone: phoneNumber }
+        "/Accounts/SendResgiterCode", 
+        {
+          type: "phone",
+          phone, 
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
+
       const receivedToken = response.data?.data?.token;
       if (receivedToken) {
         await AsyncStorage.setItem("registerToken", receivedToken);
@@ -84,17 +92,46 @@ export default function Register() {
           message: "Mã xác minh đã được gửi tới số điện thoại của bạn",
         });
         router.push({
-          pathname: "/(auths)/(register)/registerPhone/veryfyPhone",
-          params: { phone: fullPhone },
+          pathname: "/(auths)/(register)/registerPhone/veryfyPhone", 
+          params: { phone },
         });
       } else {
         showToast({
           type: "error",
           message: "Không nhận được token từ server",
         });
+        console.error("API response missing token:", response.data);
       }
     } catch (error) {
-      showToast({ type: "error", message: "Có lỗi xảy ra, vui lòng thử lại" });
+      let errorMsg = "Có lỗi xảy ra, vui lòng thử lại";
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data
+      ) {
+        const data = (error.response as any).data;
+        errorMsg = data?.message || data?.errors?.[0] || errorMsg;
+      }
+      showToast({ type: "error", message: errorMsg });
+      console.error("SendRegisterCode error:", {
+        status:
+          error &&
+          typeof error === "object" &&
+          "response" in error &&
+          error.response &&
+          (error.response as any).status,
+        data:
+          error &&
+          typeof error === "object" &&
+          "response" in error &&
+          error.response &&
+          (error.response as any).data,
+        message: (error as any)?.message,
+      });
     } finally {
       setLoading(false);
     }
@@ -155,7 +192,7 @@ export default function Register() {
                   placeholder="Số điện thoại"
                   keyboardType="phone-pad"
                   style={styles.input}
-                  value={phoneNumber}
+                  value={phone}
                   onChangeText={setPhoneNumber}
                 />
               </TouchableOpacity>

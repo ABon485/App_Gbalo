@@ -31,6 +31,25 @@ const styles = StyleSheet.create({
     textAlign: "center",
     margin: 10,
   },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#222",
+    marginBottom: 8,
+  },
+  required: {
+    color: "red",
+  },
+  phoneInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    backgroundColor: "#f9f9f9",
+  },
   countryPhoneHeader: {
     backgroundColor: "#fff",
     paddingVertical: 10,
