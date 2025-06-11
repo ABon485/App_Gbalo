@@ -30,13 +30,14 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import DeleteAccountModal from "@/components/profile/deleteAcount";
 import ConfirmLogoutModal from "@/components/profile/confirmlogout";
 import styles from "@/styles/profile/profile";
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "react-i18next";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { showToast } = useToast();
-
+  const { t } = useTranslation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<ProfileResponse["data"] | null>(null);
   const [loadingLogout, setLoadingLogout] = useState(false);
@@ -233,14 +234,20 @@ export default function ProfileScreen() {
     {
       id: 4,
       title: "Đánh giá của tôi",
-      icon: <MaterialCommunityIcons name="comment-text-outline" size={20} color="#333" />,
+      icon: (
+        <MaterialCommunityIcons
+          name="comment-text-outline"
+          size={20}
+          color="#333"
+        />
+      ),
       action: () => router.push("/(screens)/rating/myRating"),
     },
     {
       id: 5,
       title: "Đăng nhập và mật khẩu",
       icon: <Lock size={20} color="#333" />,
-      action: () => router.push('/(screens)/profile/loginSecurity'),
+      action: () => router.push("/(screens)/profile/loginSecurity"),
     },
     {
       id: 6,
@@ -252,7 +259,7 @@ export default function ProfileScreen() {
       id: 7,
       title: "Ngôn ngữ",
       icon: <Ionicons name="language" size={20} color="#333" />,
-      action: () => router.push("/"),
+      action: () => router.push("/(screens)/language/language"),
     },
   ];
 

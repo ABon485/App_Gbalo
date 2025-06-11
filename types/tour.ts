@@ -347,3 +347,13 @@ export type RatingListParams = {
   page: number;
   pageSize: number;
 };
+
+export type LanguageItem = {
+  id: number;
+  name: string;
+};
+
+export type LanguageResponse = {
+  data: LanguageItem[];
+  status: string;
+};

@@ -20,7 +20,8 @@ import {
   RatingListParams,
   ReviewListResponse,
   ReviewDetailResponse,
-  Review
+  Review,
+  LanguageResponse
 
 
 
@@ -182,14 +183,14 @@ const tourApi = {
       throw error;
     }
   },
- getBookingById: async (id: number, customerId: number): Promise<BookingResponse> => {
-  try {
-    const response = await api.get(`/booking/getbyid?id=${id}&customerId=${customerId}`);
-    return response.data;
-  } catch (error: any) {
-    throw error;
-  }
-},
+  getBookingById: async (id: number, customerId: number): Promise<BookingResponse> => {
+    try {
+      const response = await api.get(`/booking/getbyid?id=${id}&customerId=${customerId}`);
+      return response.data;
+    } catch (error: any) {
+      throw error;
+    }
+  },
 
   getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
     try {
@@ -206,21 +207,21 @@ const tourApi = {
       throw error;
     }
   },
-getBooking: async (customerId: number, page: number, pageSize: number): Promise<BookingListResponse> => {
-  try {
-    const response = await api.get(`/booking/bookings`, {
-      params: {
-        CustomerId: customerId,
-        Page: page,
-        PageSize: pageSize,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi gọi API getBookings:", error);
-    throw error;
-  }
-},
+  getBooking: async (customerId: number, page: number, pageSize: number): Promise<BookingListResponse> => {
+    try {
+      const response = await api.get(`/booking/bookings`, {
+        params: {
+          CustomerId: customerId,
+          Page: page,
+          PageSize: pageSize,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getBookings:", error);
+      throw error;
+    }
+  },
 
   approveTourRating: async (): Promise<void> => {
     try {
@@ -317,6 +318,17 @@ getBooking: async (customerId: number, page: number, pageSize: number): Promise<
       throw error;
     }
   },
+
+  getLanguage: async (): Promise<LanguageResponse> => {
+    try {
+      const response = await api.get("/common/language");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
 };
+
 
 export default tourApi;

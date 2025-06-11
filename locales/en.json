@@ -1,0 +1,13 @@
+{
+  "language": "Language",
+  "change_language": "Change language",
+  "loading": "Loading...",
+  "error": "Error",
+  "error_updating_language": "Failed to update language",
+  "home": {
+    "suggested": "Suggested",
+    "recent": "Recent",
+    "popular": "Popular",
+    "search_placeholder": "Search for destinations"
+  }
+}
