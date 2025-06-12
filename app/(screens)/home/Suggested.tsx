@@ -235,8 +235,9 @@ const TourListScreen = () => {
           <Heart
             size={22}
             color="#fff"
-            fill={item.isFavorite ? "#FF3B30" : "#C0C0C0"}
-            stroke={item.isFavorite ? "#FF3B30" : "#000000"}
+            fill={item.isFavorite ? "#FF3B30" : "#819A91"}
+            stroke={item.isFavorite ? "#EBFFD8" : "#1A1A1A"}
+            strokeWidth={1}
           />
         </TouchableOpacity>
       </View>

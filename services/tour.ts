@@ -233,20 +233,20 @@ const tourApi = {
   },
   // Lấy danh sách đánh giá
   getRatingList: async (params: RatingListParams): Promise<ReviewListResponse> => {
-    try {
-      const response = await api.get('/rating', {
-        params: {
-          UserId: params.userId,
-          Page: params.page,
-          PageSize: params.pageSize,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Lỗi khi gọi API getRatingList:", error);
-      throw error;
-    }
-  },
+  try {
+    const response = await api.get('/rating', {
+      params: {
+        UserId: params.userId,
+        Page: params.page,
+        PageSize: params.pageSize,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi gọi API getRatingList:", error);
+    throw error;
+  }
+},
 
   // Xem chi tiết đánh giá
   getRatingById: async (id: number): Promise<ReviewDetailResponse> => {

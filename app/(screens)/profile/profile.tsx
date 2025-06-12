@@ -244,19 +244,19 @@ const ProfileUpdateScreen = () => {
     }
   };
 
-  // const handleAddressUpdated = async (newAddress: string) => {
-  //   if (profile) {
-  //     setProfile({ ...profile, address: newAddress });
-  //     const data = await AsyncStorage.getItem("data");
-  //     if (data) {
-  //       const parsedData = JSON.parse(data);
-  //       await AsyncStorage.setItem(
-  //         "data",
-  //         JSON.stringify({ ...parsedData, address: newAddress })
-  //       );
-  //     }
-  //   }
-  // };
+  const handleAddressUpdated = async (newAddress: string) => {
+    if (profile) {
+      setProfile({ ...profile, address: newAddress });
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        await AsyncStorage.setItem(
+          "data",
+          JSON.stringify({ ...parsedData, address: newAddress })
+        );
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -348,11 +348,11 @@ const ProfileUpdateScreen = () => {
             <Text style={styles.label}>Email:</Text>
             <Text style={styles.value}>{profile.email || "Chưa cung cấp"}</Text>
           </View>
-          {!profile.email && (
+          {/* {!profile.email && ( */}
             <TouchableOpacity onPress={() => setShowEmailModal(true)}>
               <Text style={styles.editButton}>Thêm</Text>
             </TouchableOpacity>
-          )}
+          {/* )} */}
           <EmailModal
             visible={showEmailModal}
             onClose={() => setShowEmailModal(false)}
@@ -368,11 +368,11 @@ const ProfileUpdateScreen = () => {
             <Text style={styles.label}>Số điện thoại:</Text>
             <Text style={styles.value}>{profile.phone || "Chưa cung cấp"}</Text>
           </View>
-          {!profile.phone && (
+          {/* {!profile.phone && ( */}
             <TouchableOpacity onPress={() => setShowPhoneModal(true)}>
               <Text style={styles.editButton}>Thêm</Text>
             </TouchableOpacity>
-          )}
+          {/* )} */}
           <PhoneModal
             visible={showPhoneModal}
             onClose={() => setShowPhoneModal(false)}
@@ -393,14 +393,14 @@ const ProfileUpdateScreen = () => {
           <TouchableOpacity onPress={() => setShowAddressModal(true)}>
             <Text style={styles.editButton}>Thêm</Text>
           </TouchableOpacity>
-          {/* <AddressModal
+          <AddressModal
             visible={showAddressModal}
             onClose={() => setShowAddressModal(false)}
             title="Địa chỉ"
             content={profile.address || ""}
             onUpdate={handleAddressUpdated}
             fetchProfile={fetchProfile}
-          /> */}
+          />
         </View>
 
         <Modal
@@ -434,6 +434,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     justifyContent: "space-between",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ccc",
   },
   headerTitle: {
     fontSize: 16,
