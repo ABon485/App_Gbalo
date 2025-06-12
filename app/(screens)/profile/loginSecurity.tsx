@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import ResetPasswordScreen from '@/components/profile/resetLoginScurity';
-import { router } from 'expo-router';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import ResetPasswordScreen from "@/components/profile/resetLoginScurity";
+import { router } from "expo-router";
 
 export default function Security() {
-  const [isResetPasswordModalVisible, setResetPasswordModalVisible] = useState(false);
+  const [isResetPasswordModalVisible, setResetPasswordModalVisible] = useState(
+    false
+  );
 
   const handleUpdatePasswordPress = () => {
     setResetPasswordModalVisible(true);
@@ -37,7 +46,10 @@ export default function Security() {
       <View style={styles.inputContainer}>
         <View style={styles.labelRow}>
           <Text style={styles.label}>Đổi mật khẩu</Text>
-          <TouchableOpacity style={styles.updateButton} onPress={handleUpdatePasswordPress}>
+          <TouchableOpacity
+            style={styles.updateButton}
+            onPress={handleUpdatePasswordPress}
+          >
             <Text style={styles.updateText}>Cập nhật</Text>
           </TouchableOpacity>
         </View>
@@ -84,7 +96,7 @@ export default function Security() {
       {/* Question Input */}
       <View style={styles.inputContainer}>
         <View style={styles.labelRow}>
-          <Text style={styles.label}>Bạn đã từng có tài khoản nào chưa?</Text>
+          <Text style={styles.label}>Quản lý tài khoản đăng nhập qua mạng xã hội</Text>
           <TouchableOpacity style={styles.detailButton}>
             <Text style={styles.detailText}>Xem chi tiết</Text>
           </TouchableOpacity>
@@ -111,23 +123,26 @@ export default function Security() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 10,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 25,
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 30,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    paddingBottom: 10,
+    marginBottom: 10,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginLeft: 10,
+    fontWeight: "bold",
+    marginLeft: 18,
   },
   iconContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
-
   },
   icon: {
     width: 100,
@@ -138,18 +153,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 5,
   },
   label: {
-    fontSize: 16,
+    fontSize: 15,
+    fontFamily: "bold",
+    flexShrink: 1,
   },
   input: {
     borderWidth: 0,
     borderBottomWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     padding: 10,
   },
   updateButton: {
@@ -157,20 +174,20 @@ const styles = StyleSheet.create({
   },
   updateText: {
     fontSize: 14,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
   detailButton: {
     padding: 5,
   },
   detailText: {
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
     fontSize: 14,
   },
   addButton: {
     padding: 5,
   },
   addText: {
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
     fontSize: 14,
   },
 });

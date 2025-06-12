@@ -228,7 +228,7 @@ const WishlistScreen = () => {
             style={styles.favoriteButton}
             onPress={() => toggleFavorite(item.id)}
           >
-            <Heart size={22} color="#fff" fill="#FF3B30" stroke="#FF3B30" />
+            <Heart size={22} color="#fff" fill="#FF3B30" stroke="#EBFFD8" strokeWidth={1}/>
           </TouchableOpacity>
         </View>
       </View>

@@ -40,6 +40,7 @@ export const styles = StyleSheet.create({
   },
   modalContainer: {
     width: "100%",
+    maxHeight: height * 0.5,
     backgroundColor: "#fff",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,

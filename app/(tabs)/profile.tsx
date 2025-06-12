@@ -34,6 +34,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
 
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { showToast } = useToast();
@@ -246,7 +247,7 @@ export default function ProfileScreen() {
     {
       id: 5,
       title: "Đăng nhập và mật khẩu",
-      icon: <Lock size={20} color="#333" />,
+      icon: <MaterialCommunityIcons name="shield-lock-outline" size={21} color="#333" />,
       action: () => router.push("/(screens)/profile/loginSecurity"),
     },
     {
