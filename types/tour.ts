@@ -358,3 +358,8 @@ export type LanguageResponse = {
   data: LanguageItem[];
   status: string;
 };
+
+export type UpdateCountry = {
+  id: number;
+  name: string;
+};
