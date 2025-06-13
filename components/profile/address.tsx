@@ -117,20 +117,31 @@ const AddressModal = ({
 
   useEffect(() => {
     if (visible) {
-      fetchCountries();
+      // fetchCountries();
+      initAddressData();
     }
   }, [visible]);
 
-  const fetchCountries = async () => {
+  const initAddressData = async () => {
     try {
-      const response = await tourApi.getCountries();
-      const formatted = response.map((item) => ({
-        label: item.name,
-        value: item.name,
-      }));
-      setCountries(formatted);
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsed = JSON.parse(data);
+        setAddressData({
+          address: parsed.address || "",
+          city: parsed.city || "",
+          nationality: parsed.nationality || "",
+        });
+      } else {
+        setAddressData({
+          address: content || "",
+          city: "",
+          nationality: "",
+        });
+      }
     } catch (error) {
-      showToast({ message: "Không thể tải danh sách quốc gia", type: "error" });
+      console.log("Lỗi khi load địa chỉ từ AsyncStorage:", error);
+      showToast({ message: "Không thể tải thông tin địa chỉ", type: "error" });
     }
   };
 
