@@ -99,6 +99,8 @@ function RootLayoutNav() {
             <Stack.Screen name="(screens)/rating/myRating" options={{ headerShown: false }} />
             <Stack.Screen name="(screens)/profile/loginSecurity" options={{ headerShown: false }} />
             <Stack.Screen name="(screens)/language/language" options={{ headerShown: false }} />
+            <Stack.Screen name="(screens)/profile/verifyEmailCode" options={{ headerShown: false }} />
+            <Stack.Screen name="(screens)/profile/verifyPhoneCode" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
           <Toast config={toastConfig} />

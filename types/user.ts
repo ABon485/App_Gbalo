@@ -146,3 +146,10 @@ export type ChangePasswordRequest = {
   newPassword: string;
   confirmPassword: string;
 };
+
+export  type VerifyCodePayload = {
+  actionType: "SendCode";  
+  token: string;
+  code: string; 
+};
+
