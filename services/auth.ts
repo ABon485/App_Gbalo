@@ -4,7 +4,7 @@ import {
   LoginEmailType, LoginByPhone, LoginType, VerifyCodeLogin, SendCodeLogin, RegisterByEmail,
   RegisterByPhone, RegisterTypeEmail, RegistercodeByEmail, RegisterTypePhone,
   RegistercodeByPhone, ProfileResponse, UpdateEmail, UpdatePhone, ChangePassByCodeType, VerifyChangePassCodeType,
-  UpdateProfile, ChangePassCodeType, UpdateAvatar,
+  UpdateProfile, ChangePassCodeType, UpdateAvatar,updateAddress,
   ChangePasswordRequest
 } from "@/types/user";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -54,6 +54,9 @@ const authApi = {
   updatePhone: (formData: UpdatePhone) => api.post("/Accounts/ChangePhone", formData),
 
   updatefullName: (formData: UpdateProfile) => api.post("/Accounts/ChangeProfile", formData),
+
+  updateAddress: (formData: updateAddress) => api.post("/Accounts/ChangeAddress", formData),
+
 
   updateAvatar: (formData: UpdateAvatar) => api.post("/Accounts/ChangeAvatar", formData, {
     headers: {

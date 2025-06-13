@@ -102,6 +102,7 @@ export default function ProfileScreen() {
           address: response.data.data.address || parsedData.address || "",
           nationality:
             response.data.data.nationality || parsedData.nationality || "",
+          city: response.data.data.city || parsedData.city || "",
           dateOfBirth: response.data.data.dateOfBirth
             ? new Date(response.data.data.dateOfBirth)
             : parsedData.dateOfBirth
@@ -158,6 +159,7 @@ export default function ProfileScreen() {
           language: parsedData.language || "vi",
           address: parsedData.address || "",
           nationality: parsedData.nationality || "",
+          city: parsedData.city || "",
           dateOfBirth: parsedData.dateOfBirth
             ? new Date(parsedData.dateOfBirth)
             : new Date(),

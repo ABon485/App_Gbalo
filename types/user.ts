@@ -14,7 +14,7 @@ export type RegisterTypeEmail = {
   fullName: string;
   password: string;
   confirmPassword: string;
-}
+};
 
 export type RegisterByEmail = {
   token: string;
@@ -60,7 +60,8 @@ export type ProfileResponse = {
     language: string;
     address: string;
     nationality: string;
-    dateOfBirth: Date; // ISO 8601 format (only date)
+    city: string;
+    dateOfBirth: Date;
     lastChangePassDate: string;
   };
   status?: string;
@@ -76,6 +77,11 @@ export type UpdatePhone = {
 export type UpdateAvatar = {
   avatar: string;
 };
+export type updateAddress = {
+  address: string;
+  nationality: string;
+  city: string;
+};
 export type UpdateProfile = {
   data: {
     fullName: string;
@@ -83,6 +89,7 @@ export type UpdateProfile = {
     language: string;
     address: string;
     nationality: string;
+    city: string;
     dateOfBirth: Date;
   };
 };
@@ -97,43 +104,43 @@ export type SendCodeLogin = {
   sendType: "email" | "phone";
   phone: string;
   email: string;
-}
+};
 export type VerifyCodeLogin = {
   publicKey: string;
   code: string;
-}
+};
 export type ChangePassByCodeType = {
   token: string;
   newPassword: string;
   confirmPassword: string;
-}
+};
 export type VerifyChangePassCodeType = {
   token: string;
   code: string;
-}
+};
 export type ChangePassCodeType = {
-  type: 'email' | 'phone';
+  type: "email" | "phone";
   phone?: string;
   email?: string;
-}
+};
 export type Role = {
   id: number;
   name: string;
   description: string;
   sysCode: string;
   isDefault: boolean;
-}
+};
 
 export type Permission = {
   id: number;
   name: string;
   description: string;
-}
+};
 
 export type UserProfileResponse = {
   status: string;
   data: ProfileResponse;
-}
+};
 export type ChangePasswordRequest = {
   oldPassword: string;
   newPassword: string;
