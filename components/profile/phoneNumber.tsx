@@ -11,6 +11,7 @@ import { AntDesign } from "@expo/vector-icons";
 import api from "@/config/api";
 import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
 type Props = {
   visible: boolean;
@@ -18,7 +19,7 @@ type Props = {
   content: string;
   title: string;
   onUpdatePhone: (newPhone: string) => void;
-  fetchProfile: () => Promise<void>; // Thêm prop fetchProfile
+  fetchProfile: () => Promise<void>;
 };
 
 const PhoneNumberModal = ({
@@ -32,6 +33,7 @@ const PhoneNumberModal = ({
   const [phone, setPhone] = useState(content || "");
   const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useToast();
+  const router = useRouter();
 
   const isValidPhone = (phone: string) => {
     const regex = /^\d{10,12}$/;
@@ -49,23 +51,22 @@ const PhoneNumberModal = ({
         return false;
       }
 
-      const response = await api.post("/Accounts/ChangePhone", {
-        phone: phone,
+      const response = await api.post("/Accounts/SendChangePhoneCode", {
+        phone,
       });
-      console.log("Cập nhật số điện thoại thành công:", response.data.data);
-      onUpdatePhone(phone); // Cập nhật state cục bộ
-      await fetchProfile(); // Gọi lại để đồng bộ dữ liệu từ server
 
-      // Cập nhật AsyncStorage
-      const data = await AsyncStorage.getItem("data");
-      if (data) {
-        const parsedData = JSON.parse(data);
-        parsedData.phone = phone;
-        await AsyncStorage.setItem("data", JSON.stringify(parsedData));
+      const token = response.data?.data?.token;
+      if (!token) {
+        showToast({ message: "Không nhận được mã xác minh", type: "error" });
+        return false;
       }
 
+      await AsyncStorage.setItem("registerToken", token);
+      onUpdatePhone(phone);
+      await fetchProfile();
+
       showToast({
-        message: "Cập nhật số điện thoại thành công",
+        message: "Đã gửi mã xác nhận đến số điện thoại",
         type: "success",
       });
       return true;
@@ -84,7 +85,7 @@ const PhoneNumberModal = ({
         });
       } else {
         showToast({
-          message: "Cập nhật số điện thoại thất bại. Vui lòng thử lại.",
+          message: "Gửi yêu cầu xác thực thất bại. Vui lòng thử lại.",
           type: "error",
         });
       }
@@ -97,7 +98,11 @@ const PhoneNumberModal = ({
   const onSave = async () => {
     const success = await updateProfile();
     if (success) {
-      onClose(); // Chỉ đóng modal khi thành công
+      onClose();
+      router.push({
+        pathname: "/(screens)/profile/verifyPhoneCode",
+        params: { phone },
+      });
     }
   };
 
