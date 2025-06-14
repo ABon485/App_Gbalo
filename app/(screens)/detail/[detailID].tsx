@@ -26,6 +26,7 @@ import Rating from "./rating";
 import { FlatList } from "react-native";
 import { useMemo } from "react";
 import ImageGalleryModal from "@/components/rating/ImageGalleryModal";
+import { BookingServiceRequest } from '@/types/tour';
 // import { useToast } from "@/context/ToastContext";
 
 const formatPrice = (price: number): string =>
@@ -169,6 +170,77 @@ export default function Detail() {
     }
   };
 
+  const handleAddToCart = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("data");
+      const userInfo = userData ? JSON.parse(userData) : null;
+
+      if (!userInfo?.token) {
+        console.warn("Lỗi xác thực: Không tìm thấy token người dùng");
+        router.push("/(auths)/(Login)/login");
+        return;
+      }
+
+      if (!userInfo?.id && !userInfo?.customerId) {
+        console.warn("Lỗi: Không tìm thấy customerId trong userInfo");
+        router.push("/(auths)/(Login)/login");
+        return;
+      }
+
+      // Thay bằng dữ liệu thực tế
+      const tourDetails = {
+        serviceId: Number(tourId),
+        serviceName: "Tour Name", // Lấy từ API hoặc state
+        price: 1000, // Lấy từ API hoặc state
+        departureDate: new Date().toISOString(), // Lấy từ người dùng hoặc API
+        serviceDetailId: Number(tourId), // Lấy từ API hoặc state
+      };
+
+      const payload: BookingServiceRequest = {
+        customerId: userInfo.id || userInfo.customerId,
+        departureDate: tourDetails.departureDate,
+        serviceId: tourDetails.serviceId,
+        serviceName: tourDetails.serviceName,
+        price: tourDetails.price,
+        services: [
+          {
+            serviceDetailId: tourDetails.serviceDetailId,
+            quantity: 1,
+            price: tourDetails.price,
+          },
+        ],
+      };
+
+      console.log("Payload gửi đi:", payload);
+      const response = await tourApi.AddToCart(payload);
+      console.log("Đã thêm vào giỏ hàng:", response);
+
+      // showToast({ type: 'success', message: 'Đã thêm vào giỏ hàng.' });
+    } catch (error) {
+      let errorMessage = "Không thể thêm vào giỏ hàng.";
+      if (error && typeof error === "object" && "response" in error) {
+        const err = error as any;
+        errorMessage = err.response?.data?.message || errorMessage;
+        console.error("Thêm vào giỏ hàng thất bại:", {
+          message: err.message || "Lỗi không xác định",
+          stack: err.stack || "Không có stack trace",
+          response: err.response
+            ? {
+                status: err.response.status,
+                data: err.response.data,
+                headers: err.response.headers,
+              }
+            : "Không có phản hồi từ server",
+          name: err.name || "UnknownError",
+        });
+      } else {
+        console.error("Thêm vào giỏ hàng thất bại:", error);
+      }
+
+      // showToast({ type: 'error', message: errorMessage });
+    }
+  };
+
   const handleBookTour = async () => {
     try {
       const userData = await AsyncStorage.getItem("data");
@@ -239,9 +311,13 @@ export default function Detail() {
             >
               <Ionicons name="arrow-back" size={18} color="#000000" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconCartButton}>
+            <TouchableOpacity
+              style={styles.iconCartButton}
+              onPress={handleAddToCart}
+            >
               <Ionicons name="cart-outline" size={24} color="#000000" />
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.favoriteButton}
               onPress={toggleFavorite}
