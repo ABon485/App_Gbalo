@@ -86,7 +86,7 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
             provinceName: item.provinceName || "",
             tourExtraServices: item.tourExtraServices || [],
             vote: item.vote || 0,
-            ratingCount:item.ratingCount || 0,
+            ratingCount: item.ratingCount || 0,
             fromPrice: item.fromPrice || 0,
             isFavorite: favoriteTourIds.includes(String(item.id)),
           })
@@ -154,8 +154,9 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
   };
 
   useEffect(() => {
-    fetchTours();
-  }, [provinceIds, tourId]);
+  fetchTours();
+}, [JSON.stringify(provinceIds), tourId]);
+
 
   useFocusEffect(
     useCallback(() => {
@@ -279,7 +280,7 @@ const SimilarTour: React.FC<SimilarTourProps> = ({ provinceIds, tourId }) => {
       <View style={styles.ratingContainer}>
         <FontAwesome
           name="star"
-          size={15}
+          size={12}
           color={item.vote > 0 ? "#F24E1E" : "#999999"}
         />
         <Text style={styles.reviews}>({item.vote})</Text>
@@ -368,6 +369,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
     color: "#333",
     fontFamily: "Inter-Medium",
+    fontWeight: "bold",
   },
   ratingContainer: {
     flexDirection: "row",
@@ -377,7 +379,7 @@ const styles = StyleSheet.create({
   reviews: {
     fontSize: 10,
     fontFamily: "Inter-Medium",
-    marginLeft:3,
+    marginLeft: 3,
   },
   price: {
     fontSize: 12,
