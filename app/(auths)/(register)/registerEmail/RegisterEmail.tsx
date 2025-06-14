@@ -14,7 +14,7 @@ import {
 import styles from "@/styles/auth/register/registerEmail";
 import { useRouter } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
-import { useToast } from "@/context/ToastContext";
+// import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/config/api";
 import { ApiResponse } from "@/types/api";
@@ -22,7 +22,7 @@ import { RegistercodeByEmail } from "@/types/user";
 
 export default function RegisterEmail() {
   const router = useRouter();
-  const { showToast } = useToast();
+  // const { showToast } = useToast();
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,13 +33,13 @@ export default function RegisterEmail() {
 
   const verifyEmail = async () => {
     if (!email) {
-      showToast({ type: "error", message: "Vui lòng nhập email" });
+      // showToast({ type: "error", message: "Vui lòng nhập email" });
       return;
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
-      showToast({ type: "error", message: "Email không hợp lệ" });
+      // showToast({ type: "error", message: "Email không hợp lệ" });
       return;
     }
 
@@ -58,19 +58,19 @@ export default function RegisterEmail() {
         // Lưu token vào AsyncStorage
         await AsyncStorage.setItem("registerToken", response.data.data.token);
         console.log("Saved token:", response.data.data.token);
-        showToast({
-          type: "success",
-          message: "Mã xác minh đã được gửi đến email của bạn",
-        });
+        // showToast({
+        //   type: "success",
+        //   message: "Mã xác minh đã được gửi đến email của bạn",
+        // });
         router.push({
           pathname: "/(auths)/(register)/registerEmail/veryfyEmail",
           params: { email },
         });
       } else {
-        showToast({
-          type: "error",
-          message: "Gửi mã xác minh thất bại. Vui lòng thử lại.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message: "Gửi mã xác minh thất bại. Vui lòng thử lại.",
+        // });
       }
     } catch (error) {
       if (
@@ -89,7 +89,7 @@ export default function RegisterEmail() {
           (error as any)?.message || error
         );
       }
-      showToast({ type: "error", message: "Có lỗi xảy ra, vui lòng thử lại" });
+      // showToast({ type: "error", message: "Có lỗi xảy ra, vui lòng thử lại" });
     } finally {
       setLoading(false);
     }

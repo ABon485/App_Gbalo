@@ -16,7 +16,7 @@ import {
 import styles from "@/styles/auth/register/registerPhone";
 import { useRouter } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
-import { useToast } from "@/context/ToastContext";
+// import { useToast } from "@/context/ToastContext";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/config/api";
@@ -41,7 +41,7 @@ export default function Register() {
     }, [])
   );
 
-  const { showToast } = useToast();
+  // const { showToast } = useToast();
   const countryPhoneCodes = [
     { name: "Việt Nam", code: "+84" },
     { name: "Hoa Kỳ", code: "+1" },
@@ -61,7 +61,7 @@ export default function Register() {
   const verifyPhone = async () => {
     const phoneRegex = /^\+?[0-9]{7,15}$/;
     if (!phone) {
-      showToast({ type: "error", message: "Vui lòng nhập số điện thoại" });
+      // showToast({ type: "error", message: "Vui lòng nhập số điện thoại" });
       return;
     }
 
@@ -87,19 +87,19 @@ export default function Register() {
       const receivedToken = response.data?.data?.token;
       if (receivedToken) {
         await AsyncStorage.setItem("registerToken", receivedToken);
-        showToast({
-          type: "success",
-          message: "Mã xác minh đã được gửi tới số điện thoại của bạn",
-        });
+        // showToast({
+        //   type: "success",
+        //   message: "Mã xác minh đã được gửi tới số điện thoại của bạn",
+        // });
         router.push({
           pathname: "/(auths)/(register)/registerPhone/veryfyPhone", 
           params: { phone },
         });
       } else {
-        showToast({
-          type: "error",
-          message: "Không nhận được token từ server",
-        });
+        // showToast({
+        //   type: "error",
+        //   message: "Không nhận được token từ server",
+        // });
         console.error("API response missing token:", response.data);
       }
     } catch (error) {
@@ -116,7 +116,7 @@ export default function Register() {
         const data = (error.response as any).data;
         errorMsg = data?.message || data?.errors?.[0] || errorMsg;
       }
-      showToast({ type: "error", message: errorMsg });
+      // showToast({ type: "error", message: errorMsg });
       console.error("SendRegisterCode error:", {
         status:
           error &&

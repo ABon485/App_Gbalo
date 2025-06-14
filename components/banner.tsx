@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 type BannerImage = {
-  uri: number; 
+  uri: number;
   label: string;
 };
 
@@ -17,9 +17,9 @@ const bannerImages: BannerImage[] = [
   { uri: require("@/assets/images/home/Caurong.png"), label: "Cầu Rồng" },
   { uri: require("@/assets/images/home/cauvang.png"), label: "Cầu Vàng" },
   { uri: require("@/assets/images/home/hoian.png"), label: "Hội An" },
-  { uri: require("@/assets/images/home/hoian1.png"), label: "Hội An 1" },
-  { uri: require("@/assets/images/home/tinhyeu.png"), label: "Tình Yêu" },
-  { uri: require("@/assets/images/home/linhung.png"), label: "Linh Ứng" },
+  { uri: require("@/assets/images/home/hoian1.png"), label: "Phố cổ Hội An" },
+  { uri: require("@/assets/images/home/tinhyeu.png"), label: "Cầu Tình Yêu" },
+  { uri: require("@/assets/images/home/linhung.png"), label: "Chùa Linh Ứng" },
 ];
 
 const { width } = Dimensions.get("window");
@@ -41,7 +41,7 @@ const Banner = () => {
         }
         return nextIndex;
       });
-    }, 3000);
+    }, 3500);
 
     return () => clearInterval(interval);
   }, []);
@@ -50,6 +50,7 @@ const Banner = () => {
     <View style={styles.itemContainer}>
       <View style={styles.bannerContainer}>
         <Image source={item.uri} style={styles.bannerImage} />
+        <View style={styles.blurOverlay} />
         <View style={styles.textOverlay}>
           <Text style={styles.bannerText}>{item.label}</Text>
         </View>
@@ -90,23 +91,35 @@ const styles = StyleSheet.create({
     width: 340,
     height: 160,
     borderRadius: 10,
+    resizeMode: "cover",
+  },
+  blurOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(63, 63, 63, 0.35)", 
+    borderRadius: 10,
   },
   textOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    bottom: 90,
+    bottom: 0,
     justifyContent: "center",
     alignItems: "center",
+    zIndex: 1,
   },
   bannerText: {
-    color: "#fff",
-    fontSize: 20,
+    color: "white",
+    fontSize: 22,
     fontFamily: "Inter-Medium",
-    textShadowColor: "rgba(0, 0, 0, 0.75)",
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 5,
+    fontWeight: "bold",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
 });
 

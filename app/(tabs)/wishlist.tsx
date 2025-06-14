@@ -15,11 +15,13 @@ import { Heart } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import tourApi from "@/services/tour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useToast } from "@/context/ToastContext";
+// import { useToast } from "@/context/ToastContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
+import { TourDetail } from "@/types/tour";
 
-const formatPrice = (price: number): string => {
+const formatPrice = (price: number | null | undefined): string => {
+  if (price == null) return "0";
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
@@ -34,6 +36,9 @@ const WishlistScreen = () => {
     price: number;
     isFavorite: boolean;
     location: string;
+    detail?: TourDetail;
+    images?: string[];
+    provinceIds?: number[];
   }
 
   interface WishlistSection {
@@ -45,17 +50,79 @@ const WishlistScreen = () => {
   const [wishlistItems, setWishlistItems] = useState<WishlistSection[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { showToast } = useToast();
+  // const { showToast } = useToast();
+
+  const loadCachedFavorites = async () => {
+    try {
+      const cachedFavorites = await AsyncStorage.getItem("favorites");
+      if (cachedFavorites && cachedFavorites.length > 0) {
+        const rawTours = JSON.parse(cachedFavorites);
+
+        interface Tour {
+          id: number;
+          name: string;
+          featuredImageUrl: string;
+          vote?: number;
+          fromPrice?: number;
+          provinceName?: string;
+          provinceIds?: number[];
+          detail?: TourDetail;
+          images?: string[];
+        }
+
+        const fetchedTours = rawTours.map((tour: Tour) => ({
+          id: String(tour.id),
+          title: tour.name,
+          image: { uri: tour.featuredImageUrl },
+          rating: tour.vote || 0,
+          reviews: 100,
+          provinceName: tour.provinceName || "Không xác định",
+          price: tour.fromPrice || 0,
+          isFavorite: true,
+          location: tour.provinceName || "Không xác định",
+          detail: tour.detail,
+          images: tour.images || [],
+          provinceIds: tour.provinceIds || [],
+        }));
+
+        const grouped = fetchedTours.reduce(
+          (
+            acc: { [provinceName: string]: WishlistItem[] },
+            tour: WishlistItem
+          ) => {
+            const provinceName = tour.provinceName;
+            if (!acc[provinceName]) {
+              acc[provinceName] = [];
+            }
+            acc[provinceName].push(tour);
+            return acc;
+          },
+          {} as { [provinceName: string]: WishlistItem[] }
+        );
+
+        const sections = Object.entries(grouped).map(([province, data]) => ({
+          location: province,
+          count: (data as WishlistItem[]).length,
+          data: data as WishlistItem[],
+        }));
+
+        setWishlistItems(sections);
+      }
+    } catch (err) {
+      console.error("Lỗi khi tải cache yêu thích:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchFavorites = async () => {
     try {
-      setLoading(true);
       const storedData = await AsyncStorage.getItem("data");
       if (!storedData) {
-        showToast({
-          type: "error",
-          message: "Vui lòng đăng nhập để xem danh sách yêu thích.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message: "Vui lòng đăng nhập để xem danh sách yêu thích.",
+        // });
         router.push("/");
         return;
       }
@@ -64,18 +131,12 @@ const WishlistScreen = () => {
       const userId = parsedData.profile?.id || parsedData.id;
 
       let rawTours = [];
-      const cachedFavorites = await AsyncStorage.getItem("favorites");
-      if (cachedFavorites && cachedFavorites.length > 0) {
-        rawTours = JSON.parse(cachedFavorites);
-      } else {
-        const res = await tourApi.getFavorite(userId);
-        rawTours = res.data.datas;
-        await AsyncStorage.setItem("favorites", JSON.stringify(rawTours));
-      }
+      const res = await tourApi.getFavorite(userId);
+      rawTours = res.data.datas;
+      await AsyncStorage.setItem("favorites", JSON.stringify(rawTours));
 
       if (!rawTours || rawTours.length === 0) {
         setWishlistItems([]);
-        setLoading(false);
         return;
       }
 
@@ -84,27 +145,52 @@ const WishlistScreen = () => {
         name: string;
         featuredImageUrl: string;
         vote?: number;
-        fromPrice: number;
+        fromPrice?: number;
         provinceName?: string;
+        provinceIds?: number[];
       }
 
-      const grouped = (rawTours as Tour[]).reduce(
-        (acc: { [provinceName: string]: WishlistItem[] }, tour) => {
-          const provinceName = tour.provinceName || "Không xác định";
-          if (!acc[provinceName]) {
-            acc[provinceName] = [];
+      const fetchedTours = await Promise.all(
+        (rawTours as Tour[]).map(async (tour) => {
+          let detail: TourDetail | undefined;
+          let images: string[] = [];
+          try {
+            const detailRes = await tourApi.TourDetail(tour.id);
+            detail = detailRes;
+            const imageRes = await fetch(
+              `https://files.vbalo.com/list/Tours${tour.id}`
+            );
+            const imageData = await imageRes.json();
+            if (imageData.status === "Success" && imageData.data?.length > 0) {
+              images = imageData.data;
+            }
+          } catch (err) {
+            console.error(`Lỗi khi preload tour ${tour.id}:`, err);
           }
-          acc[provinceName].push({
+          return {
             id: String(tour.id),
             title: tour.name,
             image: { uri: tour.featuredImageUrl },
-            rating: tour.vote || 4.5,
+            rating: tour.vote || 0,
             reviews: 100,
-            provinceName,
-            price: tour.fromPrice,
+            provinceName: tour.provinceName || "Không xác định",
+            price: tour.fromPrice || 0,
             isFavorite: true,
-            location: provinceName,
-          });
+            location: tour.provinceName || "Không xác định",
+            detail,
+            images,
+            provinceIds: tour.provinceIds || [],
+          };
+        })
+      );
+
+      const grouped = fetchedTours.reduce(
+        (acc: { [provinceName: string]: WishlistItem[] }, tour) => {
+          const provinceName = tour.provinceName;
+          if (!acc[provinceName]) {
+            acc[provinceName] = [];
+          }
+          acc[provinceName].push(tour);
           return acc;
         },
         {} as { [provinceName: string]: WishlistItem[] }
@@ -117,20 +203,27 @@ const WishlistScreen = () => {
       }));
 
       setWishlistItems(sections);
+      // Cập nhật cache với dữ liệu mới
+      await AsyncStorage.setItem("favorites", JSON.stringify(fetchedTours));
     } catch (err) {
       console.error("Lỗi khi tải danh sách yêu thích:", err);
-      showToast({
-        type: "error",
-        heading: "Thành công",
-        message: "Không thể tải danh sách yêu thích. Vui lòng thử lại.",
-      });
-    } finally {
-      setLoading(false);
+      // showToast({
+      //   type: "error",
+      //   message: "Không thể tải danh sách yêu thích. Vui lòng thử lại.",
+      // });
     }
   };
 
+  useEffect(() => {
+    // Tải dữ liệu cache ngay lập tức
+    loadCachedFavorites();
+    // Cập nhật dữ liệu từ API trong nền
+    fetchFavorites();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
+      // Cập nhật lại khi màn hình được focus
       fetchFavorites();
     }, [])
   );
@@ -139,11 +232,10 @@ const WishlistScreen = () => {
     try {
       const storedData = await AsyncStorage.getItem("data");
       if (!storedData) {
-        showToast({
-          type: "error",
-          heading: "Thành công",
-          message: "Vui lòng đăng nhập để xóa tour yêu thích.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message: "Vui lòng đăng nhập để xóa tour yêu thích.",
+        // });
         router.push("/");
         return;
       }
@@ -152,11 +244,10 @@ const WishlistScreen = () => {
       const userId = parsedData.profile?.id || parsedData.id;
 
       await tourApi.deleteFavorite(userId, Number(id));
-      showToast({
-        type: "success",
-        heading: "Thành công",
-        message: "Đã xóa khỏi danh sách yêu thích.",
-      });
+      // showToast({
+      //   type: "success",
+      //   message: "Đã xóa khỏi danh sách yêu thích.",
+      // });
 
       const cachedFavorites = await AsyncStorage.getItem("favorites");
       let favorites = cachedFavorites ? JSON.parse(cachedFavorites) : [];
@@ -164,7 +255,6 @@ const WishlistScreen = () => {
         (tour: { id: number }) => tour.id !== Number(id)
       );
       await AsyncStorage.setItem("favorites", JSON.stringify(favorites));
-      await fetchFavorites();
 
       setWishlistItems((prev) =>
         prev
@@ -176,22 +266,30 @@ const WishlistScreen = () => {
       );
     } catch (err) {
       console.error("Lỗi khi xóa yêu thích:", err);
-      showToast({
-        type: "error",
-        heading: "Thành công",
-        message: "Không thể xóa tour yêu thích. Vui lòng thử lại.",
-      });
+      // showToast({
+      //   type: "error",
+      //   message: "Không thể xóa tour yêu thích. Vui lòng thử lại.",
+      // });
     }
   };
 
-  const navigateToDetail = (id: string) => {
-    router.push({
-      pathname: "/(screens)/detail/[detailID]",
-      params: { detailID: id },
-    });
+  const navigateToDetail = async (item: WishlistItem) => {
+    try {
+      await AsyncStorage.setItem("selectedTour", JSON.stringify(item));
+      router.push({
+        pathname: "/(screens)/detail/[detailID]",
+        params: {
+          detailID: item.id,
+          provinceIds: JSON.stringify(item.provinceIds || []),
+        },
+      });
+    } catch (error) {
+      console.error("Lỗi khi lưu tour được chọn:", error);
+      // showToast({ type: "error", message: "Không thể mở chi tiết tour." });
+    }
   };
 
-  const renderSectionHeader = ({ section }: { section: any }) => (
+  const renderSectionHeader = ({ section }: { section: WishlistSection }) => (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>
         {section.location} ({section.count})
@@ -199,10 +297,10 @@ const WishlistScreen = () => {
     </View>
   );
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item }: { item: WishlistItem }) => (
     <TouchableOpacity
       style={styles.itemContainer}
-      onPress={() => navigateToDetail(item.id)}
+      onPress={() => navigateToDetail(item)}
       activeOpacity={0.7}
     >
       <View style={styles.itemContent}>
@@ -213,14 +311,22 @@ const WishlistScreen = () => {
           <View style={styles.ratingContainer}>
             <FontAwesome
               name="star"
-              size={15}
-              color={item.vote > 0 ? "#999999" : "#F24E1E"}
+              size={12}
+              color={item.rating > 0 ? "#F24E1E" : "#999999"}
             />
             <Text style={styles.rating}>{item.rating}/5</Text>
             <Text style={styles.reviews}>({item.reviews})</Text>
           </View>
           <Text style={styles.location}>{item.location}</Text>
-          <Text style={styles.price}>Từ {formatPrice(item.price)}đ/ Người</Text>
+          <View>
+            <Text style={styles.price}>
+              Từ{" "}
+              <Text style={styles.priceHighlight}>
+                {formatPrice(item.price)}/đ
+              </Text>{" "}
+              người
+            </Text>
+          </View>
         </View>
         <View style={styles.imageContainer}>
           <Image source={item.image} style={styles.image} />
@@ -228,20 +334,18 @@ const WishlistScreen = () => {
             style={styles.favoriteButton}
             onPress={() => toggleFavorite(item.id)}
           >
-            <Heart size={22} color="#fff" fill="#FF3B30" stroke="#EBFFD8" strokeWidth={1}/>
+            <Heart
+              size={22}
+              color="#fff"
+              fill="#FF3B30"
+              stroke="#EBFFD8"
+              strokeWidth={1}
+            />
           </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>
   );
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loadingText}>Đang tải...</Text>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -257,6 +361,10 @@ const WishlistScreen = () => {
             style={styles.noOrderImage}
           />
           <Text style={styles.noOrderText}>Bạn chưa có tour yêu thích nào</Text>
+        </View>
+      ) : loading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Đang tải...</Text>
         </View>
       ) : (
         <SectionList
@@ -322,21 +430,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   title: {
-    fontSize: 12,
-    fontWeight: "500",
+    fontSize: 14,
     color: "#000",
     marginBottom: 6,
     fontFamily: "Inter-Medium",
+    fontWeight: "bold",
   },
   ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 4,
-  },
-  ratingIcon: {
-    color: "#FF9500",
-    fontSize: 10,
-    marginRight: 2,
   },
   rating: {
     fontSize: 12,
@@ -360,6 +463,10 @@ const styles = StyleSheet.create({
     color: "#000",
     fontFamily: "Inter-Medium",
   },
+  priceHighlight: {
+    fontWeight: "bold",
+    fontFamily: "Inter-Medium",
+  },
   imageContainer: {
     position: "relative",
     width: 120,
@@ -379,10 +486,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   loadingText: {
     fontSize: 16,
     textAlign: "center",
-    marginTop: 20,
     color: "#333",
   },
   noOrderContainer: {

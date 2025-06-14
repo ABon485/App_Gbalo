@@ -12,7 +12,7 @@ import styles from "@/styles/auth/register/confirmPhone";
 import { router, useLocalSearchParams } from "expo-router";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import CustomButtonRN from "@/components/common/customButtonRN";
-import { useToast } from "@/context/ToastContext";
+// import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RegisterTypePhone } from "@/types/user";
 import api from "@/config/api";
@@ -32,7 +32,7 @@ export default function ConfirmPhone() {
     phone: string;
     code: string;
   }>();
-  const { showToast } = useToast();
+  // const { showToast } = useToast();
 
   useEffect(() => {
     if (phoneFromParams) {
@@ -60,27 +60,27 @@ export default function ConfirmPhone() {
 
     if (!fullName || !phone || !password || !confirmPassword || !code) {
       setErrorMessage("Vui lòng nhập đầy đủ thông tin");
-      showToast({ type: "error", message: "Vui lòng nhập đầy đủ thông tin" });
+      // showToast({ type: "error", message: "Vui lòng nhập đầy đủ thông tin" });
       return;
     }
 
     const phoneRegex = /^\+?[0-9]{7,15}$/;
     if (!phoneRegex.test(phone)) {
       setErrorMessage("Số điện thoại không hợp lệ");
-      showToast({ type: "error", message: "Số điện thoại không hợp lệ" });
+      // showToast({ type: "error", message: "Số điện thoại không hợp lệ" });
       return;
     }
 
     const passwordError = validatePassword(password);
     if (passwordError) {
       setErrorMessage(passwordError);
-      showToast({ type: "error", message: passwordError });
+      // showToast({ type: "error", message: passwordError });
       return;
     }
 
     if (password !== confirmPassword) {
       setErrorMessage("Mật khẩu xác nhận không khớp");
-      showToast({ type: "error", message: "Mật khẩu xác nhận không khớp" });
+      // showToast({ type: "error", message: "Mật khẩu xác nhận không khớp" });
       return;
     }
 
@@ -89,11 +89,11 @@ export default function ConfirmPhone() {
       const registerToken = await AsyncStorage.getItem("registerToken");
       if (!registerToken) {
         setErrorMessage("Token xác minh không hợp lệ hoặc không tồn tại");
-        showToast({
-          type: "error",
-          message:
-            "Token xác minh không hợp lệ hoặc không tồn tại. Vui lòng thử lại từ đầu.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message:
+        //     "Token xác minh không hợp lệ hoặc không tồn tại. Vui lòng thử lại từ đầu.",
+        // });
         return;
       }
 
@@ -125,10 +125,10 @@ export default function ConfirmPhone() {
 
         const user = profileResponse.data?.data;
         if (!user) {
-          showToast({
-            type: "error",
-            message: "Không thể lấy thông tin người dùng",
-          });
+          // showToast({
+          //   type: "error",
+          //   message: "Không thể lấy thông tin người dùng",
+          // });
           return;
         }
 
@@ -140,10 +140,10 @@ export default function ConfirmPhone() {
         };
         await AsyncStorage.setItem("data", JSON.stringify(authData));
 
-        showToast({
-          type: "success",
-          message: "Đăng ký thành công!",
-        });
+        // showToast({
+        //   type: "success",
+        //   message: "Đăng ký thành công!",
+        // });
         router.replace("/(tabs)/assistant");
       } else {
         let errorMessage = response.data?.message || "Đăng ký thất bại";
@@ -153,7 +153,7 @@ export default function ConfirmPhone() {
           errorMessage = "Tài khoản không tồn tại";
         }
         setErrorMessage(errorMessage);
-        showToast({ type: "error", message: errorMessage });
+        // showToast({ type: "error", message: errorMessage });
       }
     } catch (error) {
       let msg = "Có lỗi xảy ra, vui lòng thử lại";
@@ -168,7 +168,7 @@ export default function ConfirmPhone() {
         msg = (error as any).message;
       }
       setErrorMessage(msg);
-      showToast({ type: "error", message: msg });
+      // showToast({ type: "error", message: msg });
       console.error("Register error:", (error as any)?.response?.data || error);
     } finally {
       setLoading(false);

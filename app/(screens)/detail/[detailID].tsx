@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -26,7 +26,7 @@ import Rating from "./rating";
 import { FlatList } from "react-native";
 import { useMemo } from "react";
 import ImageGalleryModal from "@/components/rating/ImageGalleryModal";
-import { useToast } from "@/context/ToastContext";
+// import { useToast } from "@/context/ToastContext";
 
 const formatPrice = (price: number): string =>
   price
@@ -49,8 +49,10 @@ export default function Detail() {
   const [imageList, setImageList] = useState<string[]>([]);
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const { showToast } = useToast();
+  // const { showToast } = useToast();
   const [showIncludedModal, setShowIncludedModal] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const formattedImages = useMemo(
     () => imageList.map((img) => ({ uri: img })),
@@ -63,33 +65,34 @@ export default function Detail() {
 
   useFocusEffect(
     useCallback(() => {
-      const fetchTourDetail = async () => {
+      const loadSelectedTour = async () => {
         try {
-          const detail = await tourApi.TourDetail(Number(tourId) || 0);
-          setTour(detail || null);
-        } catch (error) {
-          console.error("Lỗi API (Tour Detail):", error);
-          showToast({ type: "error", message: "Không thể tải chi tiết tour." });
-        }
-      };
-
-      const fetchImage = async () => {
-        try {
-          const response = await fetch(
-            `https://files.vbalo.com/list/Tours${tourId}`
-          );
-          const data = await response.json();
-          if (data.status === "Success" && data.data?.length > 0) {
-            setImageList(data.data);
-            setImageUrl(data.data[0]);
+          const selectedTourData = await AsyncStorage.getItem("selectedTour");
+          if (selectedTourData) {
+            const selectedTour = JSON.parse(selectedTourData);
+            setTour(selectedTour.detail || null);
+            setImageList(selectedTour.images || []);
+            setImageUrl(selectedTour.images?.[0] || null);
+            setIsFavorite(selectedTour.isFavorite || false);
           } else {
-            setImageList([]);
-            setImageUrl(null);
+            // Fallback to API if no cached data
+            const detail = await tourApi.TourDetail(Number(tourId) || 0);
+            setTour(detail || null);
+            const imageRes = await fetch(
+              `https://files.vbalo.com/list/Tours${tourId}`
+            );
+            const imageData = await imageRes.json();
+            if (imageData.status === "Success" && imageData.data?.length > 0) {
+              setImageList(imageData.data);
+              setImageUrl(imageData.data[0]);
+            } else {
+              setImageList([]);
+              setImageUrl(null);
+            }
           }
         } catch (error) {
-          console.error("Lỗi khi lấy ảnh:", error);
-          setImageList([]);
-          setImageUrl(null);
+          console.error("Lỗi khi tải tour đã chọn:", error);
+          // showToast({ type: "error", message: "Không thể tải chi tiết tour." });
         }
       };
 
@@ -103,29 +106,8 @@ export default function Detail() {
         }
       };
 
-      const fetchFavoriteStatus = async () => {
-        try {
-          const storedData = await AsyncStorage.getItem("data");
-          if (storedData) {
-            const parsedData = JSON.parse(storedData);
-            const userId = parsedData.profile?.id || parsedData.id;
-            const cachedFavorites = await AsyncStorage.getItem("favorites");
-            const favorites = cachedFavorites
-              ? JSON.parse(cachedFavorites)
-              : [];
-            setIsFavorite(
-              favorites.some((fav: { id: number }) => fav.id === Number(tourId))
-            );
-          }
-        } catch (error) {
-          console.error("Lỗi khi lấy trạng thái yêu thích:", error);
-        }
-      };
-
-      fetchTourDetail();
-      fetchImage();
+      loadSelectedTour();
       fetchUserInfo();
-      fetchFavoriteStatus();
     }, [tourId])
   );
 
@@ -133,10 +115,10 @@ export default function Detail() {
     try {
       const storedData = await AsyncStorage.getItem("data");
       if (!storedData) {
-        showToast({
-          type: "error",
-          message: "Vui lòng đăng nhập để lưu tour yêu thích.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message: "Vui lòng đăng nhập để lưu tour yêu thích.",
+        // });
         router.push("/(auths)/(Login)/login");
         return;
       }
@@ -146,11 +128,11 @@ export default function Detail() {
       const token = parsedData.token;
 
       if (!userId || !token) {
-        showToast({
-          type: "error",
-          message:
-            "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message:
+        //     "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+        // });
         router.push("/(auths)/(Login)/login");
         return;
       }
@@ -160,16 +142,16 @@ export default function Detail() {
 
       if (newFavoriteStatus) {
         await tourApi.postFavorite(userId, Number(tourId));
-        showToast({
-          type: "success",
-          message: "Đã thêm vào danh sách yêu thích.",
-        });
+        // showToast({
+        //   type: "success",
+        //   message: "Đã thêm vào danh sách yêu thích.",
+        // });
       } else {
         await tourApi.deleteFavorite(userId, Number(tourId));
-        showToast({
-          type: "success",
-          message: "Đã xóa khỏi danh sách yêu thích.",
-        });
+        // showToast({
+        //   type: "success",
+        //   message: "Đã xóa khỏi danh sách yêu thích.",
+        // });
       }
 
       const favoriteRes = await tourApi.getFavorite(userId);
@@ -179,10 +161,10 @@ export default function Detail() {
       );
     } catch (err) {
       console.error("Lỗi khi lưu yêu thích:", err);
-      showToast({
-        type: "error",
-        message: "Không thể cập nhật yêu thích. Vui lòng thử lại.",
-      });
+      // showToast({
+      //   type: "error",
+      //   message: "Không thể cập nhật yêu thích. Vui lòng thử lại.",
+      // });
       setIsFavorite(!isFavorite);
     }
   };
@@ -192,23 +174,36 @@ export default function Detail() {
       const userData = await AsyncStorage.getItem("data");
       const userInfo = userData ? JSON.parse(userData) : null;
       if (!userInfo) {
-        showToast({
-          type: "error",
-          message: "Vui lòng đăng nhập để đặt tour.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message: "Vui lòng đăng nhập để đặt tour.",
+        // });
         router.push("/(auths)/(Login)/login");
         return;
       }
       setShowOrderModal(true);
     } catch (error) {
       console.error("Lỗi khi kiểm tra thông tin người dùng:", error);
-      showToast({
-        type: "error",
-        message: "Không thể kiểm tra thông tin người dùng.",
-      });
+      // showToast({
+      //   type: "error",
+      //   message: "Không thể kiểm tra thông tin người dùng.",
+      // });
       router.push("/(auths)/(Login)/login");
     }
   };
+
+  useEffect(() => {
+    if (!imageList || imageList.length <= 1) return;
+
+    const interval = setInterval(() => {
+      const nextIndex = (currentIndex + 1) % imageList.length;
+      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+      setCurrentIndex(nextIndex);
+      setSelectedImageIndex(nextIndex);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex, imageList]);
 
   const cleanAndTruncateSchedule = (
     html: string | null | undefined,
@@ -226,7 +221,7 @@ export default function Detail() {
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" />
         <View style={styles.loadingContainer}>
-          <Text>Đang tải thông tin tour...</Text>
+          {/* <Text>Đang tải thông tin tour...</Text> */}
         </View>
       </SafeAreaView>
     );
@@ -261,68 +256,63 @@ export default function Detail() {
               <FontAwesome5 name="share-square" size={20} color="#000000" />
             </TouchableOpacity>
           </View>
-          {imageList.length > 0 && width > 0 ? (
-            <FlatList
-              data={imageList}
-              keyExtractor={(item, index) => index.toString()}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              initialNumToRender={1}
-              maxToRenderPerBatch={1}
-              windowSize={2}
-              removeClippedSubviews={true}
-              getItemLayout={(data, index) => ({
-                length: width,
-                offset: width * index,
-                index,
-              })}
-              onMomentumScrollEnd={(event) => {
-                const index = Math.floor(
-                  event.nativeEvent.contentOffset.x / width
-                );
-                setSelectedImageIndex(index);
-              }}
-              renderItem={({ item, index }) => (
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={() => {
-                    setSelectedImageIndex(index);
-                    setIsImageViewerVisible(true);
-                  }}
-                >
-                  <View>
-                    <Image
-                      source={{ uri: item }}
-                      style={{ width, height: 250 }}
-                      resizeMode="cover"
-                    />
-                    <View
-                      style={{
-                        position: "absolute",
-                        bottom: 10,
-                        right: 20,
-                        backgroundColor: "rgba(0, 0, 0, 0.99)",
-                        borderRadius: 5,
-                        paddingHorizontal: 15,
-                        paddingVertical: 4,
-                      }}
-                    >
-                      <Text style={{ color: "#fff", fontSize: 12 }}>
-                        {index + 1}/{imageList.length}
-                      </Text>
-                    </View>
+          <FlatList
+            ref={flatListRef}
+            data={imageList}
+            keyExtractor={(item, index) => index.toString()}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            initialNumToRender={1}
+            maxToRenderPerBatch={1}
+            windowSize={2}
+            removeClippedSubviews={true}
+            getItemLayout={(data, index) => ({
+              length: width,
+              offset: width * index,
+              index,
+            })}
+            onMomentumScrollEnd={(event) => {
+              const index = Math.floor(
+                event.nativeEvent.contentOffset.x / width
+              );
+              setSelectedImageIndex(index);
+              setCurrentIndex(index);
+            }}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => {
+                  setSelectedImageIndex(index);
+                  setIsImageViewerVisible(true);
+                }}
+              >
+                <View>
+                  <Image
+                    source={{ uri: item }}
+                    style={{ width, height: 250 }}
+                    resizeMode="cover"
+                  />
+                  <View
+                    style={{
+                      position: "absolute",
+                      bottom: 10,
+                      right: 20,
+                      backgroundColor: "rgba(0, 0, 0, 0.99)",
+                      borderRadius: 5,
+                      paddingHorizontal: 15,
+                      paddingVertical: 4,
+                    }}
+                  >
+                    <Text style={{ color: "#fff", fontSize: 12 }}>
+                      {index + 1}/{imageList.length}
+                    </Text>
                   </View>
-                </TouchableOpacity>
-              )}
-            />
-          ) : (
-            <Image
-              source={require("@/assets/images/home/Property1.png")}
-              style={styles.image}
-              resizeMode="cover"
-            />
-          )}
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+
           <ImageGalleryModal
             visible={isImageViewerVisible}
             images={imageList}
@@ -338,11 +328,9 @@ export default function Detail() {
                 marginBottom: 18,
               }}
             >
-              {/* Icon nằm riêng cột trái */}
               <View style={{ paddingTop: 2 }}>
-                <Ionicons name="star" size={16} color="#F24E1E" />
+                <Ionicons name="star" size={14} color="#F24E1E" />
               </View>
-              {/* Text nằm cột phải */}
               <View style={{ flex: 1, marginLeft: 6 }}>
                 <Text
                   style={{ fontSize: 14, lineHeight: 20, flexWrap: "wrap" }}
