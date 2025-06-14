@@ -178,6 +178,22 @@ export type Booking = {
   payments: Payment[];
 };
 
+export type BookingServiceRequest = {
+  customerId: number;
+  departureDate: string; 
+  serviceId: number;
+  serviceName: string;
+  price: number;
+  services: BookingServiceDetail[];
+};
+
+export type BookingServiceDetail = {
+  serviceDetailId: number;
+  quantity: number;
+  price: number;
+};
+
+
 export type Payment = {
   paymentDate: string;
   paymentMethodId: number;

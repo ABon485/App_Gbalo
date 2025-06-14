@@ -23,6 +23,7 @@ import {
   Review,
   LanguageResponse,
   UpdateCountry,
+  BookingServiceRequest,
 } from "@/types/tour";
 
 const tourApi = {
@@ -341,6 +342,19 @@ const tourApi = {
       return response.data.data;
     } catch (error) {
       console.error("Lỗi khi lấy danh sách quốc gia:", error);
+      throw error;
+    }
+  },
+
+  AddToCart: async (payload: BookingServiceRequest) => {
+    try {
+      const response = await api.post<{ data: BookingServiceRequest[] }>(
+        "/cart/tour/add",
+        payload
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error("Lỗi khi thêm vào giỏ hàng:", error);
       throw error;
     }
   },
