@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import Slider from '@react-native-community/slider';
-import tourApi from '@/services/tour'; // Adjust the import path as needed
-import { TourGroupType, ProvinceType, TourListResponse } from '@/types/tour'; // Import types
+import MultiSlider from '@ptomasroos/react-native-multi-slider'; // Thêm MultiSlider
+import tourApi from '@/services/tour';
+import { TourGroupType, ProvinceType, TourListResponse } from '@/types/tour';
 
 interface SearchFiltersProps {
   visible: boolean;
   onClose: () => void;
-  onApply: (tours: TourListResponse) => void; // Updated to pass tour results
+  onApply: (tours: TourListResponse) => void;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply }) => {
-  const [price, setPrice] = useState<number>(8000000);
+  const [minPrice, setMinPrice] = useState<number>(0); // Giá tối thiểu
+  const [maxPrice, setMaxPrice] = useState<number>(8000000); // Giá tối đa
   const [selectedTourTypes, setSelectedTourTypes] = useState<number[]>([1]);
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>([]);
   const [selectedPlaces, setSelectedPlaces] = useState<string[]>([]);
@@ -59,16 +60,16 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
     try {
       setLoading(true);
       const searchParams = {
-        fromPrice: 0,
-        toPrice: price > 0 ? price : 20000000, // Fallback to max price if 0
+        fromPrice: minPrice,
+        toPrice: maxPrice > 0 ? maxPrice : 20000000, // Fallback to max price if 0
         provinceIds: selectedDestinations.length > 0
           ? selectedDestinations.map(id => parseInt(id, 10)).filter(id => !isNaN(id))
-          : [], // Allow all provinces if none selected
-        groupIds: selectedTourTypes.length > 0 ? selectedTourTypes : [], // Allow all tour types if none selected
+          : [],
+        groupIds: selectedTourTypes.length > 0 ? selectedTourTypes : [],
         durations: [],
         guestQuantitys: [],
         page: 1,
-        pageSize: 100,
+        pageSize: 10,
       };
       console.log('Search Params in SearchFilters:', JSON.stringify(searchParams, null, 2));
       const tourResponse = await tourApi.searchTour(searchParams);
@@ -84,7 +85,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
   };
 
   const handleReset = () => {
-    setPrice(0);
+    setMinPrice(0);
+    setMaxPrice(20000000);
     setSelectedTourTypes([]);
     setSelectedDestinations([]);
     setSelectedPlaces([]);
@@ -142,21 +144,38 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
             <View style={styles.sectionContainer}>
               <View style={styles.sectionTitleContainer}>
                 <View style={styles.redBar} />
-                <Text style={styles.sectionTitle}>Khoảng giá</Text>
+                <Text style={styles.sectionTitle}>Khoảng giá trị</Text>
               </View>
-              <Text style={styles.priceValue}>{formatPrice(price)}</Text>
+              <Text style={styles.priceValue}>
+                {formatPrice(minPrice)} - {formatPrice(maxPrice)}
+              </Text>
               <View style={styles.sliderContainer}>
                 <Text style={styles.sliderLabel}>0đ</Text>
-                <Slider
-                  style={styles.slider}
-                  minimumValue={0}
-                  maximumValue={20000000}
+                <MultiSlider
+                  values={[minPrice, maxPrice]}
+                  onValuesChange={([min, max]) => {
+                    setMinPrice(min);
+                    setMaxPrice(max);
+                  }}
+                  min={0}
+                  max={20000000}
                   step={100000}
-                  value={price}
-                  onValueChange={setPrice}
-                  minimumTrackTintColor="#FF6200"
-                  maximumTrackTintColor="#E0E0E0"
-                  thumbTintColor="#FF6200"
+                  allowOverlap={false}
+                  snapped
+                  sliderLength={220} // Điều chỉnh chiều dài thanh trượt
+                  trackStyle={{
+                    backgroundColor: '#E0E0E0',
+                    height: 2,
+                  }}
+                  selectedStyle={{
+                    backgroundColor: '#FF6200',
+                  }}
+                  markerStyle={{
+                    backgroundColor: '#FF6200',
+                    height:15,
+                    width: 15,
+                    borderRadius: 10,
+                  }}
                 />
                 <Text style={styles.sliderLabel}>20.000.000đ</Text>
               </View>
@@ -263,7 +282,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
   );
 };
 
-// Styles remain unchanged
+// Styles (giữ nguyên, chỉ thêm một số điều chỉnh nhỏ cho MultiSlider)
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
@@ -316,18 +335,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
-  },
-  slider: {
-    flex: 1,
-    height: 40,
-    marginHorizontal: 8,
+    justifyContent: 'space-between', // Căn đều các phần tử
   },
   sliderLabel: {
     fontSize: 12,
     color: '#888',
   },
   priceValue: {
-    fontSize: 16,
+    fontSize: 10,
     fontWeight: '500',
     color: '#000',
     marginBottom: 4,

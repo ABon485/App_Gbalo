@@ -60,6 +60,8 @@ const SearchTour = () => {
             fromPrice: item.fromPrice || 0,
             isFavorite: false,
             provinceIds,
+            provinceName: item.provinceName,
+            ratingCount: item.ratingCount,
             tourExtraServices: [],
 
           };
@@ -85,7 +87,7 @@ const SearchTour = () => {
     router.push({
       pathname: '/(screens)/search/searchResult',
       params: {
-        searchQuery: provinceName, 
+        searchQuery: provinceName,
         selectedProvinceId: provinceId,
       },
     });

@@ -262,7 +262,7 @@ const SearchResult = () => {
                 throw new Error("Không tìm thấy danh sách tour trong dữ liệu phản hồi.");
             }
 
-            const filteredTours: TourItem[] = datas.map((item: any) => {
+            const filteredTours:TourItem[] = datas.map((item: any) => {
                 let provinceIds = [];
 
                 if (Array.isArray(item.provinceIds)) {
@@ -310,7 +310,7 @@ const SearchResult = () => {
             setSuggestions([]); // Xóa gợi ý để tránh hiển thị dư thừa
             searchTours(selectedProvinceId, searchQuery);
         } else if (!searchQuery.trim()) {
-            setTours([]);
+            setTours([]); 
             setHasSearched(false);
             setError(null);
             fetchProvinceSuggestions('');
