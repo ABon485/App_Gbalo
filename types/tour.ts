@@ -180,7 +180,7 @@ export type Booking = {
 
 export type BookingServiceRequest = {
   customerId: number;
-  departureDate: string; 
+  departureDate: string;
   serviceId: number;
   serviceName: string;
   price: number;
@@ -193,6 +193,30 @@ export type BookingServiceDetail = {
   price: number;
 };
 
+export interface CartItem {
+  id: number;
+  tourId: number;
+  tourName: string;
+  quantity: number;
+  price: number;
+  imageUrl: string;
+  departureDate?: string;
+  selected?: boolean;
+  province: string;
+  rating: number;
+}
+
+export interface GetCartResponse {
+  data: {
+    datas: CartItem[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    count: number;
+  };
+  status: string;
+}
 
 export type Payment = {
   paymentDate: string;

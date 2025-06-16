@@ -24,6 +24,8 @@ import {
   LanguageResponse,
   UpdateCountry,
   BookingServiceRequest,
+  CartItem,
+  GetCartResponse,
 } from "@/types/tour";
 
 const tourApi = {
@@ -356,6 +358,51 @@ const tourApi = {
     } catch (error) {
       console.error("Lỗi khi thêm vào giỏ hàng:", error);
       throw error;
+    }
+  },
+
+  GetCart: async (customerId: number): Promise<CartItem[]> => {
+    try {
+      const response = await api.get<GetCartResponse>(
+        `/cart?customerId=${customerId}`
+      );
+      const result = response.data?.data?.datas;
+
+      console.log(
+        "Phản hồi API GetCart:",
+        JSON.stringify(response.data, null, 2)
+      );
+
+      if (!result) {
+        console.warn("Dữ liệu giỏ hàng không tồn tại hoặc rỗng:", result);
+        return [];
+      }
+
+      if (!Array.isArray(result)) {
+        console.warn(
+          "API trả về không phải mảng:",
+          JSON.stringify(result, null, 2)
+        );
+        return [];
+      }
+
+      const cartItems: CartItem[] = result.map((item) => ({
+        id: item.id,
+        tourId: item.serviceId,
+        tourName: item.serviceName || "Tên tour không có",
+        quantity: item.services[0]?.quantity || 1,
+        price: item.price || 0,
+        imageUrl: item.serviceImageUrl || "https://via.placeholder.com/75",
+        departureDate: item.departureDate,
+        selected: item.selected ?? false,
+        province: item.provinceName || "Không có tỉnh",
+        rating: item.rating ?? 0, 
+      }));
+
+      return cartItems;
+    } catch (error) {
+      console.error("Lỗi khi lấy giỏ hàng:", error);
+      return [];
     }
   },
 };
