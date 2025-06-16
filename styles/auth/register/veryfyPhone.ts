@@ -16,6 +16,10 @@ const styles = StyleSheet.create({
     marginBottom: 70,
     marginTop: 90,
   },
+  logo: {
+    width: 120,
+    height: 120,
+  },
   formContainer: {
     backgroundColor: "white",
     borderTopLeftRadius: 30,
@@ -40,6 +44,12 @@ const styles = StyleSheet.create({
     color: "black",
     textAlign: "center",
   },
+  showEmail: {
+    color: "#333",
+    fontSize: 16,
+    textAlign: "center",
+    marginVertical: 8,
+  },
   phoneNumber: {
     fontFamily: "Inter-Medium",
     fontSize: 16,
@@ -62,14 +72,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     borderRadius: 8,
   },
+  otpInputError: {
+    borderColor: "#FF4D4F",
+  },
   disabledButton: {
-    backgroundColor: "#cccccc", 
-    color: "#666666", 
+    backgroundColor: "#cccccc",
+    color: "#666666",
   },
 
   activeButton: {
-    backgroundColor: "#f97316", 
-    color: "white", 
+    backgroundColor: "#f97316",
+    color: "white",
   },
   resendButton: {
     height: 43,

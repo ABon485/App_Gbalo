@@ -1,0 +1,13 @@
+{
+  "language": "Ngôn ngữ",
+  "change_language": "Thay đổi ngôn ngữ",
+  "loading": "Đang tải...",
+  "error": "Lỗi",
+  "error_updating_language": "Không thể cập nhật ngôn ngữ",
+  "home": {
+    "suggested": "Đề xuất",
+    "recent": "Gần đây",
+    "popular": "Trending",
+    "search_placeholder": "Tìm kiếm điểm đến"
+  }
+}

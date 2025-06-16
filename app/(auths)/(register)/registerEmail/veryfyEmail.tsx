@@ -14,7 +14,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
 import api from "@/config/api";
 import { ApiResponse } from "@/types/api";
-import { useToast } from "@/context/ToastContext";
+// import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function VerifyEmail() {
@@ -24,7 +24,7 @@ export default function VerifyEmail() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const inputRefs = useRef<(TextInput | null)[]>([]);
-  const { showToast } = useToast();
+  // const { showToast } = useToast();
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
   // Hide email for display
@@ -38,10 +38,10 @@ export default function VerifyEmail() {
   // Validate email on mount
   useEffect(() => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showToast({ type: "error", message: "Email không hợp lệ" });
+      // showToast({ type: "error", message: "Email không hợp lệ" });
       router.replace("/(auths)/(Login)/login");
     }
-  }, [email, router, showToast]);
+  }, [email, router]);
 
   // Validate OTP input
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function VerifyEmail() {
 
     if (code.length !== 6) {
       setErrorMessage("Vui lòng nhập đầy đủ mã xác nhận");
-      showToast({ type: "error", message: "Vui lòng nhập đầy đủ mã xác nhận" });
+      // showToast({ type: "error", message: "Vui lòng nhập đầy đủ mã xác nhận" });
       return;
     }
 
@@ -81,10 +81,10 @@ export default function VerifyEmail() {
     console.log("Token from AsyncStorage:", token);
     if (!token) {
       setErrorMessage("Không tìm thấy token xác minh");
-      showToast({
-        type: "error",
-        message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
-      });
+      // showToast({
+      //   type: "error",
+      //   message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
+      // });
       return;
     }
 
@@ -96,22 +96,22 @@ export default function VerifyEmail() {
       const response = await api.post<ApiResponse>(
         "/Accounts/VerifyResgiterCode",
         { token, code },
-        { headers: { "Content-Type": "application/json-patch+json" } } // Xóa Authorization
+        { headers: { "Content-Type": "application/json-patch+json" } } 
       );
       console.log("API response:", response.data);
 
       if (response.data?.status === "Success") {
-        showToast({ type: "success", message: "Xác minh OTP thành công!" });
+        // showToast({ type: "success", message: "Xác minh OTP thành công!" });
         router.push({
           pathname: "/(auths)/(register)/registerEmail/confirmEmail",
           params: { email, code },
         });
       } else {
         setErrorMessage(response.data?.message || "Mã xác nhận không đúng!");
-        showToast({
-          type: "error",
-          message: response.data?.message || "Mã xác nhận không đúng!",
-        });
+        // showToast({
+        //   type: "error",
+        //   message: response.data?.message || "Mã xác nhận không đúng!",
+        // });
       }
     } catch (error) {
       if (typeof error === "object" && error !== null && "response" in error) {
@@ -132,7 +132,7 @@ export default function VerifyEmail() {
         errorMsg = error.response.data.message;
       }
       setErrorMessage(errorMsg);
-      showToast({ type: "error", message: errorMsg });
+      // showToast({ type: "error", message: errorMsg });
     } finally {
       setLoading(false);
     }
@@ -156,16 +156,16 @@ export default function VerifyEmail() {
         // Lưu token mới vào AsyncStorage
         await AsyncStorage.setItem("registerToken", response.data.data.token);
         console.log("Saved new token:", response.data.data.token);
-        showToast({ type: "success", message: "Đã gửi lại mã OTP!" });
+        // showToast({ type: "success", message: "Đã gửi lại mã OTP!" });
         setOtp(Array(6).fill(""));
         setErrorMessage("");
         inputRefs.current[0]?.focus();
       } else {
         setErrorMessage(response.data?.message || "Gửi lại OTP thất bại");
-        showToast({
-          type: "error",
-          message: response.data?.message || "Gửi lại OTP thất bại",
-        });
+        // showToast({
+        //   type: "error",
+        //   message: response.data?.message || "Gửi lại OTP thất bại",
+        // });
       }
     } catch (error) {
       if (
@@ -192,7 +192,7 @@ export default function VerifyEmail() {
         errorMsg = error.response.data.message;
       }
       setErrorMessage(errorMsg);
-      showToast({ type: "error", message: errorMsg });
+      // showToast({ type: "error", message: errorMsg });
     } finally {
       setLoading(false);
     }

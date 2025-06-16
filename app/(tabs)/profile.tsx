@@ -30,13 +30,15 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import DeleteAccountModal from "@/components/profile/deleteAcount";
 import ConfirmLogoutModal from "@/components/profile/confirmlogout";
 import styles from "@/styles/profile/profile";
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "react-i18next";
+
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { showToast } = useToast();
-
+  const { t } = useTranslation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<ProfileResponse["data"] | null>(null);
   const [loadingLogout, setLoadingLogout] = useState(false);
@@ -100,6 +102,7 @@ export default function ProfileScreen() {
           address: response.data.data.address || parsedData.address || "",
           nationality:
             response.data.data.nationality || parsedData.nationality || "",
+          city: response.data.data.city || parsedData.city || "",
           dateOfBirth: response.data.data.dateOfBirth
             ? new Date(response.data.data.dateOfBirth)
             : parsedData.dateOfBirth
@@ -156,6 +159,7 @@ export default function ProfileScreen() {
           language: parsedData.language || "vi",
           address: parsedData.address || "",
           nationality: parsedData.nationality || "",
+          city: parsedData.city || "",
           dateOfBirth: parsedData.dateOfBirth
             ? new Date(parsedData.dateOfBirth)
             : new Date(),
@@ -233,14 +237,20 @@ export default function ProfileScreen() {
     {
       id: 4,
       title: "Đánh giá của tôi",
-      icon: <MaterialCommunityIcons name="comment-text-outline" size={20} color="#333" />,
+      icon: (
+        <MaterialCommunityIcons
+          name="comment-text-outline"
+          size={20}
+          color="#333"
+        />
+      ),
       action: () => router.push("/(screens)/rating/myRating"),
     },
     {
       id: 5,
       title: "Đăng nhập và mật khẩu",
-      icon: <Lock size={20} color="#333" />,
-      action: () => router.push('/(screens)/profile/loginSecurity'),
+      icon: <MaterialCommunityIcons name="shield-lock-outline" size={21} color="#333" />,
+      action: () => router.push("/(screens)/profile/loginSecurity"),
     },
     {
       id: 6,
@@ -252,7 +262,7 @@ export default function ProfileScreen() {
       id: 7,
       title: "Ngôn ngữ",
       icon: <Ionicons name="language" size={20} color="#333" />,
-      action: () => router.push("/"),
+      action: () => router.push("/(screens)/language/language"),
     },
   ];
 

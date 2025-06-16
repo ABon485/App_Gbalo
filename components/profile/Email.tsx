@@ -11,6 +11,7 @@ import { AntDesign } from "@expo/vector-icons";
 import api from "@/config/api";
 import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
 type Props = {
   visible: boolean;
@@ -32,6 +33,7 @@ const EmailModal = ({
   const [email, setEmail] = useState(content || "");
   const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useToast();
+  const router = useRouter();
 
   const isValidEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -41,27 +43,27 @@ const EmailModal = ({
   const updateProfile = async () => {
     try {
       setIsSaving(true);
+
       if (!isValidEmail(email)) {
         showToast({ message: "Vui lòng nhập email hợp lệ", type: "error" });
         return false;
       }
 
-      const response = await api.post("/Accounts/ChangeEmail", {
-        email: email,
+      const response = await api.post("/Accounts/SendChangeEmailCode", {
+        email,
       });
-      console.log("Cập nhật email thành công:", response.data.data);
+
+      const token = response.data?.data?.token;
+      if (!token) {
+        showToast({ message: "Không nhận được mã xác minh", type: "error" });
+        return false;
+      }
+
+      await AsyncStorage.setItem("registerToken", token);
       onUpdateEmail(email);
       await fetchProfile();
 
-      // Cập nhật AsyncStorage
-      const data = await AsyncStorage.getItem("data");
-      if (data) {
-        const parsedData = JSON.parse(data);
-        parsedData.email = email;
-        await AsyncStorage.setItem("data", JSON.stringify(parsedData));
-      }
-
-      showToast({ message: "Cập nhật email thành công", type: "success" });
+      showToast({ message: "Đã gửi mã xác nhận đến email", type: "success" });
       return true;
     } catch (error) {
       if ((error as any).response?.status === 401) {
@@ -78,7 +80,7 @@ const EmailModal = ({
         });
       } else {
         showToast({
-          message: "Cập nhật email thất bại. Vui lòng thử lại.",
+          message: "Gửi yêu cầu xác thực thất bại. Vui lòng thử lại.",
           type: "error",
         });
       }
@@ -92,6 +94,10 @@ const EmailModal = ({
     const success = await updateProfile();
     if (success) {
       onClose();
+      router.push({
+        pathname: "/(screens)/profile/verifyEmailCode",
+        params: { email },
+      });
     }
   };
 

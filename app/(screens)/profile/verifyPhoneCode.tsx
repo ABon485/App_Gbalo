@@ -13,7 +13,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN";
 import api from "@/config/api";
 import { ApiResponse } from "@/types/api";
-// import { useToast } from "@/context/ToastContext";
+import { useToast } from "@/context/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AntDesign } from "@expo/vector-icons";
 
@@ -24,7 +24,7 @@ export default function VerifyPhone() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const inputRefs = useRef<(TextInput | null)[]>([]);
-  // const { showToast } = useToast();
+  const { showToast } = useToast();
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
   const hidePhone = (phone: string = ""): string => {
@@ -34,10 +34,10 @@ export default function VerifyPhone() {
 
   useEffect(() => {
     if (!phone || !/^\+?[0-9]{7,15}$/.test(phone)) {
-      // showToast({ type: "error", message: "Số điện thoại không hợp lệ" });
+      showToast({ type: "error", message: "Số điện thoại không hợp lệ" });
       router.replace("/(auths)/(Login)/login");
     }
-  }, [phone, router]);
+  }, [phone, router, showToast]);
 
   useEffect(() => {
     const isValidOtp =
@@ -59,40 +59,37 @@ export default function VerifyPhone() {
     const code = otp.join("");
     if (code.length !== 6) {
       setErrorMessage("Vui lòng nhập đầy đủ mã xác nhận");
-      // showToast({ type: "error", message: "Vui lòng nhập đầy đủ mã xác nhận" });
+      showToast({ type: "error", message: "Vui lòng nhập đầy đủ mã xác nhận" });
       return;
     }
 
     const token = await AsyncStorage.getItem("registerToken");
     if (!token) {
       setErrorMessage("Không tìm thấy token xác minh");
-      // showToast({
-      //   type: "error",
-      //   message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
-      // });
+      showToast({
+        type: "error",
+        message: "Không tìm thấy token xác minh. Vui lòng thử lại từ đầu.",
+      });
       return;
     }
 
     try {
       setLoading(true);
       const response = await api.post<ApiResponse>(
-        "/Accounts/VerifyResgiterCode",
+        "/Accounts/VerifyChangePhoneCode",
         { token, code },
         { headers: { "Content-Type": "application/json-patch+json" } }
       );
 
       if (response.data?.status === "Success") {
-        // showToast({ type: "success", message: "Xác minh OTP thành công!" });
-        router.push({
-          pathname: "/(auths)/(register)/registerPhone/confirmPhone",
-          params: { phone, code },
-        });
+        showToast({ type: "success", message: "Xác minh OTP thành công!" });
+        router.push("/(screens)/profile/profile");
       } else {
         setErrorMessage(response.data?.message || "Mã xác nhận không đúng!");
-        // showToast({
-        //   type: "error",
-        //   message: response.data?.message || "Mã xác nhận không đúng!",
-        // });
+        showToast({
+          type: "error",
+          message: response.data?.message || "Mã xác nhận không đúng!",
+        });
       }
     } catch (error) {
       let errorMsg = "Có lỗi xảy ra khi xác minh OTP";
@@ -105,9 +102,9 @@ export default function VerifyPhone() {
         errorMsg = (error as any).response.data.message;
       }
       setErrorMessage(errorMsg);
-      // showToast({ type: "error", message: errorMsg });
+      showToast({ type: "error", message: errorMsg });
       console.error(
-        "VerifyResgiterCode error:",
+        "VerifyChangePhoneCode error:",
         (error as any)?.response?.data || error
       );
     } finally {
@@ -119,23 +116,23 @@ export default function VerifyPhone() {
     try {
       setLoading(true);
       const response = await api.post<ApiResponse>(
-        "/Accounts/SendResgiterCode",
-        { type: "Phone", phone },
+        "/Accounts/SendChangePhoneCode",
+        { phone },
         { headers: { "Content-Type": "application/json-patch+json" } }
       );
 
       if (response.data?.status === "Success" && response.data?.data?.token) {
         await AsyncStorage.setItem("registerToken", response.data.data.token);
-        // showToast({ type: "success", message: "Đã gửi lại mã OTP!" });
+        showToast({ type: "success", message: "Đã gửi lại mã OTP!" });
         setOtp(Array(6).fill(""));
         setErrorMessage("");
         inputRefs.current[0]?.focus();
       } else {
         setErrorMessage(response.data?.message || "Gửi lại OTP thất bại");
-        // showToast({
-        //   type: "error",
-        //   message: response.data?.message || "Gửi lại OTP thất bại",
-        // });
+        showToast({
+          type: "error",
+          message: response.data?.message || "Gửi lại OTP thất bại",
+        });
       }
     } catch (error) {
       let errorMsg = "Có lỗi xảy ra khi gửi lại OTP";
@@ -148,9 +145,9 @@ export default function VerifyPhone() {
         errorMsg = (error as any).response.data.message;
       }
       setErrorMessage(errorMsg);
-      // showToast({ type: "error", message: errorMsg });
+      showToast({ type: "error", message: errorMsg });
       console.error(
-        "Resend OTP error:",
+        "SendChangePhoneCode error:",
         (error as any)?.response?.data || error
       );
     } finally {
@@ -160,13 +157,13 @@ export default function VerifyPhone() {
 
   return (
     <ImageBackground
-      source={require("../../../../assets/images/BackGroud.png")}
+      source={require("@/assets/images/BackGroud.png")}
       style={styles.backgroundImage}
     >
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.logoContainer}>
           <Image
-            source={require("../../../../assets/images/imagLogo.png")}
+            source={require("@/assets/images/imagLogo.png")}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -198,7 +195,7 @@ export default function VerifyPhone() {
           {errorMessage && (
             <View style={styles.formContainer}>
               <AntDesign name="exclamationcircleo" size={16} color="#FF4D4F" />
-              {/* <Text style={styles.errorText}>{errorMessage}</Text> */}
+              <Text>{errorMessage}</Text>
             </View>
           )}
 

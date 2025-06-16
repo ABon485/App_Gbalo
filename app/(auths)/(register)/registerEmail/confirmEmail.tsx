@@ -16,7 +16,7 @@ import api from "@/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ApiResponse } from "@/types/api";
 import { RegisterTypeEmail } from "@/types/user";
-import { useToast } from "@/context/ToastContext";
+// import { useToast } from "@/context/ToastContext";
 import { AntDesign } from "@expo/vector-icons";
 
 export default function ConfirmEmail() {
@@ -33,7 +33,7 @@ export default function ConfirmEmail() {
     email: string;
     code: string;
   }>();
-  const { showToast } = useToast();
+  // const { showToast } = useToast();
 
   // Cập nhật email từ params
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function ConfirmEmail() {
     // Kiểm tra các trường bắt buộc
     if (!fullName || !email || !password || !confirmPassword || !code) {
       setErrorMessage("Vui lòng nhập đầy đủ thông tin");
-      showToast({ type: "error", message: "Vui lòng nhập đầy đủ thông tin" });
+      // showToast({ type: "error", message: "Vui lòng nhập đầy đủ thông tin" });
       console.log("Validation failed: Missing required fields", {
         fullName,
         email,
@@ -83,7 +83,7 @@ export default function ConfirmEmail() {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       setErrorMessage("Định dạng email không hợp lệ");
-      showToast({ type: "error", message: "Định dạng email không hợp lệ" });
+      // showToast({ type: "error", message: "Định dạng email không hợp lệ" });
       return;
     }
 
@@ -91,14 +91,14 @@ export default function ConfirmEmail() {
     const passwordError = validatePassword(password);
     if (passwordError) {
       setErrorMessage(passwordError);
-      showToast({ type: "error", message: passwordError });
+      // showToast({ type: "error", message: passwordError });
       return;
     }
 
     // Kiểm tra xác nhận mật khẩu
     if (password !== confirmPassword) {
       setErrorMessage("Mật khẩu xác nhận không khớp");
-      showToast({ type: "error", message: "Mật khẩu xác nhận không khớp" });
+      // showToast({ type: "error", message: "Mật khẩu xác nhận không khớp" });
       return;
     }
 
@@ -111,11 +111,11 @@ export default function ConfirmEmail() {
       console.log("Register token from AsyncStorage:", registerToken);
       if (!registerToken || typeof registerToken !== "string") {
         setErrorMessage("Token xác minh không hợp lệ hoặc không tồn tại");
-        showToast({
-          type: "error",
-          message:
-            "Token xác minh không hợp lệ hoặc không tồn tại. Vui lòng thử lại từ đầu.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message:
+        //     "Token xác minh không hợp lệ hoặc không tồn tại. Vui lòng thử lại từ đầu.",
+        // });
         return;
       }
 
@@ -155,11 +155,11 @@ export default function ConfirmEmail() {
         const user = profileResponse.data?.data;
 
         if (!user) {
-          showToast({
-            type: "error",
-            heading: "Lỗi",
-            message: "Không thể lấy thông tin người dùng",
-          });
+          // showToast({
+          //   type: "error",
+          //   heading: "Lỗi",
+          //   message: "Không thể lấy thông tin người dùng",
+          // });
           return;
         }
         // Đặt userId vào state
@@ -174,11 +174,11 @@ export default function ConfirmEmail() {
         console.log(authData);
         await AsyncStorage.setItem("data", JSON.stringify(authData));
 
-        showToast({
-          type: "success",
-          heading: "Thành công",
-          message: "Đăng nhập thành công!",
-        });
+        // showToast({
+        //   type: "success",
+        //   heading: "Thành công",
+        //   message: "Đăng nhập thành công!",
+        // });
 
         router.replace("/(tabs)/assistant");
       } else {
@@ -192,11 +192,11 @@ export default function ConfirmEmail() {
           errorMessage = "Có lỗi xảy ra, vui lòng thử lại";
         }
 
-        showToast({
-          type: "error",
-          heading: "Lỗi",
-          message: errorMessage,
-        });
+        // showToast({
+        //   type: "error",
+        //   heading: "Lỗi",
+        //   message: errorMessage,
+        // });
         setErrorMessage(errorMessage);
       }
     } catch (error) {
@@ -219,7 +219,7 @@ export default function ConfirmEmail() {
       }
 
       setErrorMessage(msg);
-      showToast({ type: "error", message: msg });
+      // showToast({ type: "error", message: msg });
       console.error("Error details:", {
         message: err.message,
         response: err?.response?.data,

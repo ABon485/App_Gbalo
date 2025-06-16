@@ -1,4 +1,4 @@
-import { apiTour, api,apiVNPay } from "@/config/tourApi";
+import { apiTour, api, apiVNPay } from "@/config/tourApi";
 import {
   TourListResponse,
   TourDetail,
@@ -20,10 +20,10 @@ import {
   RatingListParams,
   ReviewListResponse,
   ReviewDetailResponse,
-  Review
-
-
-
+  Review,
+  LanguageResponse,
+  UpdateCountry,
+  BookingServiceRequest,
 } from "@/types/tour";
 
 const tourApi = {
@@ -182,14 +182,19 @@ const tourApi = {
       throw error;
     }
   },
- getBookingById: async (id: number, customerId: number): Promise<BookingResponse> => {
-  try {
-    const response = await api.get(`/booking/getbyid?id=${id}&customerId=${customerId}`);
-    return response.data;
-  } catch (error: any) {
-    throw error;
-  }
-},
+  getBookingById: async (
+    id: number,
+    customerId: number
+  ): Promise<BookingResponse> => {
+    try {
+      const response = await api.get(
+        `/booking/getbyid?id=${id}&customerId=${customerId}`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
   getPolicy: async (tourId: number, departureDate: string): Promise<Policy> => {
     try {
@@ -206,21 +211,25 @@ const tourApi = {
       throw error;
     }
   },
-getBooking: async (customerId: number, page: number, pageSize: number): Promise<BookingListResponse> => {
-  try {
-    const response = await api.get(`/booking/bookings`, {
-      params: {
-        CustomerId: customerId,
-        Page: page,
-        PageSize: pageSize,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi gọi API getBookings:", error);
-    throw error;
-  }
-},
+  getBooking: async (
+    customerId: number,
+    page: number,
+    pageSize: number
+  ): Promise<BookingListResponse> => {
+    try {
+      const response = await api.get(`/booking/bookings`, {
+        params: {
+          CustomerId: customerId,
+          Page: page,
+          PageSize: pageSize,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API getBookings:", error);
+      throw error;
+    }
+  },
 
   approveTourRating: async (): Promise<void> => {
     try {
@@ -231,9 +240,11 @@ getBooking: async (customerId: number, page: number, pageSize: number): Promise<
     }
   },
   // Lấy danh sách đánh giá
-  getRatingList: async (params: RatingListParams): Promise<ReviewListResponse> => {
+  getRatingList: async (
+    params: RatingListParams
+  ): Promise<ReviewListResponse> => {
     try {
-      const response = await api.get('/rating', {
+      const response = await api.get("/rating", {
         params: {
           UserId: params.userId,
           Page: params.page,
@@ -261,15 +272,13 @@ getBooking: async (customerId: number, page: number, pageSize: number): Promise<
   // Tạo đánh giá mới
   createRating: async (review: Review): Promise<ApiResponse<Review>> => {
     try {
-      const response = await api.post('/rating/create', review);
+      const response = await api.post("/rating/create", review);
       return response.data;
     } catch (error) {
       console.error("Lỗi khi gọi API createRating:", error);
       throw error;
     }
   },
-
-
 
   postPayment: async (paymentData: PaymentData): Promise<PaymentResponse> => {
     try {
@@ -314,6 +323,38 @@ getBooking: async (customerId: number, page: number, pageSize: number): Promise<
       return response.data;
     } catch (error) {
       console.error("Lỗi khi gọi API getPaymentInfo:", error);
+      throw error;
+    }
+  },
+
+  getLanguage: async (): Promise<LanguageResponse> => {
+    try {
+      const response = await api.get("/common/language");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getCountries: async (): Promise<UpdateCountry[]> => {
+    try {
+      const response = await api.get("/common/country");
+      return response.data.data;
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách quốc gia:", error);
+      throw error;
+    }
+  },
+
+  AddToCart: async (payload: BookingServiceRequest) => {
+    try {
+      const response = await api.post<{ data: BookingServiceRequest[] }>(
+        "/cart/tour/add",
+        payload
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error("Lỗi khi thêm vào giỏ hàng:", error);
       throw error;
     }
   },

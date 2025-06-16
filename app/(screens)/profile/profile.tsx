@@ -14,6 +14,7 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
 import api from "@/config/api";
+import { updateAddress } from "@/types/user";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/ToastContext";
 import { ProfileResponse } from "@/types/user";
@@ -97,6 +98,7 @@ const ProfileUpdateScreen = () => {
           address: response.data.data.address || parsedData.address || "",
           nationality:
             response.data.data.nationality || parsedData.nationality || "",
+          city: response.data.data.city || parsedData.city || "",
           dateOfBirth:
             response.data.data.dateOfBirth ||
             parsedData.dateOfBirth ||
@@ -143,6 +145,7 @@ const ProfileUpdateScreen = () => {
           language: parsedData.language || "vi",
           address: parsedData.address || "",
           nationality: parsedData.nationality || "",
+          city: parsedData.city || "",
           dateOfBirth: parsedData.dateOfBirth
             ? typeof parsedData.dateOfBirth === "string"
               ? parsedData.dateOfBirth
@@ -244,19 +247,29 @@ const ProfileUpdateScreen = () => {
     }
   };
 
-  // const handleAddressUpdated = async (newAddress: string) => {
-  //   if (profile) {
-  //     setProfile({ ...profile, address: newAddress });
-  //     const data = await AsyncStorage.getItem("data");
-  //     if (data) {
-  //       const parsedData = JSON.parse(data);
-  //       await AsyncStorage.setItem(
-  //         "data",
-  //         JSON.stringify({ ...parsedData, address: newAddress })
-  //       );
-  //     }
-  //   }
-  // };
+  const handleAddressUpdated = async (newAddress: updateAddress) => {
+    if (profile) {
+      setProfile({
+        ...profile,
+        address: newAddress.address,
+        nationality: newAddress.nationality,
+        city: newAddress.city,
+      });
+      const data = await AsyncStorage.getItem("data");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        await AsyncStorage.setItem(
+          "data",
+          JSON.stringify({
+            ...parsedData,
+            address: newAddress.address,
+            nationality: newAddress.nationality,
+            city: newAddress.city,
+          })
+        );
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -348,11 +361,11 @@ const ProfileUpdateScreen = () => {
             <Text style={styles.label}>Email:</Text>
             <Text style={styles.value}>{profile.email || "Chưa cung cấp"}</Text>
           </View>
-          {!profile.email && (
-            <TouchableOpacity onPress={() => setShowEmailModal(true)}>
-              <Text style={styles.editButton}>Thêm</Text>
-            </TouchableOpacity>
-          )}
+          {/* {!profile.email && ( */}
+          <TouchableOpacity onPress={() => setShowEmailModal(true)}>
+            <Text style={styles.editButton}>Thêm</Text>
+          </TouchableOpacity>
+          {/* )} */}
           <EmailModal
             visible={showEmailModal}
             onClose={() => setShowEmailModal(false)}
@@ -368,11 +381,11 @@ const ProfileUpdateScreen = () => {
             <Text style={styles.label}>Số điện thoại:</Text>
             <Text style={styles.value}>{profile.phone || "Chưa cung cấp"}</Text>
           </View>
-          {!profile.phone && (
-            <TouchableOpacity onPress={() => setShowPhoneModal(true)}>
-              <Text style={styles.editButton}>Thêm</Text>
-            </TouchableOpacity>
-          )}
+          {/* {!profile.phone && ( */}
+          <TouchableOpacity onPress={() => setShowPhoneModal(true)}>
+            <Text style={styles.editButton}>Thêm</Text>
+          </TouchableOpacity>
+          {/* )} */}
           <PhoneModal
             visible={showPhoneModal}
             onClose={() => setShowPhoneModal(false)}
@@ -393,14 +406,14 @@ const ProfileUpdateScreen = () => {
           <TouchableOpacity onPress={() => setShowAddressModal(true)}>
             <Text style={styles.editButton}>Thêm</Text>
           </TouchableOpacity>
-          {/* <AddressModal
+          <AddressModal
             visible={showAddressModal}
             onClose={() => setShowAddressModal(false)}
             title="Địa chỉ"
             content={profile.address || ""}
             onUpdate={handleAddressUpdated}
             fetchProfile={fetchProfile}
-          /> */}
+          />
         </View>
 
         <Modal
@@ -434,6 +447,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     justifyContent: "space-between",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ccc",
   },
   headerTitle: {
     fontSize: 16,

@@ -16,7 +16,7 @@ export type TourItem = {
   isFavorite: boolean;
   provinceIds: number;
   provinceName: string;
-  ratingCount:number;
+  ratingCount: number;
   tourExtraServices: TourExtraService[];
 };
 
@@ -177,6 +177,22 @@ export type Booking = {
   }[];
   payments: Payment[];
 };
+
+export type BookingServiceRequest = {
+  customerId: number;
+  departureDate: string; 
+  serviceId: number;
+  serviceName: string;
+  price: number;
+  services: BookingServiceDetail[];
+};
+
+export type BookingServiceDetail = {
+  serviceDetailId: number;
+  quantity: number;
+  price: number;
+};
+
 
 export type Payment = {
   paymentDate: string;
@@ -347,4 +363,19 @@ export type RatingListParams = {
   userId: number;
   page: number;
   pageSize: number;
+};
+
+export type LanguageItem = {
+  id: number;
+  name: string;
+};
+
+export type LanguageResponse = {
+  data: LanguageItem[];
+  status: string;
+};
+
+export type UpdateCountry = {
+  id: number;
+  name: string;
 };

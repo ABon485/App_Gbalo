@@ -9,16 +9,14 @@ import {
   FlatList,
   TouchableOpacity,
   Dimensions,
-  StatusBar,
-  SafeAreaView,
 } from "react-native";
 import { Heart } from "lucide-react-native";
-import { TourItem, TourListResponse } from "@/types/tour";
+import { TourItem, TourDetail, TourListResponse } from "@/types/tour";
 import tourApi from "@/services/tour";
 import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useToast } from "@/context/ToastContext";
+// import { useToast } from "@/context/ToastContext";
 import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
@@ -29,12 +27,13 @@ const formatPrice = (price: number | null | undefined): string => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-const TourListScreen = () => {
-  const [tours, setTours] = useState<TourItem[]>([]);
+const Suggested = () => {
+  const [tours, setTours] = useState<
+    (TourItem & { detail?: TourDetail; images?: string[] })[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAll, setShowAll] = useState<boolean>(false);
-  const { showToast } = useToast();
+  // const { showToast } = useToast();
 
   const fetchTours = async () => {
     try {
@@ -60,17 +59,25 @@ const TourListScreen = () => {
         );
       }
 
-      let allTours: TourItem[] = [];
-      let currentPage = 1;
-      let totalPages = 1;
-
-      while (currentPage <= totalPages) {
-        const response: TourListResponse = await tourApi.ListTour(
-          currentPage,
-          20
-        );
-        const fetchedTours: TourItem[] = response.data.datas.map(
-          (item: any) => ({
+      const response: TourListResponse = await tourApi.ListTour(1, 6); // Lấy 6 tour đề xuất
+      const fetchedTours = await Promise.all(
+        response.data.datas.map(async (item: any) => {
+          let detail: TourDetail | undefined;
+          let images: string[] = [];
+          try {
+            const detailRes = await tourApi.TourDetail(item.id);
+            detail = detailRes;
+            const imageRes = await fetch(
+              `https://files.vbalo.com/list/Tours${item.id}`
+            );
+            const imageData = await imageRes.json();
+            if (imageData.status === "Success" && imageData.data?.length > 0) {
+              images = imageData.data;
+            }
+          } catch (err) {
+            console.error(`Lỗi khi preload tour ${item.id}:`, err);
+          }
+          return {
             id: item.id.toString(),
             name: item.name,
             slug: item.slug,
@@ -80,24 +87,22 @@ const TourListScreen = () => {
             vote: item.vote || 0,
             fromPrice: item.fromPrice || 0,
             isFavorite: favoriteTourIds.includes(String(item.id)),
-            ratingCount:item.ratingCount || 0,
+            ratingCount: item.ratingCount || 0,
             tourExtraServices: [],
-          })
-        );
+            detail,
+            images,
+          };
+        })
+      );
 
-        allTours = [...allTours, ...fetchedTours];
-        totalPages = response.data.totalPages;
-        currentPage += 1;
-      }
-
-      setTours(allTours);
+      setTours(fetchedTours);
     } catch (err) {
       const errorMessage =
         typeof err === "object" && err !== null && "message" in err
           ? String((err as { message?: string }).message)
           : "Không thể tải danh sách tour.";
       setError(errorMessage);
-      showToast({ type: "error", message: errorMessage });
+      // showToast({ type: "error", message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -138,11 +143,10 @@ const TourListScreen = () => {
     try {
       const storedData = await AsyncStorage.getItem("data");
       if (!storedData) {
-        showToast({
-          type: "error",
-          heading: "Thành công",
-          message: "Vui lòng đăng nhập để lưu tour yêu thích.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message: "Vui lòng đăng nhập để lưu tour yêu thích.",
+        // });
         router.push("/(auths)/(Login)/login");
         return;
       }
@@ -152,12 +156,11 @@ const TourListScreen = () => {
       const token = parsedData.token;
 
       if (!userId || !token) {
-        showToast({
-          type: "error",
-          heading: "Thành công",
-          message:
-            "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
-        });
+        // showToast({
+        //   type: "error",
+        //   message:
+        //     "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+        // });
         router.push("/(auths)/(Login)/login");
         return;
       }
@@ -171,18 +174,16 @@ const TourListScreen = () => {
 
       if (isCurrentlyFavorite) {
         await tourApi.deleteFavorite(userId, Number(id));
-        showToast({
-          type: "success",
-          heading: "Thành công",
-          message: "Đã xóa khỏi danh sách yêu thích.",
-        });
+        // showToast({
+        //   type: "success",
+        //   message: "Đã xóa khỏi danh sách yêu thích.",
+        // });
       } else {
         await tourApi.postFavorite(userId, Number(id));
-        showToast({
-          type: "success",
-          heading: "Thành công",
-          message: "Đã thêm vào danh sách yêu thích.",
-        });
+        // showToast({
+        //   type: "success",
+        //   message: "Đã thêm vào danh sách yêu thích.",
+        // });
       }
 
       const favoriteRes = await tourApi.getFavorite(userId);
@@ -192,27 +193,41 @@ const TourListScreen = () => {
       );
     } catch (err) {
       console.error("Lỗi khi lưu yêu thích:", err);
-      showToast({
-        type: "error",
-          heading: "Thành công",
-        message: "Không thể cập nhật tour yêu thích. Vui lòng thử lại.",
-      });
+      // showToast({
+      //   type: "error",
+      //   message: "Không thể cập nhật tour yêu thích. Vui lòng thử lại.",
+      // });
       setTours((prev) =>
         prev.map((t) => (t.id === id ? { ...t, isFavorite: !t.isFavorite } : t))
       );
     }
   };
 
-  const handleCardPress = (id: string) => {
-    router.push({
-      pathname: "/(screens)/detail/[detailID]",
-      params: { detailID: id },
-    });
+  const handleCardPress = async (
+    tour: TourItem & { detail?: TourDetail; images?: string[] }
+  ) => {
+    try {
+      await AsyncStorage.setItem("selectedTour", JSON.stringify(tour));
+      router.push({
+        pathname: "/(screens)/detail/[detailID]",
+        params: {
+          detailID: tour.id,
+          provinceIds: JSON.stringify(tour.provinceIds),
+        },
+      });
+    } catch (error) {
+      console.error("Lỗi khi lưu tour được chọn:", error);
+      // showToast({ type: "error", message: "Không thể mở chi tiết tour." });
+    }
   };
 
-  const renderTourItem = ({ item }: { item: TourItem }) => (
+  const renderTourItem = ({
+    item,
+  }: {
+    item: TourItem & { detail?: TourDetail; images?: string[] };
+  }) => (
     <TouchableOpacity
-      onPress={() => handleCardPress(item.id)}
+      onPress={() => handleCardPress(item)}
       style={styles.itemContainer}
     >
       <View style={styles.imageContainer}>
@@ -235,8 +250,9 @@ const TourListScreen = () => {
           <Heart
             size={22}
             color="#fff"
-            fill={item.isFavorite ? "#FF3B30" : "#C0C0C0"}
-            stroke={item.isFavorite ? "#FF3B30" : "#000000"}
+            fill={item.isFavorite ? "#FF3B30" : "#819A91"}
+            stroke={item.isFavorite ? "#EBFFD8" : "#1A1A1A"}
+            strokeWidth={1}
           />
         </TouchableOpacity>
       </View>
@@ -246,7 +262,7 @@ const TourListScreen = () => {
       <View style={styles.ratingContainer}>
         <FontAwesome
           name="star"
-          size={15}
+          size={12}
           color={item.vote > 0 ? "#F24E1E" : "#999999"}
         />
         <Text style={styles.reviews}>{item.vote}</Text>
@@ -264,36 +280,18 @@ const TourListScreen = () => {
     </TouchableOpacity>
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loadingText}>Đang tải...</Text>
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+    <View style={styles.container}>
       <FlatList
-        data={showAll ? tours : tours.slice(0, 6)}
+        data={tours}
         renderItem={renderTourItem}
         keyExtractor={(item) => item.id}
         numColumns={2}
         contentContainerStyle={styles.listContainer}
         columnWrapperStyle={styles.columnWrapper}
-        ListFooterComponent={
-          !showAll && tours.length > 6 ? (
-            <TouchableOpacity
-              style={styles.loadMoreButton}
-              onPress={() => setShowAll(true)}
-            >
-              <Text style={styles.loadMoreText}>Xem thêm</Text>
-            </TouchableOpacity>
-          ) : null
-        }
+        scrollEnabled={false}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -340,6 +338,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
     color: "#333",
     fontFamily: "Inter-Medium",
+    fontWeight: "bold",
   },
   ratingContainer: {
     flexDirection: "row",
@@ -347,7 +346,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   reviews: {
-    marginLeft:3,
+    marginLeft: 3,
     fontSize: 10,
     fontFamily: "Inter-Medium",
   },
@@ -366,17 +365,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: "#333",
   },
-  loadMoreButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignSelf: "center",
-  },
-  loadMoreText: {
-    color: "#F24E1E",
-    fontSize: 14,
-    fontFamily: "Inter-Medium",
-  },
 });
 
-export default TourListScreen;
+export default Suggested;
