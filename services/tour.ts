@@ -405,6 +405,16 @@ const tourApi = {
       return [];
     }
   },
+
+  GetShareTour: async (tourId: number): Promise<TourDetail> => {
+    try {
+      const response = await api.get(`/tour/share?id=${tourId}`);
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
 };
 
 export default tourApi;

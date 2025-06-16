@@ -26,7 +26,8 @@ import Rating from "./rating";
 import { FlatList } from "react-native";
 import { useMemo } from "react";
 import ImageGalleryModal from "@/components/rating/ImageGalleryModal";
-import { BookingServiceRequest } from '@/types/tour';
+import { BookingServiceRequest } from "@/types/tour";
+import { Share } from "react-native";
 // import { useToast } from "@/context/ToastContext";
 
 const formatPrice = (price: number): string =>
@@ -241,6 +242,32 @@ export default function Detail() {
     }
   };
 
+  const handleShareTour = async () => {
+    try {
+      // Gọi API để lấy thông tin chia sẻ tour
+      const res = await tourApi.GetShareTour(Number(tourId));
+      const shareLink = (res && (res as any).link) ? (res as any).link : `https://vbalo.com/tour/${tourId}`; 
+      const shareMessage = `Chi tiết: ${shareLink}`;
+
+      // Mở dialog chia sẻ
+      const result = await Share.share({
+        message: shareMessage,
+        url: shareLink,
+        title: tour?.name || "Chia sẻ tour du lịch",
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log("Chia sẻ thành công");
+        // showToast({ type: "success", message: "Chia sẻ tour thành công!" });
+      } else if (result.action === Share.dismissedAction) {
+        console.log("Hủy chia sẻ");
+      }
+    } catch (error) {
+      console.error("Lỗi khi chia sẻ tour:", error);
+      // showToast({ type: "error", message: "Không thể chia sẻ tour. Vui lòng thử lại." });
+    }
+  };
+
   const handleBookTour = async () => {
     try {
       const userData = await AsyncStorage.getItem("data");
@@ -328,7 +355,10 @@ export default function Detail() {
                 color={isFavorite ? "#ff5c5c" : "#000000"}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconShareButton}>
+            <TouchableOpacity
+              style={styles.iconShareButton}
+              onPress={handleShareTour}
+            >
               <FontAwesome5 name="share-square" size={20} color="#000000" />
             </TouchableOpacity>
           </View>
