@@ -48,6 +48,7 @@ export type searchTourType = {
   provinceIds: number[];
   groupIds: number[];
   durations: string[];
+  searchText: string,
   guestQuantitys: {
     guestTypeId: number;
     quantity: number;

@@ -46,7 +46,7 @@ const tourApi = {
   searchTour: async (formData: searchTourType): Promise<TourListResponse> => {
     try {
       console.log("Gửi yêu cầu searchTour:", JSON.stringify(formData, null, 2));
-      const response = await apiTour.post("/tour/search", formData);
+      const response = await api.post("/tour/search", formData);
       console.log(
         "Phản hồi searchTour:",
         JSON.stringify(response.data, null, 2)

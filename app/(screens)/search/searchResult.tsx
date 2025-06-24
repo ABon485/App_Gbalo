@@ -12,7 +12,7 @@ import {
 import { AntDesign, FontAwesome, FontAwesome6 } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import tourApi from "@/services/tour";
-import { TourItem, ProvinceType } from "@/types/tour";
+import { TourItem, ProvinceType, TourListResponse } from "@/types/tour";
 import { Heart, SlidersHorizontal } from "lucide-react-native";
 import SearchFilters from "@/components/home/Search-filters";
 
@@ -194,7 +194,7 @@ const SearchResult = () => {
         const normalizedTourName = normalizeText(tour.name);
         const matchKeyword = filters.isDestination
           ? normalizedTourName === normalizedKeyword ||
-            normalizedTourName.includes(normalizedKeyword)
+          normalizedTourName.includes(normalizedKeyword)
           : normalizedTourName.includes(normalizedKeyword);
 
         if (matchProvince && matchKeyword) {
@@ -222,7 +222,7 @@ const SearchResult = () => {
           const normalizedTourName = normalizeText(tour.name);
           return filters.isDestination
             ? normalizedTourName === normalizedKeyword ||
-                normalizedTourName.includes(normalizedKeyword)
+            normalizedTourName.includes(normalizedKeyword)
             : normalizedTourName.includes(normalizedKeyword);
         });
 
@@ -300,71 +300,47 @@ const SearchResult = () => {
     }
   };
 
-  const handleApplyFilters = (tourResponse: any) => {
-    try {
-      setLoading(true);
-      setError(null);
-      setHasSearched(true);
+  const mapApiTourToTourItem = (apiTour: any): TourItem => {
+    let provinceIds = [];
 
-      console.log(
-        "Received tourResponse in handleApplyFilters:",
-        JSON.stringify(tourResponse, null, 2)
+    if (apiTour.provinceIds && Array.isArray(apiTour.provinceIds)) {
+      provinceIds = apiTour.provinceIds.map((id: any) =>
+        typeof id === "string" ? parseInt(id, 10) : id
       );
+    } else if (apiTour.provinceId) {
+      const id =
+        typeof apiTour.provinceId === "string"
+          ? parseInt(apiTour.provinceId, 10)
+          : apiTour.provinceId;
+      provinceIds = [id];
+    }
 
-      const datas = tourResponse?.data?.datas ?? tourResponse?.datas;
+    return {
+      id: apiTour.id.toString(),
+      name: apiTour.name,
+      slug: apiTour.slug,
+      featuredImageUrl: apiTour.featuredImageUrl || "default_image_url",
+      vote: apiTour.vote || 0,
+      fromPrice: apiTour.fromPrice || apiTour.price || 0,
+      isFavorite: false,
+      provinceIds: provinceIds,
+      provinceName: apiTour.provinceName || "",
+      ratingCount: apiTour.ratingCount,
+      tourExtraServices: [],
+    };
+  };
 
-      if (!Array.isArray(datas)) {
-        throw new Error(
-          "Không tìm thấy danh sách tour trong dữ liệu phản hồi."
-        );
-      }
-
-      const filteredTours: TourItem[] = datas.map((item: any) => {
-        let provinceIds = [];
-
-        if (Array.isArray(item.provinceIds)) {
-          provinceIds = item.provinceIds.map((id: any) =>
-            typeof id === "string" ? parseInt(id, 10) : id
-          );
-        } else if (item.provinceId !== undefined) {
-          const id =
-            typeof item.provinceId === "string"
-              ? parseInt(item.provinceId, 10)
-              : item.provinceId;
-          provinceIds = [id];
-        }
-
-        return {
-          id: item.id.toString(),
-          name: item.name,
-          slug: item.slug,
-          featuredImageUrl: item.featuredImageUrl || "default_image_url",
-          vote: item.vote || 0,
-          fromPrice: item.fromPrice || item.price || 0,
-          isFavorite: false,
-          provinceIds: provinceIds,
-          provinceName: item.provinceName || "", // Add this line to satisfy the type
-          ratingCount: item.ratingCount || 0,
-          tourExtraServices: [],
-        };
-      });
-
-      console.log("Mapped Filtered Tours:", filteredTours);
-
-      if (filteredTours.length === 0) {
-        setError("Không tìm thấy tour nào phù hợp với bộ lọc");
-        setTours([]);
-      } else {
-        setTours(filteredTours);
-      }
-    } catch (error) {
-      console.error("Error applying filters:", error);
-      setError("Không thể áp dụng bộ lọc");
+  const handleApplyFilters = (filteredTours: TourListResponse) => {
+    const mappedTours = filteredTours.data.datas.map(mapApiTourToTourItem);
+    if (mappedTours.length === 0) {
+      setError("Không tìm thấy tour nào phù hợp với bộ lọc.");
       setTours([]);
-    } finally {
-      setLoading(false);
+    } else {
+      setError(null);
+      setTours(mappedTours);
     }
   };
+
 
   useEffect(() => {
     if (searchQuery.trim() && selectedProvinceId) {
@@ -522,6 +498,8 @@ const SearchResult = () => {
                 }
               />
             </>
+          ) : hasSearched ? (
+            <Text style={styles.infoText}>Không tìm thấy tour nào phù hợp.</Text>
           ) : (
             <>
               {suggestions.length > 0 && (
@@ -533,9 +511,7 @@ const SearchResult = () => {
                 />
               )}
               {!hasSearched && suggestions.length === 0 && (
-                <Text style={styles.infoText}>
-                  Nhập từ khóa để tìm kiếm tour
-                </Text>
+                <Text style={styles.infoText}>Nhập từ khóa để tìm kiếm tour</Text>
               )}
             </>
           )}
