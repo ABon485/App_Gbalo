@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Fontisto, Ionicons, FontAwesome6 } from "@expo/vector-icons";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import tourApi from "@/services/tour"; // Nhớ đã có file này như ở CartScreen
 
 const SearchHeader = () => {
+  const [cartCount, setCartCount] = useState(0);
+
   const handleLoginPres = () => {
     router.push("/(screens)/search/searchTour");
   };
@@ -15,6 +19,27 @@ const SearchHeader = () => {
   const cart = () => {
     router.push("/(screens)/cart/cart");
   };
+
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      try {
+        const userData = await AsyncStorage.getItem("data");
+        const userInfo = userData ? JSON.parse(userData) : null;
+
+        if (!userInfo?.id) return;
+
+        const response = await tourApi.GetCart(userInfo.id);
+        if (Array.isArray(response)) {
+          setCartCount(response.length);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy giỏ hàng:", error);
+        setCartCount(0);
+      }
+    };
+
+    fetchCartCount();
+  }, []);
 
   return (
     <View style={styles.headerContainer}>
@@ -39,21 +64,26 @@ const SearchHeader = () => {
         <View style={styles.iconWrapper}>
           <TouchableOpacity onPress={cart}>
             <View style={styles.iconBackground}>
-              <Ionicons name="cart-outline" size={22} color="#999999" />
+              <Ionicons name="cart-outline" size={22} color="black" />
             </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>2</Text>
-            </View>
+            {cartCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {cartCount > 99 ? "99+" : cartCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
+
         <View style={styles.iconWrapper}>
           <TouchableOpacity onPress={Notification}>
             <View style={styles.iconBackground}>
-              <Fontisto name="bell" size={20} color="#999999" />
+              <Fontisto name="bell" size={20} color="black" />
             </View>
-            <View style={styles.badge}>
+            {/* <View style={styles.badge}>
               <Text style={styles.badgeText}>4</Text>
-            </View>
+            </View> */}
           </TouchableOpacity>
         </View>
       </View>
@@ -107,7 +137,7 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   iconBackground: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#E9EFEC",
     width: 30,
     height: 30,
     borderRadius: 20,

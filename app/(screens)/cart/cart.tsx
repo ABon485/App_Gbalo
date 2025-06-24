@@ -5,73 +5,154 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import { router } from "expo-router";
-
-const cartData = [
-  {
-    id: "1",
-    title: "Tour sớm đến đồi BanaHill/Cầu vàng",
-    location: "Đà Nẵng",
-    rating: "4.95",
-    reviews: 648,
-    date: "06/05/2025",
-    guests: "2 người lớn",
-    price: "1.145.000 đ",
-    image: require("@/assets/images/home/example.png"),
-    selected: true,
-  },
-  {
-    id: "2",
-    title: "Tour sớm đến đồi BanaHill/Cầu vàng",
-    location: "Đà Nẵng",
-    rating: "4.95",
-    reviews: 648,
-    date: "06/05/2025",
-    guests: "2 người lớn",
-    price: "1.145.000 đ",
-    image: require("@/assets/images/home/example.png"),
-    selected: false,
-  },
-  {
-    id: "3",
-    title: "Tour sớm đến đồi BanaHill/Cầu vàng",
-    location: "Đà Nẵng",
-    rating: "4.95",
-    reviews: 648,
-    date: "06/05/2025",
-    guests: "2 người lớn",
-    price: "1.145.000 đ",
-    image: require("@/assets/images/home/example.png"),
-    selected: false,
-  },
-];
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import tourApi from "@/services/tour";
+import { CartItem } from "@/types/tour";
+import Order from "@/components/booking/order"; 
 
 export default function CartScreen() {
-  const [cartItems, setCartItems] = useState(cartData);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [user, setUser] = useState<any>(null); 
 
-  const renderItem = ({ item }: any) => (
+  // Load giỏ hàng từ API
+  const loadCart = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("data");
+      const userInfo = userData ? JSON.parse(userData) : null;
+      setUser(userInfo);
+
+      if (!userInfo?.id) {
+        console.warn("Không tìm thấy ID người dùng");
+        return;
+      }
+
+      const response = await tourApi.GetCart(userInfo.id);
+      console.log("Cart Items:", JSON.stringify(response, null, 2));
+
+      if (!Array.isArray(response)) {
+        console.warn("Dữ liệu giỏ hàng không hợp lệ:", response);
+        setCartItems([]);
+        return;
+      }
+
+      // Khởi tạo selected là false cho tất cả item nếu chưa có
+      const initializedItems = response.map((item) => ({
+        ...item,
+        selected: item.selected ?? false,
+      }));
+      setCartItems(initializedItems);
+    } catch (error) {
+      console.error("Không thể tải giỏ hàng:", error);
+      setCartItems([]);
+    }
+  };
+
+  useEffect(() => {
+    loadCart();
+  }, []);
+
+  // Xử lý nhấn checkbox
+const toggleCheckbox = (itemId: number) => {
+  setCartItems((prevItems) =>
+    prevItems.map((item) =>
+      item.id === itemId
+        ? { ...item, selected: !item.selected }
+        : { ...item, selected: false }
+    )
+  );
+};
+
+
+  // Tính tổng tiền cho các item được chọn
+  const calculateTotal = () => {
+    return cartItems
+      .filter((item) => item.selected)
+      .reduce((sum, item) => sum + item.price * item.quantity, 0);
+  };
+
+  // Đếm số item được chọn
+  const countSelectedItems = () => {
+    return cartItems.filter((item) => item.selected).length;
+  };
+
+  // Xử lý nhấn nút thanh toán
+  const handleBookTour = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("data");
+      const userInfo = userData ? JSON.parse(userData) : null;
+      if (!userInfo) {
+        alert("Vui lòng đăng nhập để đặt tour.");
+        router.push("/(auths)/(Login)/login");
+        return;
+      }
+
+      const selectedItems = cartItems.filter((item) => item.selected);
+      if (selectedItems.length === 0) {
+        alert("Vui lòng chọn ít nhất một tour để thanh toán!");
+        return;
+      }
+
+      setShowOrderModal(true);
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra thông tin người dùng:", error);
+      alert("Không thể kiểm tra thông tin người dùng.");
+      router.push("/(auths)/(Login)/login");
+    }
+  };
+
+  // Xử lý xác nhận đặt tour từ Order modal
+  // const handleOrderConfirm = () => {
+  //   const selectedItems = cartItems.filter((item) => item.selected);
+  //   setShowOrderModal(false);
+  //   router.push({
+  //     pathname: "/checkout",
+  //     params: { selectedItems: JSON.stringify(selectedItems) },
+  //   });
+  // };
+
+  const renderItem = ({ item }: { item: CartItem }) => (
     <View style={styles.itemContainer}>
       <View style={styles.row}>
-        <TouchableOpacity style={styles.checkbox}>
+        <TouchableOpacity
+          style={[
+            styles.checkbox,
+            { backgroundColor: item.selected ? "#F24E1E" : "#fff" },
+          ]}
+          onPress={() => toggleCheckbox(item.id)}
+        >
           {item.selected && <AntDesign name="check" size={16} color="#fff" />}
         </TouchableOpacity>
-        <Image source={item.image} style={styles.image} />
+        <Image
+          source={{ uri: item.imageUrl || "https://via.placeholder.com/75" }}
+          style={styles.image}
+        />
         <View style={styles.info}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.rating}>
-            <Text style={styles.star}>★</Text> {item.rating}/5 ({item.reviews})
+          <Text style={styles.title}>
+            {item.tourName || "Tên tour không có"}
           </Text>
-          <Text style={styles.location}>{item.location}</Text>
-          <Text style={styles.date}>Ngày khởi hành: {item.date}</Text>
+          {item.rating > 0 && (
+            <View style={styles.ratingContainer}>
+              <Text style={styles.rating}>{item.rating.toFixed(1)}</Text>
+              <Ionicons name="star" size={12} style={styles.star} />
+            </View>
+          )}
+          <Text style={styles.location}>
+            {item.province || "Không có tỉnh"}
+          </Text>
+          <Text style={styles.date}>
+            Ngày khởi hành:{" "}
+            {new Date(item.departureDate ?? "").toLocaleDateString("vi-VN")}
+          </Text>
           <View style={styles.rowBetween}>
-            <Text style={styles.guests}>Khách: {item.guests}</Text>
-            <Text style={styles.price}>{item.price}</Text>
+            <Text style={styles.guests}>Khách: {item.quantity}</Text>
+            <Text style={styles.price}>{item.price.toLocaleString()}đ</Text>
           </View>
         </View>
         <TouchableOpacity>
@@ -91,7 +172,7 @@ export default function CartScreen() {
 
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Giỏ hàng</Text>
-          <Text style={styles.itemCount}>(4)</Text>
+          <Text style={styles.itemCount}>({cartItems.length})</Text>
         </View>
 
         <TouchableOpacity style={styles.rightIcon}>
@@ -102,7 +183,7 @@ export default function CartScreen() {
       {/* Danh sách */}
       <FlatList
         data={cartItems}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 80 }}
@@ -112,10 +193,21 @@ export default function CartScreen() {
       <View style={styles.footer}>
         <View>
           <Text style={styles.totalLabel}>Tổng cộng</Text>
-          <Text style={styles.totalPrice}>1.145.000đ</Text>
+          <Text style={styles.totalPrice}>
+            {calculateTotal().toLocaleString()} đ
+          </Text>
         </View>
-        <TouchableOpacity style={styles.checkoutBtn}>
-          <Text style={styles.checkoutText}>Thanh toán(1)</Text>
+        <TouchableOpacity
+          style={[
+            styles.checkoutBtn,
+            // { opacity: countSelectedItems() === 0 ? 0.5 : 1 },
+          ]}
+          onPress={handleBookTour}
+          // disabled={countSelectedItems() === 0}
+        >
+          <Text style={styles.checkoutText}>
+            Thanh toán 
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -138,33 +230,27 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     paddingHorizontal: 12,
   },
-
   leftIcon: {
     width: 40,
     alignItems: "flex-start",
   },
-
   rightIcon: {
     width: 40,
     alignItems: "flex-end",
   },
-
   headerCenter: {
     flexDirection: "row",
     flex: 1,
   },
-
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
   },
-
   itemCount: {
     fontSize: 18,
     fontWeight: "bold",
     marginLeft: 4,
   },
-
   itemContainer: {
     paddingVertical: 10,
     borderBottomWidth: 0.5,
@@ -181,14 +267,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 4,
-    backgroundColor: "#F24E1E",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4,
+    marginTop: 45,
   },
   image: {
-    width: 75,
-    height: 75,
+    width: 90,
+    height: 100,
     borderRadius: 6,
   },
   info: {
@@ -203,8 +288,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#555",
   },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: 2,
+  },
   star: {
-    color: "#F24E1E",
+    color: "red",
   },
   location: {
     fontSize: 12,
@@ -212,7 +303,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 12,
-    color: "#777",
+    color: "#000000",
   },
   rowBetween: {
     flexDirection: "row",
@@ -220,16 +311,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 4,
   },
-
   guests: {
     fontSize: 12,
-    color: "#777",
+    color: "#000000",
   },
   price: {
-    alignSelf: "flex-end",
     color: "#F24E1E",
     fontWeight: "bold",
     marginTop: 6,
+    left: 30,
   },
   footer: {
     position: "absolute",
