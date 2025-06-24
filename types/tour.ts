@@ -48,6 +48,7 @@ export type searchTourType = {
   provinceIds: number[];
   groupIds: number[];
   durations: string[];
+  searchText: string,
   guestQuantitys: {
     guestTypeId: number;
     quantity: number;
@@ -180,7 +181,7 @@ export type Booking = {
 
 export type BookingServiceRequest = {
   customerId: number;
-  departureDate: string; 
+  departureDate: string;
   serviceId: number;
   serviceName: string;
   price: number;
