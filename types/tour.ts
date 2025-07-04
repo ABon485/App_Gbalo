@@ -48,6 +48,7 @@ export type searchTourType = {
   provinceIds: number[];
   groupIds: number[];
   durations: string[];
+  searchText: string,
   guestQuantitys: {
     guestTypeId: number;
     quantity: number;
@@ -211,7 +212,7 @@ export interface CartItem {
 
 export interface GetCartResponse {
   data: {
-    datas: CartItem[];
+    datas: Cart[];
     page: number;
     pageSize: number;
     totalCount: number;
@@ -418,4 +419,23 @@ export type Preference = {
   id: number;
   name: string;
 };
+export type CartService = {
+  serviceDetailId: number;
+  quantity: number;
+  price: number;
+}
+
+export type Cart = {
+    id: number;
+    customerId: number;
+    departureDate: string;
+    serviceId: number;
+    serviceName: string;
+    price: number;
+    services: CartService[];
+    serviceImageUrl?: string;
+    provinceName?: string;
+    rating?: number;
+    selected?: boolean;
+  }
 

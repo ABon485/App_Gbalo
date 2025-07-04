@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import Slider from '@react-native-community/slider';
-import tourApi from '@/services/tour'; // Adjust the import path as needed
-import { TourGroupType, ProvinceType, TourListResponse } from '@/types/tour'; // Import types
+import MultiSlider from '@ptomasroos/react-native-multi-slider';
+import tourApi from '@/services/tour';
+import { TourGroupType, ProvinceType, TourListResponse, searchTourType } from '@/types/tour';
 
 interface SearchFiltersProps {
   visible: boolean;
   onClose: () => void;
-  onApply: (tours: TourListResponse) => void; // Updated to pass tour results
+  onApply: (tours: TourListResponse) => void;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply }) => {
-  const [price, setPrice] = useState<number>(8000000);
+  const [minPrice, setMinPrice] = useState<number>(0);
+  const [maxPrice, setMaxPrice] = useState<number>(8000000);
   const [selectedTourTypes, setSelectedTourTypes] = useState<number[]>([1]);
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>([]);
   const [selectedPlaces, setSelectedPlaces] = useState<string[]>([]);
   const [tourTypes, setTourTypes] = useState<TourGroupType[]>([]);
   const [destinations, setDestinations] = useState<ProvinceType[]>([]);
-  const [destinationPlaces, setDestinationPlaces] = useState<{ id: string; name: string; type: string }[]>([]);
+  // Thay destinationPlaces bằng locationPlaces với dữ liệu tĩnh
+  const [locationPlaces, setLocationPlaces] = useState<{ id: string; name: string; type: string }[]>([
+    { id: '1', name: 'Vịnh Hạ Long', type: 'loc' },
+    { id: '2', name: 'Phong Nha', type: 'loc' },
+    { id: '3', name: 'Đà Lạt', type: 'loc' },
+    { id: '4', name: 'Hội An', type: 'loc' },
+    { id: '5', name: 'Phú Quốc', type: 'loc' },
+  ]);
   const [showAllDestinations, setShowAllDestinations] = useState<boolean>(false);
   const [showAllPlaces, setShowAllPlaces] = useState<boolean>(false);
   const [showAllTourTypes, setShowAllTourTypes] = useState<boolean>(false);
@@ -29,14 +37,13 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [tourGroups, provinces, destinationData] = await Promise.all([
+        const [tourGroups, provinces] = await Promise.all([
           tourApi.getTourGroups(),
           tourApi.getProvince(),
-          tourApi.getProvinceDestination('dest'),
         ]);
         setTourTypes(tourGroups);
         setDestinations(provinces);
-        setDestinationPlaces(destinationData.filter(place => place.type === 'dest'));
+        // Không gọi getProvinceDestination, sử dụng locationPlaces tĩnh
       } catch (err) {
         setError('Không thể tải dữ liệu bộ lọc');
         console.error('Error fetching filter data:', err);
@@ -57,34 +64,40 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
 
   const handleApply = async () => {
     try {
-      setLoading(true);
-      const searchParams = {
-        fromPrice: 0,
-        toPrice: price > 0 ? price : 20000000, // Fallback to max price if 0
-        provinceIds: selectedDestinations.length > 0
-          ? selectedDestinations.map(id => parseInt(id, 10)).filter(id => !isNaN(id))
-          : [], // Allow all provinces if none selected
-        groupIds: selectedTourTypes.length > 0 ? selectedTourTypes : [], // Allow all tour types if none selected
+      // Get names of selected places for searchText
+      const selectedPlaceNames = locationPlaces
+        .filter(place => selectedPlaces.includes(place.id))
+        .map(place => place.name)
+        .join(", ");
+
+      // Construct formData for API call
+      const formData: searchTourType = {
+        fromPrice: minPrice,
+        toPrice: maxPrice,
+        provinceIds: selectedDestinations.map(id => Number(id)),
+        groupIds: selectedTourTypes,
         durations: [],
         guestQuantitys: [],
+        searchText: selectedPlaceNames,
         page: 1,
-        pageSize: 100,
+        pageSize: 20,
       };
-      console.log('Search Params in SearchFilters:', JSON.stringify(searchParams, null, 2));
-      const tourResponse = await tourApi.searchTour(searchParams);
-      console.log('API Response in SearchFilters:', JSON.stringify(tourResponse, null, 2));
-      onApply(tourResponse);
-      onClose();
-    } catch (err) {
-      setError('Không thể tìm kiếm tour');
-      console.error('Error searching tours:', err);
-    } finally {
-      setLoading(false);
+
+      // Call API and handle response
+      console.log("Gửi searchTour với formData:", formData);
+      const tours = await tourApi.searchTour(formData);
+      console.log("Phản hồi từ API:", tours);
+      onApply(tours);
+      onClose(); // Close modal after applying
+    } catch (error) {
+      console.error("Lỗi khi áp dụng bộ lọc:", error);
+      // Consider adding error handling, e.g., showing a message to the user
     }
   };
 
   const handleReset = () => {
-    setPrice(0);
+    setMinPrice(0);
+    setMaxPrice(20000000);
     setSelectedTourTypes([]);
     setSelectedDestinations([]);
     setSelectedPlaces([]);
@@ -142,21 +155,38 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
             <View style={styles.sectionContainer}>
               <View style={styles.sectionTitleContainer}>
                 <View style={styles.redBar} />
-                <Text style={styles.sectionTitle}>Khoảng giá</Text>
+                <Text style={styles.sectionTitle}>Khoảng giá trị</Text>
               </View>
-              <Text style={styles.priceValue}>{formatPrice(price)}</Text>
+              <Text style={styles.priceValue}>
+                {formatPrice(minPrice)} - {formatPrice(maxPrice)}
+              </Text>
               <View style={styles.sliderContainer}>
                 <Text style={styles.sliderLabel}>0đ</Text>
-                <Slider
-                  style={styles.slider}
-                  minimumValue={0}
-                  maximumValue={20000000}
+                <MultiSlider
+                  values={[minPrice, maxPrice]}
+                  onValuesChange={([min, max]) => {
+                    setMinPrice(min);
+                    setMaxPrice(max);
+                  }}
+                  min={0}
+                  max={20000000}
                   step={100000}
-                  value={price}
-                  onValueChange={setPrice}
-                  minimumTrackTintColor="#FF6200"
-                  maximumTrackTintColor="#E0E0E0"
-                  thumbTintColor="#FF6200"
+                  allowOverlap={false}
+                  snapped
+                  sliderLength={220}
+                  trackStyle={{
+                    backgroundColor: '#E0E0E0',
+                    height: 2,
+                  }}
+                  selectedStyle={{
+                    backgroundColor: '#FF6200',
+                  }}
+                  markerStyle={{
+                    backgroundColor: '#FF6200',
+                    height: 15,
+                    width: 15,
+                    borderRadius: 10,
+                  }}
                 />
                 <Text style={styles.sliderLabel}>20.000.000đ</Text>
               </View>
@@ -224,7 +254,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
                 <View style={styles.redBar} />
                 <Text style={styles.sectionTitle}>Điểm đến</Text>
               </View>
-              {(showAllPlaces ? destinationPlaces : destinationPlaces.slice(0, 4)).map(place => (
+              {(showAllPlaces ? locationPlaces : locationPlaces.slice(0, 4)).map(place => (
                 <View key={place.id} style={styles.checkboxRow}>
                   <Text style={styles.checkboxLabel}>{place.name}</Text>
                   <TouchableOpacity
@@ -237,7 +267,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
                   </TouchableOpacity>
                 </View>
               ))}
-              {destinationPlaces.length > 4 && (
+              {locationPlaces.length > 4 && (
                 <TouchableOpacity onPress={() => setShowAllPlaces(!showAllPlaces)}>
                   <Text style={styles.showMore}>
                     {showAllPlaces ? 'Ẩn bớt' : 'Hiển thị thêm'} <AntDesign name={showAllPlaces ? 'up' : 'down'} size={12} color="#888" />
@@ -263,7 +293,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ visible, onClose, onApply
   );
 };
 
-// Styles remain unchanged
+// Styles (giữ nguyên, chỉ thêm một số điều chỉnh nhỏ cho MultiSlider)
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
@@ -316,18 +346,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
-  },
-  slider: {
-    flex: 1,
-    height: 40,
-    marginHorizontal: 8,
+    justifyContent: 'space-between', // Căn đều các phần tử
   },
   sliderLabel: {
     fontSize: 12,
     color: '#888',
   },
   priceValue: {
-    fontSize: 16,
+    fontSize: 10,
     fontWeight: '500',
     color: '#000',
     marginBottom: 4,

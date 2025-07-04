@@ -28,7 +28,7 @@ import { useMemo } from "react";
 import ImageGalleryModal from "@/components/rating/ImageGalleryModal";
 import { BookingServiceRequest } from "@/types/tour";
 import { Share } from "react-native";
-// import { useToast } from "@/context/ToastContext";
+import { useToast } from "@/context/ToastContext";
 
 const formatPrice = (price: number): string =>
   price
@@ -51,10 +51,11 @@ export default function Detail() {
   const [imageList, setImageList] = useState<string[]>([]);
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  // const { showToast } = useToast();
+  const { showToast } = useToast();
   const [showIncludedModal, setShowIncludedModal] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+
 
   const formattedImages = useMemo(
     () => imageList.map((img) => ({ uri: img })),
@@ -188,13 +189,12 @@ export default function Detail() {
         return;
       }
 
-      // Thay bằng dữ liệu thực tế
       const tourDetails = {
         serviceId: Number(tourId),
-        serviceName: "Tour Name", // Lấy từ API hoặc state
-        price: 1000, // Lấy từ API hoặc state
-        departureDate: new Date().toISOString(), // Lấy từ người dùng hoặc API
-        serviceDetailId: Number(tourId), // Lấy từ API hoặc state
+        serviceName: "Tour Name",
+        price: 1000,
+        departureDate: new Date().toISOString(),
+        serviceDetailId: Number(tourId),
       };
 
       const payload: BookingServiceRequest = {
@@ -216,7 +216,12 @@ export default function Detail() {
       const response = await tourApi.AddToCart(payload);
       console.log("Đã thêm vào giỏ hàng:", response);
 
-      // showToast({ type: 'success', message: 'Đã thêm vào giỏ hàng.' });
+      // Hiển thị thông báo thành công
+      showToast({
+        type: 'success',
+        heading: 'Thành công',
+        message: 'Đã thêm vào giỏ hàng.',
+      });
     } catch (error) {
       let errorMessage = "Không thể thêm vào giỏ hàng.";
       if (error && typeof error === "object" && "response" in error) {
@@ -227,10 +232,10 @@ export default function Detail() {
           stack: err.stack || "Không có stack trace",
           response: err.response
             ? {
-                status: err.response.status,
-                data: err.response.data,
-                headers: err.response.headers,
-              }
+              status: err.response.status,
+              data: err.response.data,
+              headers: err.response.headers,
+            }
             : "Không có phản hồi từ server",
           name: err.name || "UnknownError",
         });
@@ -238,7 +243,12 @@ export default function Detail() {
         console.error("Thêm vào giỏ hàng thất bại:", error);
       }
 
-      // showToast({ type: 'error', message: errorMessage });
+      // Hiển thị thông báo lỗi
+      showToast({
+        type: 'error',
+        heading: 'Lỗi',
+        message: errorMessage,
+      });
     }
   };
 
@@ -246,7 +256,7 @@ export default function Detail() {
     try {
       // Gọi API để lấy thông tin chia sẻ tour
       const res = await tourApi.GetShareTour(Number(tourId));
-      const shareLink = (res && (res as any).link) ? (res as any).link : `https://vbalo.com/tour/${tourId}`; 
+      const shareLink = (res && (res as any).link) ? (res as any).link : `https://vbalo.com/tour/${tourId}`;
       const shareMessage = `Chi tiết: ${shareLink}`;
 
       // Mở dialog chia sẻ
