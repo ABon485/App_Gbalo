@@ -9,7 +9,7 @@ export default function IndexScreen() {
 
   useEffect(() => {
     if (rootNavigationState?.key) {
-      router.replace("/profile"); 
+      router.replace("/(tabs)/assistant"); 
     }
   }, [rootNavigationState?.key]);  
 

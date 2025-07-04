@@ -6,8 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Linking,
+  Modal,
+  StyleSheet,
 } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { WebView } from "react-native-webview";
 import styles from "@/styles/booking/confirmBooking";
 import Schedule from "@/components/booking/schedule";
 import ClientOption from "@/components/booking/clientOption";
@@ -22,8 +26,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import moment from "moment";
 import { createVNPayUrl } from "@/utils/vnpay";
 
-
-
 const formatDateToYYYYMMDD = (date: string): string => {
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
     const [day, month, year] = date.split("/");
@@ -32,16 +34,24 @@ const formatDateToYYYYMMDD = (date: string): string => {
   return date;
 };
 
-// Hàm lấy Client IP
 async function getClientIp() {
   try {
     const response = await fetch("https://api.ipify.org?format=json");
     const data = await response.json();
-    console.log("Client IP từ ipify:", data.ip);
+    console.log(JSON.stringify({ clientIp: data.ip }, null, 2));
     return data.ip;
   } catch (error) {
-    console.error("Lỗi khi lấy Client IP:", error);
-    return "127.0.0.1"; // Fallback IP
+    console.error(
+      JSON.stringify(
+        {
+          error: "Lỗi khi lấy Client IP",
+          message: (error as any)?.message || error,
+        },
+        null,
+        2
+      )
+    );
+    return "127.0.0.1";
   }
 }
 
@@ -61,6 +71,7 @@ export default function ConfirmBooking() {
   const [userId, setUserId] = useState<number | null>(null);
   const [policyData, setPolicyData] = useState<Policy | null>(null);
   const { showToast } = useToast();
+  const [bookingId, setBookingId] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<{
     fullName?: string;
     phone?: string;
@@ -72,6 +83,7 @@ export default function ConfirmBooking() {
     phone?: string;
     email?: string;
   }>({});
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
   const updateUserInfo = (field: keyof typeof userInfo, value: string) => {
     setUserInfo((prev) => ({ ...prev, [field]: value }));
@@ -100,7 +112,16 @@ export default function ConfirmBooking() {
       const parsedUser = params.user ? JSON.parse(params.user as string) : null;
       setUserInfo(parsedUser);
     } catch (error) {
-      console.error("Lỗi khi parse user:", error);
+      console.error(
+        JSON.stringify(
+          {
+            error: "Lỗi khi parse user",
+            message: (error as any)?.message || error,
+          },
+          null,
+          2
+        )
+      );
       setUserInfo(null);
     }
   }, [params.user]);
@@ -111,7 +132,16 @@ export default function ConfirmBooking() {
         const detail = await tourApi.TourDetail(tourId);
         setTour(detail);
       } catch (error) {
-        console.error("Lỗi khi lấy chi tiết tour:", error);
+        console.error(
+          JSON.stringify(
+            {
+              error: "Lỗi khi lấy chi tiết tour",
+              message: (error as any)?.message || error,
+            },
+            null,
+            2
+          )
+        );
       }
     };
     if (tourId) fetchTourDetail();
@@ -126,7 +156,16 @@ export default function ConfirmBooking() {
           if (data && data.userId) setUserId(data.userId);
         }
       } catch (err) {
-        console.error("Lỗi lấy userId từ AsyncStorage:", err);
+        console.error(
+          JSON.stringify(
+            {
+              error: "Lỗi lấy userId từ AsyncStorage",
+              message: (err as any)?.message || err,
+            },
+            null,
+            2
+          )
+        );
       }
     };
     fetchUserId();
@@ -162,29 +201,58 @@ export default function ConfirmBooking() {
       ) {
         try {
           console.log(
-            "Gửi yêu cầu API với:",
-            JSON.stringify({ tourId, selectedDate }, null, 2)
+            JSON.stringify({ apiRequest: { tourId, selectedDate } }, null, 2)
           );
           const res = await tourApi.getPolicy(tourId, selectedDate);
           setPolicyData(res.data);
           console.log(
-            "Lấy chính sách thành công:",
-            JSON.stringify(res, null, 2)
+            JSON.stringify(
+              { success: "Lấy chính sách thành công", data: res },
+              null,
+              2
+            )
           );
         } catch (err) {
           let errorMessage = "Không thể tải chính sách.";
           if (typeof err === "object" && err !== null && "response" in err) {
             const response = (err as any).response;
-            console.error("Lỗi khi gọi API getPolicy:", response?.data || err);
+            console.error(
+              JSON.stringify(
+                {
+                  error: "Lỗi khi gọi API getPolicy",
+                  data: response?.data || err,
+                },
+                null,
+                2
+              )
+            );
             errorMessage = response?.data?.message || errorMessage;
           } else {
-            console.error("Lỗi khi gọi API getPolicy:", err);
+            console.error(
+              JSON.stringify(
+                {
+                  error: "Lỗi khi gọi API getPolicy",
+                  message: (err as any)?.message || err,
+                },
+                null,
+                2
+              )
+            );
           }
           showToast({ type: "error", message: errorMessage });
           setPolicyData(null);
         }
       } else {
-        console.log("Tham số không hợp lệ:", { tourId, selectedDate });
+        console.log(
+          JSON.stringify(
+            {
+              warning: "Tham số không hợp lệ",
+              params: { tourId, selectedDate },
+            },
+            null,
+            2
+          )
+        );
       }
     };
     fetchPolicy();
@@ -223,7 +291,9 @@ export default function ConfirmBooking() {
   };
 
   const handleApplyDiscount = (code: string) => {
-    console.log("Applied discount code:", code);
+    console.log(
+      JSON.stringify({ action: "Applied discount code", code }, null, 2)
+    );
   };
 
   const renderCheckbox = (
@@ -240,21 +310,29 @@ export default function ConfirmBooking() {
   );
 
   const handlePayment = async () => {
-    console.log("Bắt đầu handlePayment", {
-      selectedDate,
-      selectedGuests,
-      userInfo,
-      checkbox,
-      policyData: policyData
-        ? { depositPercent: policyData.depositPercent }
-        : null,
-      userId,
-      tourId,
-      totalPrice,
-      prepayment,
-    });
+    console.log(
+      JSON.stringify(
+        {
+          action: "Bắt đầu handlePayment",
+          data: {
+            selectedDate,
+            selectedGuests,
+            userInfo,
+            checkbox,
+            policyData: policyData
+              ? { depositPercent: policyData.depositPercent }
+              : null,
+            userId,
+            tourId,
+            totalPrice,
+            prepayment,
+          },
+        },
+        null,
+        2
+      )
+    );
 
-    // Validate inputs
     if (
       !selectedDate ||
       selectedDate === "Chưa chọn" ||
@@ -289,7 +367,16 @@ export default function ConfirmBooking() {
     setContactErrors(errors);
 
     if (Object.keys(errors).length > 0) {
-      console.log("Lỗi: Thông tin liên hệ không hợp lệ", { errors, userInfo });
+      console.log(
+        JSON.stringify(
+          {
+            error: "Thông tin liên hệ không hợp lệ",
+            data: { errors, userInfo },
+          },
+          null,
+          2
+        )
+      );
       return;
     }
 
@@ -311,12 +398,17 @@ export default function ConfirmBooking() {
     }
 
     if (!userInfo || !userId) {
-      console.log("Lỗi: Thiếu userId hoặc userInfo", { userId, userInfo });
+      console.log(
+        JSON.stringify(
+          { error: "Thiếu userId hoặc userInfo", data: { userId, userInfo } },
+          null,
+          2
+        )
+      );
       router.push("/(auths)/(Login)/login");
       return;
     }
 
-    // Parse selectedGuests
     const guestEntries = selectedGuests.split(",").map((entry) => entry.trim());
     const guestDetails: { quantity: number; guestType: string }[] = [];
 
@@ -334,7 +426,6 @@ export default function ConfirmBooking() {
       guestDetails.push({ quantity, guestType });
     }
 
-    // Validate and calculate total price
     let expectedTotalPrice = 0;
     const serviceDetails: {
       serviceDetailId: number;
@@ -390,7 +481,14 @@ export default function ConfirmBooking() {
       return;
     }
 
-    // Create booking data
+    if (prepayment <= 0) {
+      showToast({
+        type: "error",
+        message: "Tỷ lệ đặt cọc không hợp lệ. Vui lòng kiểm tra chính sách.",
+      });
+      return;
+    }
+
     const bookingData: Booking = {
       CustomerId: userId,
       departureDate: selectedDate,
@@ -422,28 +520,33 @@ export default function ConfirmBooking() {
           isDepositPaid: false,
         },
       ],
+      orderCompletedPageUrl: process.env.BOOKING_STATUS_URL || "",
     };
-
     try {
       const response = await bookingApi.createBooking(bookingData);
-      const bookingId = response.data.bookingId;
-
-      // Tạo URL thanh toán VNPay
-      const clientIp = await getClientIp();
-      const paymentUrl = createVNPayUrl(
-        `BOOKING_${bookingId}`,
-        prepayment,
-        `Thanh toán tour ${tourName} (Booking ID: ${bookingId})`,
-        clientIp
+      console.log(
+        JSON.stringify(
+          { action: "Booking created successfully", data: response },
+          null,
+          2
+        )
       );
-      console.log("VNPay payment URL:", paymentUrl);
-      // Điều hướng đến màn hình VNPay
-      router.push({
-        pathname: "/(screens)/payment/VNPayScreen",
-        params: { paymentUrl },
-      });
+      const redirectUrl = response?.data?.paymentRedirectUrl;
+      if (redirectUrl) {
+        await AsyncStorage.setItem(
+          "lastBookingId",
+          response.data.bookingId.toString()
+        );
+        await AsyncStorage.setItem("lastCustomerId", userId.toString());
+        setBookingId(response.data.bookingId.toString());
+        setPaymentUrl(redirectUrl);
+      } else {
+        showToast({
+          type: "error",
+          message: "Không tìm thấy đường dẫn thanh toán.",
+        });
+      }
     } catch (error) {
-      console.error("Lỗi trong handlePayment", error);
       showToast({
         type: "error",
         message: `Tạo booking hoặc liên kết thanh toán thất bại: ${
@@ -482,13 +585,22 @@ export default function ConfirmBooking() {
             }
             style={styles.tourImage}
             onError={() => {
-              console.log("Failed to load image from URL:", imageUrl);
+              console.log(
+                JSON.stringify(
+                  { error: "Failed to load image", url: imageUrl },
+                  null,
+                  2
+                )
+              );
               setImageUrl(null);
             }}
           />
           <View style={styles.tourInfo}>
             <Text style={styles.tourTitle}>{tourName || tour.name}</Text>
-            <Text style={styles.rating}>⭐ 4.95/5 (648)</Text>
+            <Text>{tourSubName || tour.provinceName}</Text>
+            <Text style={styles.rating}>
+              ⭐ {tour.rating || 0}/5 ({tour.ratingCount || 0})
+            </Text>
             <Text style={styles.price}>
               Từ{" "}
               <Text style={styles.bold}>
@@ -695,6 +807,86 @@ export default function ConfirmBooking() {
         onClose={() => setShowAddDiscountModal(false)}
         onApply={handleApplyDiscount}
       />
+
+      <Modal
+        visible={!!paymentUrl}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setPaymentUrl(null)}
+      >
+        <View style={webViewStyles.fullScreenContainer}>
+          <WebView
+            source={{ uri: paymentUrl || "" }}
+            style={webViewStyles.fullScreenWebView}
+            onNavigationStateChange={async (event) => {
+              console.log(
+                JSON.stringify(
+                  {
+                    action: "WebView navigation",
+                    url: event.url,
+                    bookingId,
+                    customerId: userId,
+                    amountPaid: prepayment,
+                  },
+                  null,
+                  2
+                )
+              );
+              if (event.url.includes("finit")) {
+                setPaymentUrl(null);
+                if (!bookingId || !userId) {
+                  const lastBookingId = await AsyncStorage.getItem(
+                    "lastBookingId"
+                  );
+                  const lastCustomerId = await AsyncStorage.getItem(
+                    "lastCustomerId"
+                  );
+                  if (!lastBookingId || !lastCustomerId) {
+                    showToast({
+                      type: "error",
+                      message:
+                        "Không thể xác định thông tin booking. Vui lòng thử lại.",
+                    });
+                    return;
+                  }
+                  router.push({
+                    pathname: "/(screens)/booking/successBooking",
+                    params: {
+                      bookingId: lastBookingId,
+                      customerId: lastCustomerId,
+                      amountPaid: prepayment.toString(),
+                    },
+                  });
+                } 
+              }
+            }}
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
+
+const webViewStyles = StyleSheet.create({
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  fullScreenWebView: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    padding: 10,
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+});

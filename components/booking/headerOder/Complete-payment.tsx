@@ -23,7 +23,7 @@ const TourComplete = () => {
       try {
         const storedData = await AsyncStorage.getItem("data");
         console.log(
-          "fetchCompletedBookings: Retrieved data from AsyncStorage:",
+          "[TourComplete] Retrieved data from AsyncStorage:",
           storedData
         );
 
@@ -33,49 +33,48 @@ const TourComplete = () => {
 
           if (!isNaN(parsedUserId)) {
             setUserId(parsedUserId);
-            console.log(
-              `fetchCompletedBookings: Set userId to ${parsedUserId}`
-            );
+            console.log(`[TourComplete] Set userId to ${parsedUserId}`);
 
-            console.log(
-              `fetchCompletedBookings: Calling API for userId=${parsedUserId}, page=1, pageSize=10`
-            );
             const response = await bookingApi.getBooking(parsedUserId, 1, 10);
-            const completedTours = (response.data.datas || []).filter(
-              (item: BookingItem) =>
-                item.bookingStatus === 3 || item.bookingStatus === 4
-            );
-
-            console.log(
-              `fetchCompletedBookings: API response for userId=${parsedUserId}:`,
-              {
-                totalBookings: response.data.datas?.length || 0,
-                completedBookingCount: completedTours.length,
-                completedBookings: completedTours.map((b: BookingItem) => ({
+            console.log("[TourComplete] API response for completed bookings:", {
+              userId: parsedUserId,
+              totalBookings: response.data.datas?.length || 0,
+              completedBookings: response.data.datas
+                ?.filter(
+                  (item: BookingItem) =>
+                    item.bookingStatus === 3 || item.bookingStatus === 4
+                )
+                .map((b: BookingItem) => ({
                   id: b.id,
                   serviceName: b.serviceName,
                   bookingStatus: b.bookingStatus,
                   totalAmount: b.totalAmount,
+                  departureDate: b.departureDate,
                 })),
-              }
-            );
+              rawResponse: JSON.stringify(response.data, null, 2),
+            });
 
+            const completedTours = (response.data.datas || []).filter(
+              (item: BookingItem) =>
+                item.bookingStatus === 3 || item.bookingStatus === 4
+            );
             setTours(completedTours);
           } else {
             console.warn(
-              "fetchCompletedBookings: Invalid userId format in authData:",
+              "[TourComplete] Invalid userId format in authData:",
               authData.userId
             );
+            router.push("/(auths)/(Login)/loginEmail");
           }
         } else {
           console.warn(
-            "fetchCompletedBookings: No auth data found in AsyncStorage. Redirecting to login."
+            "[TourComplete] No auth data found in AsyncStorage. Redirecting to login."
           );
           router.push("/(auths)/(Login)/loginEmail");
         }
       } catch (error) {
         console.error(
-          "fetchCompletedBookings: Failed to fetch completed/refunded bookings:",
+          "[TourComplete] Failed to fetch completed bookings:",
           error
         );
       } finally {
@@ -84,7 +83,7 @@ const TourComplete = () => {
     };
 
     fetchCompletedBookings();
-  }, []);
+  }, [router]);
 
   const handleReviewPress = (tour: BookingItem) => {
     router.push({
@@ -147,7 +146,7 @@ const TourComplete = () => {
             style={styles.noOrderImage}
           />
           <Text style={styles.noOrderText}>
-            Bạn chưa có đơn hàng hoàn thành 
+            Bạn chưa có đơn hàng hoàn thành
           </Text>
         </View>
       )}

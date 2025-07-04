@@ -3,101 +3,97 @@ import {
   View,
   Text,
   Image,
+  TouchableOpacity,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
+  Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { WebView } from "react-native-webview";
 import { BookingItem } from "@/types/tour";
 import bookingApi from "@/services/tour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useToast } from "@/context/ToastContext";
 
 const TourListScreen = () => {
   const router = useRouter();
   const [tours, setTours] = useState<BookingItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<number | null>(null);
-
-  const fetchBookings = async (pageToLoad = 1) => {
-    if (!userId) {
-      console.log("fetchBookings: No userId available, skipping API call.");
-      return;
-    }
-    setLoading(true);
-    try {
-      console.log(
-        `fetchBookings: Calling API for userId=${userId}, page=${pageToLoad}, pageSize=10`
-      );
-      const response = await bookingApi.getBooking(userId, pageToLoad, 10);
-      const newBookings = response.data.datas || [];
-
-      if (pageToLoad === 1) {
-        setTours(newBookings);
-      } else {
-        setTours((prev) => [...prev, ...newBookings]);
-      }
-
-      setHasMore(newBookings.length === 10);
-    } catch (error) {
-      console.error(
-        `fetchBookings: Failed to fetch bookings for userId=${userId}:`,
-        error
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
-    const loadUserId = async () => {
+    const fetchPendingBookings = async () => {
       try {
         const storedData = await AsyncStorage.getItem("data");
+        console.log(
+          "fetchPendingBookings: Retrieved data from AsyncStorage:",
+          storedData
+        );
+
         if (storedData) {
           const authData = JSON.parse(storedData);
           const parsedUserId = Number(authData.userId);
+
           if (!isNaN(parsedUserId)) {
             setUserId(parsedUserId);
-            console.log(`loadUserId: Set userId to ${parsedUserId}`);
+            console.log(`fetchPendingBookings: Set userId to ${parsedUserId}`);
+
+            const response = await bookingApi.getBooking(parsedUserId, 1, 10);
+            const pendingTours = (response.data.datas || []).filter(
+              (item: BookingItem) => item.amountRemaining > 0
+            );
+
+            setTours(pendingTours);
           } else {
             console.warn(
-              "loadUserId: Invalid userId format in authData:",
+              "fetchPendingBookings: Invalid userId format in authData:",
               authData.userId
             );
           }
         } else {
           console.warn(
-            "loadUserId: No data found in AsyncStorage. Redirecting to login."
+            "fetchPendingBookings: No auth data found in AsyncStorage. Redirecting to login."
           );
           router.push("/(auths)/(Login)/loginEmail");
         }
       } catch (error) {
-        console.error("loadUserId: Error reading AsyncStorage:", error);
+        console.error(
+          "fetchPendingBookings: Failed to fetch pending bookings:",
+          error
+        );
+      } finally {
+        setLoading(false);
       }
     };
-    loadUserId();
+
+    fetchPendingBookings();
   }, []);
 
-  useEffect(() => {
-    if (userId) {
-      console.log(
-        `useEffect: userId changed to ${userId}, fetching bookings for page 1`
-      );
-      setPage(1);
-      fetchBookings(1);
-    }
-  }, [userId]);
+  const handleReBooking = async (bookingId: number) => {
+    try {
+      const response = await bookingApi.ReBooking(bookingId);
+      console.log("ReBooking success:", response);
 
-  const handleLoadMore = () => {
-    if (hasMore && !loading) {
-      setPage((prevPage) => {
-        const nextPage = prevPage + 1;
-        console.log(
-          `handleLoadMore: Loading more bookings for page ${nextPage}`
-        );
-        fetchBookings(nextPage);
-        return nextPage;
+      if (response?.data?.paymentRedirectUrl) {
+        await AsyncStorage.setItem("lastBookingId", bookingId.toString());
+        await AsyncStorage.setItem("lastCustomerId", userId?.toString() || "");
+
+        setPaymentUrl(response.data.paymentRedirectUrl);
+        setModalVisible(true);
+      } else {
+        showToast({
+          type: "error",
+          message: "Không tìm thấy URL thanh toán!",
+        });
+      }
+    } catch (error) {
+      console.error("ReBooking error:", error);
+      showToast({
+        type: "error",
+        message: "Có lỗi xảy ra khi tạo thanh toán lại.",
       });
     }
   };
@@ -107,36 +103,13 @@ const TourListScreen = () => {
   };
 
   const getStatusText = (item: BookingItem) => {
-    if (item.amountRemaining > 0) {
-      const timeRemaining = new Date(
-        item.pendingPaymentCreated
-      ).toLocaleTimeString("vi-VN");
-      return { prefix: "Trạng thái: Đang chờ thanh toán", time: timeRemaining };
-    }
-    if (item.bookingStatus === 3) {
-      return { prefix: "Trạng thái: Đã hoàn thành", time: null };
-    }
-    return { prefix: "Trạng thái: Đã thanh toán", time: null };
+    const timeRemaining = new Date(
+      item.pendingPaymentCreated
+    ).toLocaleTimeString("vi-VN");
+    return { prefix: "Trạng thái: Đang chờ thanh toán", time: timeRemaining };
   };
 
-  const getButtonText = (item: BookingItem) => {
-    if (item.amountRemaining > 0) {
-      return "Thanh toán";
-    }
-    if (item.bookingStatus === 3) {
-      return "Đặt lại";
-    }
-    return null;
-  };
-
-  const getCancelText = (item: BookingItem) => {
-    if (item.bookingStatus === 3) {
-      return "Xem đơn hàng";
-    }
-    return null;
-  };
-
-  if (loading && page === 1) {
+  if (loading) {
     return (
       <View style={styles.container}>
         <Text>Loading...</Text>
@@ -144,33 +117,37 @@ const TourListScreen = () => {
     );
   }
 
+  if (!userId) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.noOrderText}>
+          Vui lòng đăng nhập để xem danh sách booking.
+        </Text>
+        <TouchableOpacity
+          onPress={() => router.push("/(auths)/(Login)/loginEmail")}
+        >
+          <Text style={{ color: "#007AFF", fontSize: 16 }}>
+            Đi đến đăng nhập
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {tours.length === 0 && userId && (
+      {tours.length === 0 && (
         <View style={styles.noOrderContainer}>
           <Image
             source={require("@/assets/images/orderNull.png")}
             style={styles.noOrderImage}
           />
-          <Text style={styles.noOrderText}>Bạn chưa có đơn hàng nào</Text>
+          <Text style={styles.noOrderText}>
+            Bạn chưa có đơn hàng đang chờ thanh toán
+          </Text>
         </View>
       )}
-      <ScrollView
-        style={styles.listContainer}
-        onMomentumScrollEnd={(e) => {
-          const {
-            contentOffset,
-            layoutMeasurement,
-            contentSize,
-          } = e.nativeEvent;
-          if (
-            contentOffset.y + layoutMeasurement.height >=
-            contentSize.height - 20
-          ) {
-            handleLoadMore();
-          }
-        }}
-      >
+      <ScrollView style={styles.listContainer}>
         {tours.map((tour) => (
           <View key={tour.id} style={styles.tourItem}>
             <Image
@@ -184,7 +161,6 @@ const TourListScreen = () => {
             <View style={styles.tourDetails}>
               <Text style={styles.tourTitle}>{tour.serviceName}</Text>
               <Text style={styles.tourDate}>
-                Ngày khởi hành:{" "}
                 {new Date(tour.departureDate).toLocaleDateString("vi-VN")}
               </Text>
               {(() => {
@@ -218,28 +194,89 @@ const TourListScreen = () => {
                 >
                   <Text style={styles.tourBalance}>Hiển thị chi tiết</Text>
                 </TouchableOpacity>
-                {getButtonText(tour) && (
-                  <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText}>{getButtonText(tour)}</Text>
-                  </TouchableOpacity>
-                )}
-                {getCancelText(tour) && (
-                  <TouchableOpacity style={styles.cancelButton}>
-                    <Text style={styles.cancelButtonText}>
-                      {getCancelText(tour)}
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => handleReBooking(tour.id)}
+                >
+                  <Text style={styles.buttonText}>Thanh toán</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
         ))}
-        {loading && page > 1 && (
-          <View style={{ padding: 10, alignItems: "center" }}>
-            <Text>Loading more...</Text>
-          </View>
-        )}
       </ScrollView>
+
+      {/* Modal hiển thị VNPay */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => {
+          setModalVisible(false);
+          showToast({
+            type: "info",
+            message: "Bạn đã hủy thanh toán.",
+          });
+        }}
+      >
+        <View style={styles.fullScreenContainer}>
+          <WebView
+            source={{ uri: paymentUrl || "" }}
+            style={styles.fullScreenWebView}
+            onNavigationStateChange={async (event) => {
+              console.log("WebView navigation:", event.url);
+              if (event.url.includes("finit")) {
+                setPaymentUrl(null);
+                setModalVisible(false);
+
+                const lastBookingId = await AsyncStorage.getItem(
+                  "lastBookingId"
+                );
+                const lastCustomerId = await AsyncStorage.getItem(
+                  "lastCustomerId"
+                );
+
+                if (lastBookingId && lastCustomerId) {
+                  router.push({
+                    pathname: "/(screens)/booking/successBooking",
+                    params: {
+                      bookingId: lastBookingId,
+                      customerId: lastCustomerId,
+                      amountPaid:
+                        tours
+                          .find((tour) => tour.id === Number(lastBookingId))
+                          ?.amountRemaining?.toString() || "0",
+                    },
+                  });
+                } else {
+                  showToast({
+                    type: "error",
+                    message:
+                      "Không thể xác định thông tin booking. Vui lòng thử lại.",
+                  });
+                }
+              } else if (
+                event.url.includes("vnp_TransactionStatus=02") ||
+                event.url.includes("vnp_TransactionStatus=01") ||
+                event.url.includes("cancel") ||
+                event.url.includes("error") ||
+                event.url.includes("vnpayresult") ||
+                event.url.includes("vnp_ResponseCode=24")
+              ) {
+                setPaymentUrl(null);
+                setModalVisible(false);
+                showToast({
+                  type: "info",
+                  message: event.url.includes("vnp_TransactionStatus=02")
+                    ? "Bạn đã hủy thanh toán."
+                    : "Thanh toán không thành công. Vui lòng thử lại.",
+                });
+                router.push("/(screens)/booking/confirmBooking");
+              }
+            }}
+          />
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -248,9 +285,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContainer: {
     flex: 1,
+    width: "100%",
   },
   tourItem: {
     flexDirection: "row",
@@ -319,17 +359,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
-  cancelButton: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  cancelButtonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 14,
-  },
   noOrderContainer: {
     flex: 1,
     justifyContent: "center",
@@ -346,6 +375,15 @@ const styles = StyleSheet.create({
     color: "#333",
     textAlign: "center",
     marginTop: 10,
+  },
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  fullScreenWebView: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
   },
 });
 

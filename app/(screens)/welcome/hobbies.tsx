@@ -1,89 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
-  Image,
-  StyleSheet,
 } from "react-native";
 import styles from "@/styles/welcome/hobbies";
 import { AntDesign } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import CustomButtonRN from "@/components/common/customButtonRN/index";
-
-const data = [
-  {
-    title: "Du lịch mạo hiểm",
-    icon: require("../../../assets/images/hobbies/mountain.png"),
-  },
-  {
-    title: "Kỳ nghỉ bãi biển",
-    icon: require("../../../assets/images/hobbies/beach.png"),
-  },
-  {
-    title: "Kỳ nghỉ thành phố",
-    icon: require("../../../assets/images/hobbies/skyscraper.png"),
-  },
-  {
-    title: "Khám phá văn hóa",
-    icon: require("../../../assets/images/hobbies/history.png"),
-  },
-  {
-    title: "Nơi nghỉ thư giãn",
-    icon: require("../../../assets/images/hobbies/hotel.png"),
-  },
-  {
-    title: "Du lịch ẩm thực",
-    icon: require("../../../assets/images/hobbies/foods.png"),
-  },
-  {
-    title: "Kỳ nghỉ du thuyền",
-    icon: require("../../../assets/images/hobbies/ship.png"),
-  },
-  {
-    title: "Phòng trưng bày nghệ thuật",
-    icon: require("../../../assets/images/hobbies/art.png"),
-  },
-  {
-    title: "Chuyến đi ngắm động vật hoang dã",
-    icon: require("../../../assets/images/hobbies/animals.png"),
-  },
-  {
-    title: "Du lịch một mình",
-    icon: require("../../../assets/images/hobbies/tourism.png"),
-  },
-  {
-    title: "Chuyến đi đường bộ",
-    icon: require("../../../assets/images/hobbies/road.png"),
-  },
-  {
-    title: "Cắm trại",
-    icon: require("../../../assets/images/hobbies/campingTent.png"),
-  },
-  {
-    title: "Du lịch gia đình",
-    icon: require("../../../assets/images/hobbies/familyTravel.png"),
-  },
-  {
-    title: "Du lịch lịch sử",
-    icon: require("../../../assets/images/hobbies/history.png"),
-  },
-];
+import tourApi from "@/services/tour"; 
+import { Preference } from "@/types/tour"; 
 
 const Hobbies = () => {
   const router = useRouter();
   const [showMore, setShowMore] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]); // <<== lưu các item đã chọn
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [preferences, setPreferences] = useState<Preference[]>([]);
 
-  const visibleData = showMore ? data : data.slice(0, 7);
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      try {
+        const data = await tourApi.getPreferences(); 
+        setPreferences(data);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách preference:", error);
+      }
+    };
+    fetchPreferences();
+  }, []);
 
-  const handleSelectItem = (title: string) => {
-    if (selectedItems.includes(title)) {
-      setSelectedItems(selectedItems.filter((item) => item !== title));
+  const visibleData = showMore ? preferences : preferences.slice(0, 7);
+
+  const handleSelectItem = (name: string) => {
+    if (selectedItems.includes(name)) {
+      setSelectedItems(selectedItems.filter((item) => item !== name));
     } else {
-      setSelectedItems([...selectedItems, title]);
+      setSelectedItems([...selectedItems, name]);
     }
   };
 
@@ -111,36 +65,33 @@ const Hobbies = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 16 }}
           >
-            {visibleData.map((item, index) => {
-              const isSelected = selectedItems.includes(item.title);
+            {visibleData.map((item) => {
+              const isSelected = selectedItems.includes(item.name);
               return (
                 <TouchableOpacity
-                  key={index}
+                  key={item.id}
                   style={[
                     styles.hobbyItem,
-                    isSelected && { backgroundColor: "#d3d3d3" }, // <<== nếu selected thì đổi màu xám
+                    isSelected && { backgroundColor: "#d3d3d3" },
                   ]}
-                  onPress={() => handleSelectItem(item.title)}
+                  onPress={() => handleSelectItem(item.name)}
                 >
-                  <Image
-                    source={item.icon}
-                    style={styles.hobbyIcon}
-                    resizeMode="contain"
-                  />
-                  <Text style={styles.hobbyText}>{item.title}</Text>
+                  <Text style={styles.hobbyText}>{item.name}</Text>
                 </TouchableOpacity>
               );
             })}
 
             {/* Toggle Button */}
-            <TouchableOpacity
-              style={styles.toggleBtn}
-              onPress={() => setShowMore(!showMore)}
-            >
-              <Text style={styles.toggleText}>
-                {showMore ? "Ẩn bớt" : "Xem thêm"}
-              </Text>
-            </TouchableOpacity>
+            {preferences.length > 7 && (
+              <TouchableOpacity
+                style={styles.toggleBtn}
+                onPress={() => setShowMore(!showMore)}
+              >
+                <Text style={styles.toggleText}>
+                  {showMore ? "Ẩn bớt" : "Xem thêm"}
+                </Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
         </View>
 

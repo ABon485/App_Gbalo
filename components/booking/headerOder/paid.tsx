@@ -22,67 +22,59 @@ const TourPaid = () => {
     const fetchPaidBookings = async () => {
       try {
         const storedData = await AsyncStorage.getItem("data");
-        console.log(
-          "fetchPaidBookings: Retrieved data from AsyncStorage:",
-          storedData
-        );
+        console.log("[TourPaid] Retrieved data from AsyncStorage:", storedData);
 
-        if (storedData) {
-          const authData = JSON.parse(storedData);
-          const parsedUserId = Number(authData.userId);
+        if (!storedData) {
+          console.warn("[TourPaid] No auth data found in AsyncStorage.");
+          router.push("/(auths)/(Login)/loginEmail");
+          return;
+        }
 
-          if (!isNaN(parsedUserId)) {
-            setUserId(parsedUserId);
-            console.log(`fetchPaidBookings: Set userId to ${parsedUserId}`);
+        const authData = JSON.parse(storedData);
+        const parsedUserId = Number(authData.userId);
 
-            console.log(
-              `fetchPaidBookings: Calling API for userId=${parsedUserId}, page=1, pageSize=10`
-            );
-            const response = await bookingApi.getBooking(parsedUserId, 1, 10);
-            const paidTours = (response.data.datas || []).filter(
-              (item: BookingItem) => item.amountRemaining === 0
-            );
-
-            console.log(
-              `fetchPaidBookings: API response for userId=${parsedUserId}:`,
-              {
-                totalBookings: response.data.datas?.length || 0,
-                paidBookingCount: paidTours.length,
-                paidBookings: paidTours.map((b: BookingItem) => ({
-                  id: b.id,
-                  serviceName: b.serviceName,
-                  bookingStatus: b.bookingStatus,
-                  totalAmount: b.totalAmount,
-                  amountRemaining: b.amountRemaining,
-                })),
-              }
-            );
-
-            setTours(paidTours);
-          } else {
-            console.warn(
-              "fetchPaidBookings: Invalid userId format in authData:",
-              authData.userId
-            );
-          }
-        } else {
+        if (isNaN(parsedUserId)) {
           console.warn(
-            "fetchPaidBookings: No auth data found in AsyncStorage. Redirecting to login."
+            "[TourPaid] Invalid userId format in authData:",
+            authData.userId
           );
           router.push("/(auths)/(Login)/loginEmail");
+          return;
         }
-      } catch (error) {
-        console.error(
-          "fetchPaidBookings: Failed to fetch paid bookings:",
-          error
+
+        setUserId(parsedUserId);
+        console.log(`[TourPaid] Set userId to ${parsedUserId}`);
+
+        const response = await bookingApi.getBooking(parsedUserId, 1, 10);
+        console.log("[TourPaid] API response for paid bookings:", {
+          userId: parsedUserId,
+          totalBookings: response?.data?.datas?.length || 0,
+          paidBookings: response?.data?.datas
+            ?.filter((item: BookingItem) => item.amountPaid > 0)
+            .map((b: BookingItem) => ({
+              id: b.id,
+              serviceName: b.serviceName,
+              amountPaid: b.amountPaid,
+              amountRemaining: b.amountRemaining,
+              totalAmount: b.totalAmount,
+              departureDate: b.departureDate,
+            })),
+          rawResponse: JSON.stringify(response?.data, null, 2),
+        });
+
+        const paidTours = (response?.data?.datas || []).filter(
+          (item: BookingItem) => item.amountPaid > 0
         );
+        setTours(paidTours);
+      } catch (error) {
+        console.error("[TourPaid] Failed to fetch paid bookings:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchPaidBookings();
-  }, []);
+  }, [router]);
 
   const formatCurrency = (amount: number) => {
     return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " đ";
@@ -142,7 +134,13 @@ const TourPaid = () => {
               <Text style={styles.tourDate}>
                 {new Date(tour.departureDate).toLocaleDateString("vi-VN")}
               </Text>
-              <Text style={styles.tourPrice}>Trạng thái: Đã thanh toán</Text>
+              <Text style={styles.tourPrice}>
+                Trạng thái:{" "}
+                {tour.amountRemaining === 0
+                  ? "Đã thanh toán toàn bộ"
+                  : `Đã đặt cọc ${formatCurrency(tour.amountPaid)}`}
+              </Text>
+
               <Text style={styles.tourTotal}>
                 Tổng số:{" "}
                 <Text style={styles.orangeText}>

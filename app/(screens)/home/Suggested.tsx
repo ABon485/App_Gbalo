@@ -16,7 +16,6 @@ import tourApi from "@/services/tour";
 import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { useToast } from "@/context/ToastContext";
 import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
@@ -33,7 +32,7 @@ const Suggested = () => {
   >([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  // const { showToast } = useToast();
+  const [visibleCount, setVisibleCount] = useState<number>(4); // Số tour hiển thị ban đầu
 
   const fetchTours = async () => {
     try {
@@ -59,7 +58,7 @@ const Suggested = () => {
         );
       }
 
-      const response: TourListResponse = await tourApi.ListTour(1, 6); // Lấy 6 tour đề xuất
+      const response: TourListResponse = await tourApi.ListTour(1, 20); // Lấy tối đa 20 tour
       const fetchedTours = await Promise.all(
         response.data.datas.map(async (item: any) => {
           let detail: TourDetail | undefined;
@@ -102,7 +101,6 @@ const Suggested = () => {
           ? String((err as { message?: string }).message)
           : "Không thể tải danh sách tour.";
       setError(errorMessage);
-      // showToast({ type: "error", message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -143,10 +141,6 @@ const Suggested = () => {
     try {
       const storedData = await AsyncStorage.getItem("data");
       if (!storedData) {
-        // showToast({
-        //   type: "error",
-        //   message: "Vui lòng đăng nhập để lưu tour yêu thích.",
-        // });
         router.push("/(auths)/(Login)/login");
         return;
       }
@@ -156,11 +150,6 @@ const Suggested = () => {
       const token = parsedData.token;
 
       if (!userId || !token) {
-        // showToast({
-        //   type: "error",
-        //   message:
-        //     "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
-        // });
         router.push("/(auths)/(Login)/login");
         return;
       }
@@ -174,16 +163,8 @@ const Suggested = () => {
 
       if (isCurrentlyFavorite) {
         await tourApi.deleteFavorite(userId, Number(id));
-        // showToast({
-        //   type: "success",
-        //   message: "Đã xóa khỏi danh sách yêu thích.",
-        // });
       } else {
         await tourApi.postFavorite(userId, Number(id));
-        // showToast({
-        //   type: "success",
-        //   message: "Đã thêm vào danh sách yêu thích.",
-        // });
       }
 
       const favoriteRes = await tourApi.getFavorite(userId);
@@ -193,10 +174,6 @@ const Suggested = () => {
       );
     } catch (err) {
       console.error("Lỗi khi lưu yêu thích:", err);
-      // showToast({
-      //   type: "error",
-      //   message: "Không thể cập nhật tour yêu thích. Vui lòng thử lại.",
-      // });
       setTours((prev) =>
         prev.map((t) => (t.id === id ? { ...t, isFavorite: !t.isFavorite } : t))
       );
@@ -217,8 +194,11 @@ const Suggested = () => {
       });
     } catch (error) {
       console.error("Lỗi khi lưu tour được chọn:", error);
-      // showToast({ type: "error", message: "Không thể mở chi tiết tour." });
     }
+  };
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => Math.min(prev + 4, tours.length));
   };
 
   const renderTourItem = ({
@@ -283,7 +263,7 @@ const Suggested = () => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={tours}
+        data={tours.slice(0, visibleCount)}
         renderItem={renderTourItem}
         keyExtractor={(item) => item.id}
         numColumns={2}
@@ -291,6 +271,20 @@ const Suggested = () => {
         columnWrapperStyle={styles.columnWrapper}
         scrollEnabled={false}
       />
+      {visibleCount < tours.length && (
+        <TouchableOpacity
+          onPress={handleLoadMore}
+          style={{
+            alignSelf: "center",
+            paddingVertical: 8,
+            paddingHorizontal: 16,
+            borderRadius: 6,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={{ color: "red", textDecorationLine: "underline" }}>Xem thêm</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -358,12 +352,6 @@ const styles = StyleSheet.create({
   priceHighlight: {
     fontWeight: "bold",
     fontFamily: "Inter-Medium",
-  },
-  loadingText: {
-    fontSize: 16,
-    textAlign: "center",
-    marginTop: 20,
-    color: "#333",
   },
 });
 

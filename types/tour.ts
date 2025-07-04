@@ -78,6 +78,8 @@ export type TourDetail = {
   duration: string;
   description: string;
   metaDescription: string;
+  rating: number;
+  ratingCount: number;
   included: string;
   schedule: string;
   policies: string;
@@ -176,6 +178,7 @@ export type Booking = {
     }[];
   }[];
   payments: Payment[];
+  orderCompletedPageUrl: string;
 };
 
 export type BookingServiceRequest = {
@@ -250,6 +253,8 @@ export type BookingData = {
   customerEmail: string;
   customerPhone: string;
   customerAddress: string;
+  departureLocation: string;
+  rating: number;
   note: string;
   totalAmount: number;
   pendingAmount: number;
@@ -261,6 +266,8 @@ export type BookingData = {
     serviceId: number;
     serviceName: string;
     serviceImageUrl: string | null;
+    departureProvince?: string;
+    departureProvinceId?: number;
     price: number;
     details: {
       serviceDetailId: number;
@@ -334,7 +341,9 @@ export type BookingItem = {
   bookingCode: string;
   bookingStatus: number;
   bookingStatusName: string;
-  departureDate: string; // ISO string format
+  departureDate: string;
+  serviceId: number;
+  serviceSlug: string;
   serviceName: string;
   serviceImageUrl: string | null;
   totalAmount: number;
@@ -402,4 +411,11 @@ export type LanguageResponse = {
 export type UpdateCountry = {
   id: number;
   name: string;
+  value: string;
 };
+
+export type Preference = {
+  id: number;
+  name: string;
+};
+
