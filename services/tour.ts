@@ -26,6 +26,7 @@ import {
   BookingServiceRequest,
   CartItem,
   GetCartResponse,
+  Preference,
 } from "@/types/tour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -186,6 +187,7 @@ const tourApi = {
       throw error;
     }
   },
+
   getBookingById: async (
     id: number,
     customerId: number
@@ -196,6 +198,46 @@ const tourApi = {
       );
       return response.data;
     } catch (error) {
+      throw error;
+    }
+  },
+
+  ReBooking: async (
+    bookingId: number,
+    orderCompletedPageUrl: string
+  ): Promise<BookingResponse> => {
+    try {
+      const response = await api.post("/booking/repayment", {
+        bookingId,
+        orderCompletedPageUrl,
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  statusBooking: async (
+    paymentId: number,
+    status: 2 | 3 | 4,
+    paidDate: string,
+    transactionNo: string,
+    messageError: string = "",
+    amountPaid?: number
+  ): Promise<BookingResponse> => {
+    try {
+      const payload = {
+        paymentId,
+        status,
+        paidDate,
+        transactionNo,
+        messageError,
+      };
+
+      const response = await api.post("/booking/payment/updatestatus", payload);
+      return response.data;
+    } catch (error) {
+      // console.error("Lỗi khi cập nhật trạng thái booking:", error);
       throw error;
     }
   },
@@ -215,6 +257,7 @@ const tourApi = {
       throw error;
     }
   },
+
   getBooking: async (
     customerId: number,
     page: number,
@@ -346,6 +389,16 @@ const tourApi = {
       return response.data.data;
     } catch (error) {
       console.error("Lỗi khi lấy danh sách quốc gia:", error);
+      throw error;
+    }
+  },
+
+  getPreferences: async (): Promise<Preference[]> => {
+    try {
+      const response = await api.get("/common/preference");
+      return response.data.data;
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách preference:", error);
       throw error;
     }
   },

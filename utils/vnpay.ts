@@ -23,21 +23,35 @@ export const createVNPayUrl = (
   orderId: string,
   amount: number,
   orderInfo: string = "Thanh toan don hang",
-  clientIp: string
+  clientIp: string,
+  returnUrl: string = VNPAY_CONFIG.RETURN_URL // Thêm tham số returnUrl
 ): string => {
-  const vnp_TxnRef = `${orderId}_${Date.now()}`.substring(0, 37);
-
+  // Validate inputs
+  if (!orderId || orderId.trim() === "") {
+    throw new Error("orderId is required and cannot be empty");
+  }
   if (isNaN(amount) || amount <= 0) {
     throw new Error("Amount must be a positive number");
   }
+  if (!clientIp || clientIp.trim() === "") {
+    throw new Error("clientIp is required");
+  }
+  if (!returnUrl || returnUrl.trim() === "") {
+    throw new Error("returnUrl is required");
+  }
+
+  // Ensure TxnRef is unique and not too long
+  const vnp_TxnRef = `BOOKING_${orderId}_${Date.now()}`.substring(0, 37);
+
+  // Calculate amount for VNPay (in cents)
   const vnp_Amount = Math.round(amount * 100);
 
+  // Generate create and expire dates
   const createDate = moment().tz("Asia/Ho_Chi_Minh");
   const vnp_CreateDate = createDate.format("YYYYMMDDHHmmss");
-  const vnp_ExpireDate = moment(createDate)
-    .add(15, "minutes")
-    .format("YYYYMMDDHHmmss");
+  const vnp_ExpireDate = createDate.add(15, "minutes").format("YYYYMMDDHHmmss");
 
+  // Clean orderInfo to ensure compatibility
   const cleanOrderInfo = orderInfo
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -46,17 +60,18 @@ export const createVNPayUrl = (
     .trim()
     .substring(0, 255);
 
+  // Construct VNPay parameters
   const vnp_Params: VNPayParams = {
     vnp_Version: "2.1.0",
     vnp_Command: "pay",
-    vnp_TmnCode: VNPAY_CONFIG.TMN_CODE,
+    vnp_TmnCode: VNPAY_CONFIG.TMN_CODE || "UCM9AHLN",
     vnp_Amount: vnp_Amount,
     vnp_CurrCode: "VND",
     vnp_TxnRef: vnp_TxnRef,
     vnp_OrderInfo: cleanOrderInfo,
     vnp_OrderType: "travel",
     vnp_Locale: "vn",
-    vnp_ReturnUrl: VNPAY_CONFIG.RETURN_URL,
+    vnp_ReturnUrl: returnUrl,
     vnp_IpAddr: clientIp,
     vnp_CreateDate: vnp_CreateDate,
     vnp_ExpireDate: vnp_ExpireDate,
@@ -70,25 +85,37 @@ export const createVNPayUrl = (
       return obj;
     }, {});
 
-  // Stringify parameters with proper encoding (spaces as '+')
-  const signData = queryString.stringify(sortedParams, {
-    encode: true,
-    sort: false, // Sorting is already done above
-    arrayFormat: "none", // Ensure no array formatting issues
-  }).replace(/%20/g, "+");
+  // Stringify parameters with proper encoding
+  const signData = queryString
+    .stringify(sortedParams, {
+      encode: true,
+      sort: false,
+      arrayFormat: "none",
+    })
+    .replace(/%20/g, "+");
 
   // Calculate secure hash
-  const secureHash = CryptoJS.HmacSHA512(
-    signData,
-    VNPAY_CONFIG.HASH_SECRET
-  ).toString(CryptoJS.enc.Hex);
+  const secretKey = VNPAY_CONFIG.HASH_SECRET || "YOUR_VNPAY_SECRET_KEY";
+  const secureHash = CryptoJS.HmacSHA512(signData, secretKey).toString(
+    CryptoJS.enc.Hex
+  );
 
   // Construct final URL
-  const fullUrl = `${VNPAY_CONFIG.BASE_URL}?${signData}&vnp_SecureHash=${secureHash}`;
+  const baseUrl =
+    VNPAY_CONFIG.BASE_URL ||
+    "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+  const fullUrl = `${baseUrl}?${signData}&vnp_SecureHash=${secureHash}`;
 
-  console.log("VNPay Params:", vnp_Params);
-  console.log("Sign Data:", signData);
-  console.log("Secure Hash:", secureHash);
-  console.log("Generated VNPay URL:", fullUrl);
+  console.log(
+    JSON.stringify(
+      {
+        action: "Generated VNPay URL",
+        data: { vnp_Params, signData, secureHash, fullUrl },
+      },
+      null,
+      2
+    )
+  );
+
   return fullUrl;
 };

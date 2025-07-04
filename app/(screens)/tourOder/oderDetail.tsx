@@ -86,7 +86,7 @@ const TourDetailScreen = () => {
       return { prefix: "Đã hoàn thành", time: null };
     }
     if (item.bookingStatus === 4) {
-      return { prefix: "Đã hoàn tiền", time: null };
+      return { prefix: "Đã hoàn thành", time: null };
     }
     return { prefix: item.bookingStatusName || "Không rõ", time: null };
   };

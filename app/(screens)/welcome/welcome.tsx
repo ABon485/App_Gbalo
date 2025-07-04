@@ -13,6 +13,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import CustomButtonRN from "@/components/common/customButtonRN/index";
+import tourApi from "@/services/tour";
 
 interface City {
   id: string | number;
@@ -28,26 +29,26 @@ const Welcome = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchCities = async () => {
+    const fetchCountries = async () => {
       try {
-        const response = await axios.get<City[]>(
-          "https://67fdc9fd3da09811b1768e41.mockapi.io/Languages"
-        );
-        if (Array.isArray(response.data)) {
-          setCities(response.data);
+        setLoading(true);
+        const countries = await tourApi.getCountries();
+        if (Array.isArray(countries)) {
+          setCities(countries);
+          setError("");
         } else {
           setError("Invalid data format from server");
           setCities([]);
         }
       } catch (error) {
-        setError("Failed to load cities. Please try again.");
+        setError("Failed to load countries. Please try again.");
         setCities([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCities();
+    fetchCountries();
   }, []);
 
   return (

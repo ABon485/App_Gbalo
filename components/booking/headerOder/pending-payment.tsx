@@ -6,24 +6,30 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { WebView } from "react-native-webview"; // Thêm WebView
 import { BookingItem } from "@/types/tour";
 import bookingApi from "@/services/tour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useToast } from "@/context/ToastContext"; // Thêm ToastContext nếu cần
 
 const TourPending = () => {
   const router = useRouter();
   const [tours, setTours] = useState<BookingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<number | null>(null);
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null); // Thêm trạng thái paymentUrl
+  const [modalVisible, setModalVisible] = useState(false); // Thêm trạng thái modalVisible
+  const { showToast } = useToast(); // Thêm useToast nếu cần thông báo
 
   useEffect(() => {
     const fetchPendingBookings = async () => {
       try {
         const storedData = await AsyncStorage.getItem("data");
         console.log(
-          "fetchPendingBookings: Retrieved data from AsyncStorage:",
+          "[TourPending] Retrieved data from AsyncStorage:",
           storedData
         );
 
@@ -33,56 +39,79 @@ const TourPending = () => {
 
           if (!isNaN(parsedUserId)) {
             setUserId(parsedUserId);
-            console.log(`fetchPendingBookings: Set userId to ${parsedUserId}`);
+            console.log(`[TourPending] Set userId to ${parsedUserId}`);
 
-            console.log(
-              `fetchPendingBookings: Calling API for userId=${parsedUserId}, page=1, pageSize=10`
-            );
             const response = await bookingApi.getBooking(parsedUserId, 1, 10);
+            console.log("[TourPending] API response for pending bookings:", {
+              userId: parsedUserId,
+              totalBookings: response.data.datas?.length || 0,
+              pendingBookings: response.data.datas
+                ?.filter((item: BookingItem) => item.amountRemaining > 0)
+                .map((b: BookingItem) => ({
+                  id: b.id,
+                  serviceName: b.serviceName,
+                  amountRemaining: b.amountRemaining,
+                  totalAmount: b.totalAmount,
+                  departureDate: b.departureDate,
+                  pendingPaymentCreated: b.pendingPaymentCreated,
+                })),
+              rawResponse: JSON.stringify(response.data, null, 2),
+            });
+
             const pendingTours = (response.data.datas || []).filter(
               (item: BookingItem) => item.amountRemaining > 0
             );
-
-            // console.log(
-            //   `fetchPendingBookings: API response for userId=${parsedUserId}:`,
-            //   {
-            //     totalBookings: response.data.datas?.length || 0,
-            //     pendingBookingCount: pendingTours.length,
-            //     pendingBookings: pendingTours.map((b: BookingItem) => ({
-            //       id: b.id,
-            //       serviceName: b.serviceName,
-            //       bookingStatus: b.bookingStatus,
-            //       totalAmount: b.totalAmount,
-            //       amountRemaining: b.amountRemaining,
-            //     })),
-            //   }
-            // );
-
             setTours(pendingTours);
           } else {
             console.warn(
-              "fetchPendingBookings: Invalid userId format in authData:",
+              "[TourPending] Invalid userId format in authData:",
               authData.userId
             );
+            router.push("/(auths)/(Login)/loginEmail");
           }
         } else {
           console.warn(
-            "fetchPendingBookings: No auth data found in AsyncStorage. Redirecting to login."
+            "[TourPending] No auth data found in AsyncStorage. Redirecting to login."
           );
           router.push("/(auths)/(Login)/loginEmail");
         }
       } catch (error) {
-        console.error(
-          "fetchPendingBookings: Failed to fetch pending bookings:",
-          error
-        );
+        console.error("[TourPending] Failed to fetch pending bookings:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchPendingBookings();
-  }, []);
+  }, [router]);
+
+  const handleReBooking = async (bookingId: number) => {
+    try {
+      const response = await bookingApi.ReBooking(bookingId);
+      console.log("ReBooking success:", response);
+
+      if (response?.data?.paymentRedirectUrl) {
+        // Lưu bookingId vào AsyncStorage để sử dụng sau khi thanh toán
+        await AsyncStorage.setItem("lastBookingId", bookingId.toString());
+        await AsyncStorage.setItem("lastCustomerId", userId?.toString() || "");
+
+        // Cập nhật paymentUrl và mở modal
+        setPaymentUrl(response.data.paymentRedirectUrl);
+        setModalVisible(true);
+      } else {
+        showToast({
+          type: "error",
+          message: "Không tìm thấy URL thanh toán!",
+        });
+      }
+    } catch (error) {
+      console.error("ReBooking error:", error);
+      showToast({
+        type: "error",
+        message: "Có lỗi xảy ra khi tạo thanh toán lại.",
+      });
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " đ";
@@ -171,7 +200,7 @@ const TourPending = () => {
               </Text>
               <View style={styles.bottomRow}>
                 <TouchableOpacity
-                 onPress={() =>
+                  onPress={() =>
                     router.push({
                       pathname: "/(screens)/tourOder/oderDetail",
                       params: { bookingId: tour.id.toString() },
@@ -180,7 +209,10 @@ const TourPending = () => {
                 >
                   <Text style={styles.tourBalance}>Hiển thị chi tiết</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => handleReBooking(tour.id)}
+                >
                   <Text style={styles.buttonText}>Thanh toán</Text>
                 </TouchableOpacity>
               </View>
@@ -188,6 +220,79 @@ const TourPending = () => {
           </View>
         ))}
       </ScrollView>
+
+      {/* Modal hiển thị VNPay */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => {
+          setModalVisible(false);
+          showToast({
+            type: "info",
+            message: "Bạn đã hủy thanh toán.",
+          });
+        }}
+      >
+        <View style={styles.fullScreenContainer}>
+          <WebView
+            source={{ uri: paymentUrl || "" }}
+            style={styles.fullScreenWebView}
+            onNavigationStateChange={async (event) => {
+              console.log("WebView navigation:", event.url);
+              if (event.url.includes("finit")) {
+                setPaymentUrl(null);
+                setModalVisible(false);
+
+                const lastBookingId = await AsyncStorage.getItem(
+                  "lastBookingId"
+                );
+                const lastCustomerId = await AsyncStorage.getItem(
+                  "lastCustomerId"
+                );
+
+                if (lastBookingId && lastCustomerId) {
+                  router.push({
+                    pathname: "/(screens)/booking/successBooking",
+                    params: {
+                      bookingId: lastBookingId,
+                      customerId: lastCustomerId,
+                      amountPaid:
+                        tours
+                          .find((tour) => tour.id === Number(lastBookingId))
+                          ?.amountRemaining?.toString() || "0",
+                    },
+                  });
+                } else {
+                  showToast({
+                    type: "error",
+                    message:
+                      "Không thể xác định thông tin booking. Vui lòng thử lại.",
+                  });
+                }
+              } else if (
+                event.url.includes("vnp_TransactionStatus=02") ||
+                event.url.includes("vnp_TransactionStatus=01") ||
+                event.url.includes("cancel") ||
+                event.url.includes("error") ||
+                event.url.includes("vnpayresult") ||
+                event.url.includes("vnp_ResponseCode=24") // Thêm mã hủy của VNPay
+              ) {
+                // Hủy tour hoặc không thanh toán thành công
+                setPaymentUrl(null);
+                setModalVisible(false);
+                showToast({
+                  type: "info",
+                  message: event.url.includes("vnp_TransactionStatus=02")
+                    ? "Bạn đã hủy thanh toán."
+                    : "Thanh toán không thành công. Vui lòng thử lại.",
+                });
+                router.push("/(screens)/booking/confirmBooking"); // Chuyển về trang Confirm
+              }
+            }}
+          />
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -286,6 +391,15 @@ const styles = StyleSheet.create({
     color: "#333",
     textAlign: "center",
     marginTop: 10,
+  },
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  fullScreenWebView: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
   },
 });
 

@@ -7,16 +7,43 @@ import { router, useLocalSearchParams } from "expo-router";
 import styles from "@/styles/booking/successBooking";
 import bookingApi from "@/services/tour";
 import { BookingResponse } from "@/types/tour";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SuccessBooking() {
-  const { bookingId, customerId } = useLocalSearchParams();
+  const { bookingId, customerId, amountPaid } = useLocalSearchParams<{
+    bookingId?: string;
+    customerId?: string;
+    amountPaid?: string;
+  }>();
   const [bookingData, setBookingData] = useState<BookingResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
-      if (!bookingId || !customerId) {
+      let effectiveBookingId = bookingId;
+      let effectiveCustomerId = customerId;
+
+      if (!effectiveBookingId || !effectiveCustomerId) {
+        const lastBookingId = await AsyncStorage.getItem("lastBookingId");
+        effectiveBookingId =
+          effectiveBookingId || (lastBookingId !== null ? lastBookingId : undefined);
+        const lastCustomerId = await AsyncStorage.getItem("lastCustomerId");
+        effectiveCustomerId =
+          effectiveCustomerId || (lastCustomerId !== null ? lastCustomerId : undefined);
+        console.log(
+          JSON.stringify(
+            {
+              action: "Fallback bookingId",
+              data: { effectiveBookingId, effectiveCustomerId },
+            },
+            null,
+            2
+          )
+        );
+      }
+
+      if (!effectiveBookingId || !effectiveCustomerId) {
         setError("Thiếu thông tin booking hoặc khách hàng.");
         setLoading(false);
         return;
@@ -24,23 +51,29 @@ export default function SuccessBooking() {
 
       try {
         const response = await bookingApi.getBookingById(
-          Number(bookingId),
-          Number(customerId)
+          Number(effectiveBookingId),
+          Number(effectiveCustomerId)
         );
-
-        // Nếu API KHÔNG filter thì kiểm tra lại customerId ở response:
-        // if (
-        //   response.data.customerId &&
-        //   response.data.customerId !== Number(customerId)
-        // ) {
-        //   throw new Error("Bạn không có quyền xem booking này.");
-        // }
-
-        console.log("Booking Details:", response.data); // Debug log
+        console.log(
+          JSON.stringify(
+            { action: "Booking Details", data: response.data },
+            null,
+            2
+          )
+        );
         setBookingData(response);
         setLoading(false);
       } catch (err) {
-        console.error("Lỗi khi lấy chi tiết booking:", err);
+        console.error(
+          JSON.stringify(
+            {
+              error: "Lỗi khi lấy chi tiết booking",
+              message: (err as any)?.message || err,
+            },
+            null,
+            2
+          )
+        );
         setError("Không thể tải thông tin đặt tour. Vui lòng thử lại.");
         setLoading(false);
       }
@@ -75,6 +108,14 @@ export default function SuccessBooking() {
     service.details?.reduce((sum, detail) => sum + (detail.quantity || 0), 0) ||
     0;
 
+  // Sử dụng amountPaid từ callback nếu data.amountPaid chưa cập nhật
+  const effectiveAmountPaid =
+    data.amountPaid || (amountPaid ? Number(amountPaid) : 0);
+  const effectiveAmountRemaining =
+    data.amountRemaining !== undefined
+      ? data.amountRemaining
+      : (data.totalAmount || 0) - effectiveAmountPaid;
+
   return (
     <View style={styles.container}>
       {/* Success Message */}
@@ -101,7 +142,7 @@ export default function SuccessBooking() {
       <View style={styles.tourCard}>
         <Image
           source={{
-            uri: service.imageUrl || "https://via.placeholder.com/150",
+            uri: service.serviceImageUrl || "https://via.placeholder.com/150",
           }}
           style={styles.tourImage}
         />
@@ -111,7 +152,8 @@ export default function SuccessBooking() {
           </Text>
           <Text style={styles.tourDesc}>Khám phá điểm đến</Text>
           <Text style={styles.rating}>
-            <AntDesign name="star" size={16} color="#F24E1E" /> 4.95/5 (648)
+            <AntDesign name="star" size={16} color="#F24E1E" />{" "}
+            {data.rating || "Chưa đánh giá"}
           </Text>
           <Text style={styles.price}>
             Từ{" "}
@@ -159,7 +201,9 @@ export default function SuccessBooking() {
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Khởi hành từ:</Text>
-          <Text style={styles.detailValue}>Hà Nội</Text>
+          <Text style={styles.detailValue}>
+            {data.services?.[0]?.departureProvince || "Chưa xác định"}
+          </Text>
         </View>
 
         <View style={styles.detailRow}>
@@ -193,14 +237,14 @@ export default function SuccessBooking() {
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Đã thanh toán:</Text>
           <Text style={styles.detailPrice}>
-            {data.amountPaid?.toLocaleString("vi-VN") || "0"} vnd
+            {effectiveAmountPaid.toLocaleString("vi-VN")} vnd
           </Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Số tiền còn lại:</Text>
           <Text style={styles.detailPriceBold}>
-            {data.amountRemaining?.toLocaleString("vi-VN") || "0"} vnd
+            {effectiveAmountRemaining.toLocaleString("vi-VN")} vnd
           </Text>
         </View>
 
@@ -208,9 +252,11 @@ export default function SuccessBooking() {
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Trạng thái thanh toán:</Text>
           <Text style={styles.detailValue}>
-            {data.amountRemaining === 0
+            {effectiveAmountRemaining === 0
               ? "Đã thanh toán toàn bộ"
-              : `Còn lại ${data.amountRemaining?.toLocaleString("vi-VN")} vnd`}
+              : `Còn lại ${effectiveAmountRemaining.toLocaleString(
+                  "vi-VN"
+                )} vnd`}
           </Text>
         </View>
       </View>
@@ -219,7 +265,7 @@ export default function SuccessBooking() {
       <TouchableOpacity
         style={styles.exploreButton}
         onPress={() => {
-          if (data.amountRemaining === 0) {
+          if (effectiveAmountRemaining === 0) {
             router.replace("/"); // Navigate to TourPaid if fully paid
           } else {
             router.replace("/homepage"); // Otherwise, go to homepage
@@ -227,7 +273,7 @@ export default function SuccessBooking() {
         }}
       >
         <Text style={styles.exploreButtonText}>
-          {data.amountRemaining === 0
+          {effectiveAmountRemaining === 0
             ? "Xem các tour đã thanh toán"
             : "Khám phá các Tours hấp dẫn"}
         </Text>
