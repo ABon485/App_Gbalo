@@ -27,6 +27,8 @@ import {
   CartItem,
   GetCartResponse,
 } from "@/types/tour";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
 const tourApi = {
   ListTour: async (
@@ -396,7 +398,7 @@ const tourApi = {
         departureDate: item.departureDate,
         selected: item.selected ?? false,
         province: item.provinceName || "Không có tỉnh",
-        rating: item.rating ?? 0, 
+        rating: item.rating ?? 0,
       }));
 
       return cartItems;
@@ -413,8 +415,43 @@ const tourApi = {
     } catch (error) {
       throw error;
     }
-  }
-  
+  },
+  // API xóa một hoặc nhiều dịch vụ ra khỏi giỏ hàng
+  RemoveCartItem: async (itemIds: number[]): Promise<any> => {
+    try {
+      const response = await api.post("/cart/remove", { itemIds });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi xóa dịch vụ khỏi giỏ hàng:", error);
+      throw error;
+    }
+  },
+
+  // API xóa toàn bộ dịch vụ trong giỏ hàng
+  ClearCart: async (customerId: number): Promise<any> => {
+    try {
+      const response = await api.post("/cart/Clear", { customerId });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi xóa toàn bộ giỏ hàng:", error);
+      throw error;
+    }
+  },
+
+  cancelTour: async (bookingId: number, customerId: number): Promise<any> => {
+    try {
+      const response = await api.post("/booking/cancel", null, {
+        params: {
+          id_cta_booking: bookingId,
+          customerId: customerId,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi hủy tour:", error);
+      throw error;
+    }
+  },
 };
 
 export default tourApi;
