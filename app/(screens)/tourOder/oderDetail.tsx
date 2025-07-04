@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
@@ -90,6 +91,23 @@ const TourDetailScreen = () => {
     return { prefix: item.bookingStatusName || "Không rõ", time: null };
   };
 
+  const handleCancelTour = async () => {
+    if (!userId || !bookingId) return;
+
+    setLoading(true);
+    try {
+      const parsedBookingId = Number(bookingId);
+      await tourApi.cancelTour(parsedBookingId, userId);
+      Alert.alert("Thành công", "Tour đã được hủy.");
+      router.back(); // Quay lại màn hình trước đó sau khi hủy
+    } catch (err) {
+      setError("Không thể hủy tour. Vui lòng thử lại.");
+      Alert.alert("Lỗi", "Không thể hủy tour. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -170,7 +188,7 @@ const TourDetailScreen = () => {
               </Text>
             </View>
             <Text style={styles.totalPrice}>
-              <Text style={{ color: "black"}}>
+              <Text style={{ color: "black" }}>
                 Tổng tiền:{" "}
               </Text>
               <Text style={{ color: "#ff6600", fontWeight: "600" }}>
@@ -181,7 +199,7 @@ const TourDetailScreen = () => {
             <View style={styles.statusRow}>
               <Text style={styles.statusText}>
                 Trạng thái: {status.prefix}
-                {status.time && ( 
+                {status.time && (
                   <>
                     {" "}
                     <Text style={{ color: "#ff6600" }}>{status.time}</Text>
@@ -246,7 +264,19 @@ const TourDetailScreen = () => {
             <AntDesign name="right" size={16} color="#666" />
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </ScrollView>   
+      {/* Added Payment and Cancel Buttons */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.paymentButton}>
+          <Text style={styles.buttonText}>Thanh toán</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={handleCancelTour}
+        >
+          <Text style={styles.buttonText1}>Hủy</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -334,7 +364,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "black",
   },
-   priceValue2: {
+  priceValue2: {
     fontSize: 13,
     color: "#00809D",
   },
@@ -397,5 +427,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#007AFF",
     flex: 1,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 10,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#ddd"
+  },
+  paymentButton: {
+    backgroundColor: "#ff6600",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignItems: "center",
+    flex: 1,
+    marginRight: 5
+  },
+  cancelButton: {
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignItems: "center",
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ccc"
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold"
+  },
+  buttonText1: {
+    color: "#ff6600",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

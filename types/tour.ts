@@ -209,7 +209,7 @@ export interface CartItem {
 
 export interface GetCartResponse {
   data: {
-    datas: CartItem[];
+    datas: Cart[];
     page: number;
     pageSize: number;
     totalCount: number;
@@ -404,3 +404,23 @@ export type UpdateCountry = {
   id: number;
   name: string;
 };
+export type CartService = {
+  serviceDetailId: number;
+  quantity: number;
+  price: number;
+}
+
+export type Cart = {
+    id: number;
+    customerId: number;
+    departureDate: string;
+    serviceId: number;
+    serviceName: string;
+    price: number;
+    services: CartService[];
+    serviceImageUrl?: string;
+    provinceName?: string;
+    rating?: number;
+    selected?: boolean;
+  }
+

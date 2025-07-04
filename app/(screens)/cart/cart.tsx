@@ -5,6 +5,7 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -14,12 +15,12 @@ import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import tourApi from "@/services/tour";
 import { CartItem } from "@/types/tour";
-import Order from "@/components/booking/order"; 
+import Order from "@/components/booking/order";
 
 export default function CartScreen() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const [user, setUser] = useState<any>(null); 
+  const [user, setUser] = useState<any>(null);
 
   // Load giỏ hàng từ API
   const loadCart = async () => {
@@ -59,16 +60,56 @@ export default function CartScreen() {
   }, []);
 
   // Xử lý nhấn checkbox
-const toggleCheckbox = (itemId: number) => {
-  setCartItems((prevItems) =>
-    prevItems.map((item) =>
-      item.id === itemId
-        ? { ...item, selected: !item.selected }
-        : { ...item, selected: false }
-    )
-  );
-};
+  const toggleCheckbox = (itemId: number) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId
+          ? { ...item, selected: !item.selected }
+          : { ...item, selected: false }
+      )
+    );
+  };
 
+  // Xử lý xóa item hoặc giỏ hàng
+  const handleDelete = async () => {
+  try {
+    const userData = await AsyncStorage.getItem("data");
+    const userInfo = userData ? JSON.parse(userData) : null;
+    if (!userInfo) {
+      console.warn("Không tìm thấy thông tin người dùng");
+      Alert.alert("Lỗi", "Vui lòng đăng nhập lại.");
+      return;
+    }
+    const customerId = userInfo.customerId || userInfo.id;
+    console.log("Customer ID used:", customerId);
+
+    const selectedItems = cartItems.filter((item) => item.selected);
+    if (selectedItems.length > 0) {
+      const itemIds = selectedItems.map((item) => item.id);
+      console.log("Item IDs to remove:", itemIds);
+      const response = await tourApi.RemoveCartItem(itemIds);
+      if (response && response.success !== false) {
+        const updatedItems = cartItems.filter((item) => !itemIds.includes(item.id));
+        setCartItems(updatedItems);
+      } else {
+        throw new Error(response?.message || "Xóa mục thất bại");
+      }
+    } else {
+      Alert.alert("Thông báo", "Vui lòng chọn ít nhất một mục để xóa.");
+    }
+  } catch (error: any) {
+    console.error("Lỗi khi xóa giỏ hàng:", {
+      message: error.message,
+      status: error?.response?.status,
+      data: error?.response?.data,
+      stack: error.stack,
+    });
+    Alert.alert(
+      "Lỗi",
+      `Không thể xóa giỏ hàng. Mã lỗi: ${error?.response?.status || "Không xác định"} - ${error?.response?.data?.message || "Vui lòng thử lại sau."}`
+    );
+  }
+};
 
   // Tính tổng tiền cho các item được chọn
   const calculateTotal = () => {
@@ -106,16 +147,6 @@ const toggleCheckbox = (itemId: number) => {
       router.push("/(auths)/(Login)/login");
     }
   };
-
-  // Xử lý xác nhận đặt tour từ Order modal
-  // const handleOrderConfirm = () => {
-  //   const selectedItems = cartItems.filter((item) => item.selected);
-  //   setShowOrderModal(false);
-  //   router.push({
-  //     pathname: "/checkout",
-  //     params: { selectedItems: JSON.stringify(selectedItems) },
-  //   });
-  // };
 
   const renderItem = ({ item }: { item: CartItem }) => (
     <View style={styles.itemContainer}>
@@ -175,7 +206,7 @@ const toggleCheckbox = (itemId: number) => {
           <Text style={styles.itemCount}>({cartItems.length})</Text>
         </View>
 
-        <TouchableOpacity style={styles.rightIcon}>
+        <TouchableOpacity style={styles.rightIcon} onPress={handleDelete}>
           <Feather name="trash-2" size={20} color="black" />
         </TouchableOpacity>
       </View>
@@ -203,10 +234,10 @@ const toggleCheckbox = (itemId: number) => {
             // { opacity: countSelectedItems() === 0 ? 0.5 : 1 },
           ]}
           onPress={handleBookTour}
-          // disabled={countSelectedItems() === 0}
+        // disabled={countSelectedItems() === 0}
         >
           <Text style={styles.checkoutText}>
-            Thanh toán 
+            Thanh toán
           </Text>
         </TouchableOpacity>
       </View>

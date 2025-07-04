@@ -33,6 +33,7 @@ import styles from "@/styles/profile/profile";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
+import authApi from "@/services/auth"; // Import authApi to access deleteAccount
 
 
 export default function ProfileScreen() {
@@ -106,8 +107,8 @@ export default function ProfileScreen() {
           dateOfBirth: response.data.data.dateOfBirth
             ? new Date(response.data.data.dateOfBirth)
             : parsedData.dateOfBirth
-            ? new Date(parsedData.dateOfBirth)
-            : new Date(),
+              ? new Date(parsedData.dateOfBirth)
+              : new Date(),
           lastChangePassDate:
             response.data.data.lastChangePassDate ||
             parsedData.lastChangePassDate ||
@@ -208,6 +209,54 @@ export default function ProfileScreen() {
       });
     } finally {
       setLoadingLogout(false);
+    }
+  };
+  const handleDeleteAccount = async () => {
+    try {
+      const data = await AsyncStorage.getItem("data");
+      if (!data) {
+        showToast({
+          type: "error",
+          heading: "Lỗi",
+          message: "Không tìm thấy thông tin người dùng.",
+        });
+        return;
+      }
+
+      const parsedData = JSON.parse(data);
+      const token = parsedData.token;
+      if (!token) {
+        showToast({
+          type: "error",
+          heading: "Lỗi",
+          message: "Không tìm thấy token xác thực.",
+        });
+        return;
+      }
+
+      const response = await authApi.deleteAccount();
+      if (response.data.status === "Success" && response.data.data === true) {
+        await AsyncStorage.removeItem("data");
+        await AsyncStorage.removeItem("token");
+        setIsLoggedIn(false);
+        setUser(null);
+        setShowDeleteAccountModal(false);
+        showToast({
+          type: "success",
+          heading: "Thành công",
+          message: "Tài khoản đã được xóa!",
+        });
+        router.replace("/(auths)/(Login)/login");
+      } else {
+        throw new Error("Xóa tài khoản không thành công");
+      }
+    } catch (error) {
+      console.error("Error in handleDeleteAccount:", error);
+      showToast({
+        type: "error",
+        heading: "Lỗi",
+        message: "Xóa tài khoản thất bại, vui lòng thử lại",
+      });
     }
   };
 
@@ -405,15 +454,7 @@ export default function ProfileScreen() {
               <DeleteAccountModal
                 visible={showDeleteAccountModal}
                 onClose={() => setShowDeleteAccountModal(false)}
-                onDelete={() => {
-                  console.log("Tài khoản bị xóa");
-                  setShowDeleteAccountModal(false);
-                  showToast({
-                    type: "success",
-                    heading: "Thành công",
-                    message: "Tài khoản đã được xóa!",
-                  });
-                }}
+                onDelete={handleDeleteAccount}
               />
             </>
           )}
